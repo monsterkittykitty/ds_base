@@ -6,6 +6,8 @@ public:
   DslProcess();
   ~DslProcess();
 
-private:
-  ros::NodeHandle nh;
+protected:
+  ros::NodeHandle   nh;
+  ros::AsyncSpinner spinner;
+
 };

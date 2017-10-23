@@ -101,10 +101,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES dsl_base
-#  CATKIN_DEPENDS roscpp
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES dsl_process
+  CATKIN_DEPENDS roscpp
+  #DEPENDS system_lib
 )
 
 ###########
@@ -147,6 +147,7 @@ add_executable(${PROJECT_NAME}_node src/dsl_base.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  dsl_process
 )
 
 #############

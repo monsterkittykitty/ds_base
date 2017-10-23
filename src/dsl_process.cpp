@@ -1,11 +1,2 @@
-#include <ros/ros.h>
+#include <dsl_process.h>
 
-class DslProcess
-{
-public:
-  DslProcess();
-  ~DslProcess();
-
-private:
-  ros::NodeHandle nh;
-};

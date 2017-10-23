@@ -115,13 +115,14 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
 # include
-  ${catkin_INCLUDE_DIRS}
+${catkin_INCLUDE_DIRS}
+include/dsl_base
 )
 
 ## Declare a C++ library
-#add_library(${PROJECT_NAME}
-#  src/${PROJECT_NAME}/src/mytest.cpp
-#)
+add_library(dsl_process
+  src/dsl_process.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

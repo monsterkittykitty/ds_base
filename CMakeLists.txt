@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(dsl_base)
+project(ds_base)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -101,8 +101,8 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include/dsl_base
-  LIBRARIES dsl_process ds_callbackqueue
+  INCLUDE_DIRS include/ds_base
+  LIBRARIES ds_process ds_callbackqueue
   CATKIN_DEPENDS roscpp
   #DEPENDS system_lib
 )
@@ -117,7 +117,7 @@ include_directories(
   # include
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
-  include/dsl_base
+  include/ds_base
 )
 
 link_directories(
@@ -125,8 +125,8 @@ link_directories(
 )
 
 ## Declare a C++ library
-add_library(dsl_process
-  src/dsl_process.cpp
+add_library(ds_process
+  src/ds_process.cpp
 )
 
 add_library(ds_callbackqueue
@@ -141,7 +141,7 @@ add_library(ds_callbackqueue
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/dsl_base.cpp)
+#add_executable(${PROJECT_NAME}_node src/ds_base.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -153,7 +153,7 @@ add_executable(${PROJECT_NAME}_node src/dsl_base.cpp)
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(dsl_process
+target_link_libraries(ds_process
   ${Boost_SYSTEM_LIBRARY}
 )
 
@@ -162,11 +162,11 @@ target_link_libraries(ds_callbackqueue
 )
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-  dsl_process
-  ds_callbackqueue
-)
+#target_link_libraries(${PROJECT_NAME}_node
+#  ${catkin_LIBRARIES}
+#  ds_process
+#  ds_callbackqueue
+#)
 
 #############
 ## Install ##
@@ -183,10 +183,10 @@ target_link_libraries(${PROJECT_NAME}_node
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}_node
-#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+install(TARGETS
+ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark cpp header files for installation
@@ -208,7 +208,7 @@ install(TARGETS ${PROJECT_NAME}_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_dsl_base.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_ds_base.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

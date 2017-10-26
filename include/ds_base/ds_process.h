@@ -1,11 +1,11 @@
 #include <ros/ros.h>
 #include <boost/asio.hpp>
 
-class DslProcess
+class DsProcess
 {
 public:
-  DslProcess();
-  ~DslProcess();
+  DsProcess();
+  ~DsProcess();
 
 protected:
   ros::NodeHandle   nh;

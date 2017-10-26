@@ -1,19 +1,4 @@
-#include "ros/callback_queue.h"
-#include "boost/asio.hpp"
-#include "boost/bind.hpp"
-
-namespace ros
-{
-  class ROSCPP_DECL DsCallbackQueue : public CallbackQueue
-  {
-  public:
-    virtual void addCallback(const CallbackInterfacePtr& callback, uint64_t removal_id = 0);
-    void registerIoService(boost::asio::io_service &io_service);
-
-  private:
-    boost::asio::io_service *myIoService;
-  };
-}
+#include <ds_callbackqueue.h>
 
 namespace ros
 {
@@ -53,6 +38,6 @@ namespace ros
 
     condition_.notify_one();
     // SS - add posting of event to boost::asio io_service here
-    myIoService->post(boost::bind(&ros::CallbackQueue::callAvailable, this));
+    //myIoService->post(boost::bind(&ros::CallbackQueue::callAvailable, this));
   }
 }

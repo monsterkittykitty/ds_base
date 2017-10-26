@@ -1,7 +1,7 @@
-#include <dsl_process.h>
+#include <ds_process.h>
 #include "ros/callback_queue.h"
 
-DslProcess::DslProcess():
+DsProcess::DsProcess():
   spinner(4),
   socket_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 55555))
 {
@@ -18,7 +18,7 @@ DslProcess::DslProcess():
   io_service.run();
 }
 
-DslProcess::~DslProcess()
+DsProcess::~DsProcess()
 {
   ;
 }

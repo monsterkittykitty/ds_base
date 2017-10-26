@@ -13,7 +13,10 @@ DsProcess::DsProcess():
   socket_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 55555))
 {
   ros::DsCallbackQueue* queue = new ros::DsCallbackQueue();
-  nh.setCallbackQueue((ros::CallbackQueue*) &queue);
+  nh.setCallbackQueue((ros::CallbackQueue*) queue);
+
+  //ros::CallbackQueue* queue = new ros::CallbackQueue();
+  //nh.setCallbackQueue((ros::CallbackQueue*) queue);
   
   ROS_INFO_STREAM("Hello, world!");
 
@@ -21,7 +24,8 @@ DsProcess::DsProcess():
   boost::asio::io_service::work work(io_service);
   
   ros::Subscriber sub = nh.subscribe("test", 1000, &testCallback);
-  ros::spin();
+  //ros::AsyncSpinner spinner(0, queue);
+  //spinner.start();
   ROS_INFO_STREAM("Running io_service!");
   io_service.run();
   ROS_INFO_STREAM("Stopped running io_service!");

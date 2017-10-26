@@ -38,6 +38,6 @@ namespace ros
 
     condition_.notify_one();
     // SS - add posting of event to boost::asio io_service here
-    //myIoService->post(boost::bind(&ros::CallbackQueue::callAvailable, this));
+    myIoService->post(boost::bind(&ros::DsCallbackQueue::callAvailable, this));
   }
 }

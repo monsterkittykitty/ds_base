@@ -7,9 +7,10 @@ void testCallback3(void)
 
 namespace ros
 {
-  void DsCallbackQueue::registerIoService(boost::asio::io_service *io_service)
+  DsCallbackQueue::DsCallbackQueue(boost::asio::io_service *io_service):
+    CallbackQueue(),
+    myIoService(io_service)
   {
-    myIoService = io_service;
   }
   
   void DsCallbackQueue::addCallback(const CallbackInterfacePtr& callback, uint64_t removal_id)

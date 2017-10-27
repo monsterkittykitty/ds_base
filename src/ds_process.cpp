@@ -17,8 +17,8 @@ DsProcess::DsProcess():
   spinner(4),
   socket_(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 55555))
 {
-  ros::DsCallbackQueue* queue = new ros::DsCallbackQueue();
-  queue->registerIoService(&io_service);
+  ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
+  //queue->registerIoService(&io_service);
   nh.setCallbackQueue((ros::CallbackQueue*) queue);
 
   //ros::CallbackQueue* queue = new ros::CallbackQueue();

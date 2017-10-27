@@ -1,10 +1,15 @@
 #include <ds_callbackqueue.h>
 
+void testCallback3(void)
+{
+  ROS_INFO_STREAM("Callback3!");
+}
+
 namespace ros
 {
-  void DsCallbackQueue::registerIoService(boost::asio::io_service &io_service)
+  void DsCallbackQueue::registerIoService(boost::asio::io_service *io_service)
   {
-    myIoService = &io_service;
+    myIoService = io_service;
   }
   
   void DsCallbackQueue::addCallback(const CallbackInterfacePtr& callback, uint64_t removal_id)
@@ -37,7 +42,11 @@ namespace ros
     }
 
     condition_.notify_one();
+    ROS_INFO_STREAM("Notifying dispatcher!");
     // SS - add posting of event to boost::asio io_service here
-    myIoService->post(boost::bind(&ros::DsCallbackQueue::callAvailable, this));
+    ros::WallDuration mytime(0.1);
+    myIoService->post(boost::bind(&ros::DsCallbackQueue::callAvailable, this, mytime));
+    //myIoService->post(boost::bind(&testCallback3));
+    //myIoService->run();
   }
 }

@@ -8,7 +8,7 @@ namespace ros
   {
   public:
     virtual void addCallback(const CallbackInterfacePtr& callback, uint64_t removal_id = 0);
-    void registerIoService(boost::asio::io_service &io_service);
+    void registerIoService(boost::asio::io_service *io_service);
 
   private:
     boost::asio::io_service *myIoService;

@@ -46,7 +46,7 @@ namespace ros
     ROS_INFO_STREAM("Notifying dispatcher!");
     // SS - add posting of event to boost::asio io_service here
     ros::WallDuration mytime(0.1);
-    myIoService->post(boost::bind(&ros::DsCallbackQueue::callAvailable, this, mytime));
+    myIoService->post(boost::bind(&ros::DsCallbackQueue::callAvailable, this));
     //myIoService->post(boost::bind(&testCallback3));
     //myIoService->run();
   }

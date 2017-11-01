@@ -4,6 +4,7 @@ std::string make_daytime_string()
 {
   using namespace std; // For time_t, time and ctime;
   time_t now = time(0);
+  ROS_INFO_STREAM("Generating time string");
   return ctime(&now);
 }
 
@@ -43,5 +44,6 @@ void udp_server::handle_send(boost::shared_ptr<std::string> /*message*/,
 			     const boost::system::error_code& /*error*/,
 			     std::size_t /*bytes_transferred*/)
 {
+  ROS_INFO_STREAM("Sending UDP reply");
 }
 

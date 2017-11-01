@@ -159,6 +159,7 @@ add_library(udp_io
 
 target_link_libraries(ds_process
   ${Boost_SYSTEM_LIBRARY}
+  udp_io
 )
 
 target_link_libraries(ds_callbackqueue

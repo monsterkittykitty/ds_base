@@ -2,6 +2,7 @@
 #include <ds_callbackqueue.h>
 #include "ros/callback_queue.h"
 #include "std_msgs/String.h"
+#include <udp_io.h>
 
 void testCallback(const std_msgs::String::ConstPtr& msg)
 {
@@ -11,6 +12,11 @@ void testCallback(const std_msgs::String::ConstPtr& msg)
 void testCallback2(void)
 {
   ROS_INFO_STREAM("Callback2!");
+}
+
+void timerCallback(const ros::TimerEvent&)
+{
+  ROS_INFO_STREAM("Timer callback!");
 }
 
 DsProcess::DsProcess():
@@ -28,11 +34,16 @@ DsProcess::DsProcess():
 
   // Work object prevents io_service from quitting while it exists
   boost::asio::io_service::work work(io_service);
+
+  ros::Timer timer = nh.createTimer(ros::Duration(0.5), timerCallback);
   
   ros::Subscriber sub = nh.subscribe("test", 1000, &testCallback);
   //ros::AsyncSpinner spinner(0, queue);
   //spinner.start();
   io_service.post(boost::bind(&testCallback2));
+
+  udp_server server(io_service);
+  
   ROS_INFO_STREAM("Running io_service!");
   io_service.run();
   ROS_INFO_STREAM("Stopped running io_service!");

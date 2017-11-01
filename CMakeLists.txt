@@ -102,7 +102,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include/ds_base
-  LIBRARIES ds_process ds_callbackqueue
+  LIBRARIES ds_process ds_callbackqueue udp_io
   CATKIN_DEPENDS roscpp
   #DEPENDS system_lib
 )
@@ -133,6 +133,10 @@ add_library(ds_callbackqueue
   src/ds_callbackqueue.cpp
 )
 
+add_library(udp_io
+  src/udp_io.cpp
+)
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -158,6 +162,10 @@ target_link_libraries(ds_process
 )
 
 target_link_libraries(ds_callbackqueue
+  ${Boost_SYSTEM_LIBRARY}
+)
+
+target_link_libraries(udp_io
   ${Boost_SYSTEM_LIBRARY}
 )
 

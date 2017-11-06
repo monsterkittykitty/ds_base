@@ -2,9 +2,15 @@
 
 DsConnection::DsConnection()
 {
+  ;
 }
 
 DsConnection::~DsConnection()
 {
+  ;
 }
 
+DsConnection* DsConnection::create(int type)
+{
+  ;
+}

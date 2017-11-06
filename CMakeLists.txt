@@ -169,6 +169,9 @@ target_link_libraries(ds_process
   ${Boost_SYSTEM_LIBRARY}
   ds_connection
   ds_udp
+  ds_asio
+  ds_callbackqueue
+  ds_udp
 )
 
 target_link_libraries(ds_callbackqueue

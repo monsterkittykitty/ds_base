@@ -2,7 +2,7 @@
 
 DsProcess::DsProcess()
 {
-  ;
+  myAsio = new DsAsio();
 }
 
 DsProcess::~DsProcess()

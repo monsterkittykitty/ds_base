@@ -24,6 +24,7 @@ DsAsio::DsAsio()
 {
 
   DsUdp server(io_service);
+  server.receive();
 
   ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
   nh.setCallbackQueue((ros::CallbackQueue*) queue);

@@ -177,6 +177,7 @@ target_link_libraries(ds_connection
 
 target_link_libraries(ds_udp
   ${Boost_SYSTEM_LIBRARY}
+  ds_connection
 )
 
 ## Specify libraries to link a library or executable target against

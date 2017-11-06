@@ -42,7 +42,7 @@ DsProcess::DsProcess():
   //spinner.start();
   io_service.post(boost::bind(&testCallback2));
 
-  udp_server server(io_service);
+  DsUdp server(io_service);
   
   ROS_INFO_STREAM("Running io_service!");
   io_service.run();

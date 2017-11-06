@@ -6,23 +6,24 @@
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
+#include <ds_connection.h>
 
 using boost::asio::ip::udp;
 
-class udp_server
+class DsUdp : public DsConnection
 {
 public:
-  udp_server(boost::asio::io_service& io_service);
+  DsUdp(boost::asio::io_service& io_service);
 
 private:
-  void start_receive();
+  virtual void receive();
 
   void handle_receive(const boost::system::error_code& error,
 		      std::size_t /*bytes_transferred*/);
 
-  void handle_send(boost::shared_ptr<std::string> /*message*/,
-		   const boost::system::error_code& /*error*/,
-		   std::size_t /*bytes_transferred*/);
+  virtual void send(boost::shared_ptr<std::string> /*message*/,
+		    const boost::system::error_code& /*error*/,
+		    std::size_t /*bytes_transferred*/);
 
   udp::socket socket_;
   udp::endpoint remote_endpoint_;

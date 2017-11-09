@@ -24,19 +24,19 @@ void DsAsio::addRosTimer(ros::Duration interval, void (*callback)(const ros::Tim
   ros::Timer timer = nh.createTimer(interval, callback);
 }
 
+// SS - add a callback for the data
+void DsAsio::addConnection(void)
+{
+  connections.push_back(new DsUdp(io_service));
+  connections[connections.size()]->receive();
+}
+
 DsAsio::DsAsio()
 {
-
-  connections.push_back(new DsUdp(io_service));
-  //DsUdp server(io_service);
-  connections[0]->receive();
-
   ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
   nh.setCallbackQueue((ros::CallbackQueue*) queue);
 
   addRosTimer(ros::Duration(0.5), timerCallback);
-  //ros::Timer timer = nh.createTimer(ros::Duration(0.5), timerCallback);
-  //addRosSubscription<const std_msgs::String::ConstPtr& msg>("test", 1000, (void *)&testCallback);
   ros::Subscriber sub = nh.subscribe("test", 1000, &testCallback);
   
   // Work object prevents io_service from quitting while it exists

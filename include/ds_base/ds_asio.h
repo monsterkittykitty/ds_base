@@ -15,6 +15,8 @@ public:
   template<typename T>
     void addRosSubscription(std::string channel, int queue, void (*callback)(T&));
   void addRosTimer(ros::Duration interval, void (*callback)(const ros::TimerEvent&));
+
+  void addConnection(void);
   
 private:
   boost::asio::io_service io_service;

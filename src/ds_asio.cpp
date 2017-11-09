@@ -24,11 +24,11 @@ void DsAsio::addRosTimer(ros::Duration interval, void (*callback)(const ros::Tim
   ros::Timer timer = nh.createTimer(interval, callback);
 }
 
-// SS - add a callback for the data
-void DsAsio::addConnection(void)
+// SS - add a callback for the data incoming, the data sent, and the connection type
+void DsAsio::addConnection(boost::function<void()> callback)
 {
-  connections.push_back(new DsUdp(io_service));
-  connections[connections.size()]->receive();
+  connections.push_back(new DsUdp(io_service, callback));
+  connections[connections.size()]->receive(callback);
 }
 
 DsAsio::DsAsio()

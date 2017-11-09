@@ -17,5 +17,5 @@ public:
 		    const boost::system::error_code&,
 		    std::size_t) = 0;
   
-  virtual void receive() = 0;
+  virtual void receive(boost::function<void()> callback) = 0;
 };

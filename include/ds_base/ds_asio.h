@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 //#include <ds_connection.h>
 #include <ds_udp.h>
+#include <functional>
 
 class DsAsio
 {
@@ -16,7 +17,7 @@ public:
     void addRosSubscription(std::string channel, int queue, void (*callback)(T&));
   void addRosTimer(ros::Duration interval, void (*callback)(const ros::TimerEvent&));
 
-  void addConnection(void);
+  void addConnection(boost::function<void()> callback);
   
 private:
   boost::asio::io_service io_service;

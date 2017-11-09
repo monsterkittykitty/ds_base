@@ -13,9 +13,9 @@ using boost::asio::ip::udp;
 class DsUdp : public DsConnection
 {
 public:
-  DsUdp(boost::asio::io_service& io_service);
+  DsUdp(boost::asio::io_service& io_service, boost::function<void()> callback);
 
-  virtual void receive();
+  virtual void receive(boost::function<void()> callback);
 
   virtual void send(boost::shared_ptr<std::string> /*message*/,
 		    const boost::system::error_code& /*error*/,
@@ -29,4 +29,5 @@ private:
   udp::socket socket_;
   udp::endpoint remote_endpoint_;
   boost::array<char, 1> recv_buffer_;
+  boost::function<void()> callback_;
 };

@@ -1,18 +1,21 @@
 #include <ds_udp.h>
 
-DsUdp::DsUdp(boost::asio::io_service& io_service)
+DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void()> callback)
   : socket_(io_service, udp::endpoint(udp::v4(), 44444)),
-    DsConnection()
+    DsConnection(),
+    callback_(callback)
 {
-  receive();
+  receive(callback_);
 }
 
-void DsUdp::receive()
+void DsUdp::receive(boost::function<void()> callback)
 {
   socket_.async_receive_from(boost::asio::buffer(recv_buffer_), remote_endpoint_,
 			     boost::bind(&DsUdp::handle_receive, this,
 					 boost::asio::placeholders::error,
 					 boost::asio::placeholders::bytes_transferred));
+
+  callback();
 }
 
 void DsUdp::handle_receive(const boost::system::error_code& error,
@@ -28,7 +31,7 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::bytes_transferred));
 
-      receive();
+      receive(callback_);
     }
 }
 

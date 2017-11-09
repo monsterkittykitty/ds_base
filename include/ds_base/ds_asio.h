@@ -24,5 +24,6 @@ private:
   ros::NodeHandle   nh;
 
   std::vector<DsConnection*> connections;
+  std::vector<ros::Subscriber> subs;
   
 };

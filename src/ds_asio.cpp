@@ -36,8 +36,11 @@ DsAsio::DsAsio()
   ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
   nh.setCallbackQueue((ros::CallbackQueue*) queue);
 
+  //addConnection(boost::bind<std_msgs::String>(&testCallback, _1));
+  
   addRosTimer(ros::Duration(0.5), timerCallback);
-  ros::Subscriber sub = nh.subscribe("test", 1000, &testCallback);
+  subs.push_back(nh.subscribe("test", 1000, &testCallback));
+  //ros::Subscriber sub = nh.subscribe("test", 1000, &testCallback);
   
   // Work object prevents io_service from quitting while it exists
   boost::asio::io_service::work work(io_service);

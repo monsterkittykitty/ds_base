@@ -13,17 +13,19 @@ public:
   DsAsio();
   ~DsAsio();
 
-  template<typename T>
-    void addRosSubscription(std::string channel, int queue, void (*callback)(T&));
-  void addRosTimer(ros::Duration interval, void (*callback)(const ros::TimerEvent&));
+  void addRosAdvertise(void);
+  void addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback);
+  void addRosTimer(ros::Duration interval);
 
-  void addConnection(boost::function<void()> callback);
+  void addConnection(boost::function<void(void)> callback);
   
 private:
-  boost::asio::io_service io_service;
-  ros::NodeHandle   nh;
+  boost::asio::io_service        io_service;
+  ros::NodeHandle                nh;
 
-  std::vector<DsConnection*> connections;
-  std::vector<ros::Subscriber> subs;
+  std::vector<DsConnection*>     connections;
+  std::vector<ros::Subscriber>   subs;
+  std::vector<ros::Timer>        tmrs;
+  std::vector<ros::Publisher>    pubs;
   
 };

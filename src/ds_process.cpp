@@ -1,8 +1,8 @@
 #include <ds_process.h>
 
-DsProcess::DsProcess()
+DsProcess::DsProcess(int argc, char** argv, const std::string &name)
 {
-  myAsio = new DsAsio();
+  myAsio = new DsAsio(argc, argv, name);
 }
 
 DsProcess::~DsProcess()

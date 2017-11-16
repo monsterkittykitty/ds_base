@@ -1,3 +1,6 @@
+#ifndef DS_CALLBACKQUEUE_H
+#define DS_CALLBACKQUEUE_H
+
 #include "ros/callback_queue.h"
 #include "boost/asio.hpp"
 #include "boost/bind.hpp"
@@ -15,3 +18,5 @@ namespace ros
     boost::asio::io_service *myIoService;
   };
 }
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef DS_UDP_H
+#define DS_UDP_H
+
 #include <ros/ros.h>
 #include <ctime>
 #include <iostream>
@@ -31,3 +34,5 @@ private:
   boost::array<char, 1> recv_buffer_;
   boost::function<void()> callback_;
 };
+
+#endif

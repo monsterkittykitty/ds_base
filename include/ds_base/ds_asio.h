@@ -1,3 +1,6 @@
+#ifndef DS_ASIO_H
+#define DS_ASIO_H
+
 #include <ros/ros.h>
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
@@ -10,7 +13,7 @@
 class DsAsio
 {
 public:
-  DsAsio();
+  DsAsio(int argc, char** argv, const std::string &name);
   ~DsAsio();
 
   void addRosAdvertise(void);
@@ -29,3 +32,5 @@ private:
   std::vector<ros::Publisher>    pubs;
   
 };
+
+#endif

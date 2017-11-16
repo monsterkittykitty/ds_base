@@ -1,3 +1,6 @@
+#ifndef DS_CONNECTION_H
+#define DS_CONNECTION_H
+
 #include <ros/ros.h>
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
@@ -19,3 +22,5 @@ public:
   
   virtual void receive(boost::function<void()> callback) = 0;
 };
+
+#endif

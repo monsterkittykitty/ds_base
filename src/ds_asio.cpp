@@ -40,8 +40,10 @@ void DsAsio::addConnection(boost::function<void(void)> callback)
   connections[connections.size()]->receive(callback);
 }
 
-DsAsio::DsAsio()
+DsAsio::DsAsio(int argc, char** argv, const std::string &name)
 {
+  ros::init(argc, argv, name);
+
   ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
   nh.setCallbackQueue((ros::CallbackQueue*) queue);
 
@@ -49,6 +51,9 @@ DsAsio::DsAsio()
 
   addRosSubscription("test",1000,connCallback);
   addRosTimer(ros::Duration(0.5));
+
+  ROS_INFO_STREAM(ros::this_node::getName());
+  ROS_INFO_STREAM(ros::this_node::getNamespace());
   
   // Work object prevents io_service from quitting while it exists
   boost::asio::io_service::work work(io_service);

@@ -40,6 +40,16 @@ void DsAsio::addConnection(boost::function<void(void)> callback)
   connections[connections.size()]->receive(callback);
 }
 
+ros::NodeHandle& DsAsio::getNh(void)
+{
+  return nh;
+}
+
+DsAsio* DsAsio::asio(void)
+{
+  return this;
+}
+
 DsAsio::DsAsio(int argc, char** argv, const std::string &name)
 {
   ros::init(argc, argv, name);

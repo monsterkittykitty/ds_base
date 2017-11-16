@@ -21,8 +21,11 @@ public:
   void addRosTimer(ros::Duration interval);
 
   void addConnection(boost::function<void(void)> callback);
-  
-private:
+
+  ros::NodeHandle& getNh(void);
+  DsAsio* asio(void);
+
+ private:
   boost::asio::io_service        io_service;
   ros::NodeHandle                nh;
 

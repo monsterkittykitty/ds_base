@@ -21,17 +21,17 @@ void connCallback(void)
 void DsAsio::addRosAdvertise(void)
 {
   ros::AdvertiseOptions ops;
-  pubs.push_back(nh.advertise(ops));
+  pubs.push_back(nh->advertise(ops));
 }
 
 void DsAsio::addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback)
 {
-  subs.push_back(nh.subscribe<std_msgs::String>(channel, queue, boost::bind(testCallback, _1)));
+  subs.push_back(nh->subscribe<std_msgs::String>(channel, queue, boost::bind(testCallback, _1)));
 }
 
 void DsAsio::addRosTimer(ros::Duration interval)
 {
-  tmrs.push_back(nh.createTimer(interval, boost::bind(timerCallback, _1)));
+  tmrs.push_back(nh->createTimer(interval, boost::bind(timerCallback, _1)));
 }
 
 void DsAsio::addConnection(boost::function<void(void)> callback)
@@ -42,7 +42,7 @@ void DsAsio::addConnection(boost::function<void(void)> callback)
 
 ros::NodeHandle& DsAsio::getNh(void)
 {
-  return nh;
+  return *nh;
 }
 
 DsAsio* DsAsio::asio(void)
@@ -54,8 +54,9 @@ DsAsio::DsAsio(int argc, char** argv, const std::string &name)
 {
   ros::init(argc, argv, name);
 
+  nh = new ros::NodeHandle();
   ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
-  nh.setCallbackQueue((ros::CallbackQueue*) queue);
+  nh->setCallbackQueue((ros::CallbackQueue*) queue);
 
   //addConnection(boost::bind(connCallback));
 

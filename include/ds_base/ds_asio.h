@@ -27,7 +27,7 @@ public:
 
  private:
   boost::asio::io_service        io_service;
-  ros::NodeHandle                nh;
+  ros::NodeHandle                *nh;
 
   std::vector<DsConnection*>     connections;
   std::vector<ros::Subscriber>   subs;

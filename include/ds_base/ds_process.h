@@ -11,8 +11,9 @@ public:
   DsProcess(int argc, char** argv, const std::string &name);
   ~DsProcess();
 
-protected:
   DsAsio* myAsio;
+
+protected:
   
 private:
 };

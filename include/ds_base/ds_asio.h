@@ -16,6 +16,7 @@ public:
   DsAsio(int argc, char** argv, const std::string &name);
   ~DsAsio();
 
+  void run(void);
   void addRosAdvertise(void);
   void addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback);
   void addRosTimer(ros::Duration interval);

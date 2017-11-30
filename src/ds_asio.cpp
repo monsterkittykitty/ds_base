@@ -61,11 +61,18 @@ DsAsio::DsAsio(int argc, char** argv, const std::string &name)
   //addConnection(boost::bind(connCallback));
 
   addRosSubscription("test",1000,connCallback);
-  addRosTimer(ros::Duration(0.5));
+  //addRosTimer(ros::Duration(0.5));
 
   ROS_INFO_STREAM(ros::this_node::getName());
   ROS_INFO_STREAM(ros::this_node::getNamespace());
   
+  // Work object prevents io_service from quitting while it exists
+  //boost::asio::io_service::work work(io_service);
+  //io_service.run();
+}
+
+void DsAsio::run(void)
+{
   // Work object prevents io_service from quitting while it exists
   boost::asio::io_service::work work(io_service);
   io_service.run();

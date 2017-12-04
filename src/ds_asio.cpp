@@ -14,9 +14,9 @@ void DsAsio::addRosSubscription(std::string channel, int queue, boost::function<
   //subs.push_back(nh->subscribe<std_msgs::String>(channel, queue, boost::bind(testCallback, _1)));
 }
 
-void DsAsio::addRosTimer(ros::Duration interval)
+void DsAsio::addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback)
 {
-  //tmrs.push_back(nh->createTimer(interval, boost::bind(timerCallback, _1)));
+  tmrs.push_back(nh->createTimer(interval, callback));
 }
 
 void DsAsio::addConnection(boost::function<void(void)> callback)

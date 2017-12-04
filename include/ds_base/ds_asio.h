@@ -19,7 +19,7 @@ public:
   void run(void);
   void addRosAdvertise(void);
   void addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback);
-  void addRosTimer(ros::Duration interval);
+  void addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback);
 
   void addConnection(boost::function<void(void)> callback);
 

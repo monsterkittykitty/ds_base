@@ -3,21 +3,6 @@
 #include "std_msgs/String.h"
 
 
-void testCallback(const std_msgs::String::ConstPtr& msg)
-{
-  ROS_INFO_STREAM("Callback!");
-}
-
-void timerCallback(const ros::TimerEvent& msg)
-{
-  ROS_INFO_STREAM("Timer callback!");
-}
-
-void connCallback(void)
-{
-  ROS_INFO_STREAM("Conn callback!");
-}
-
 void DsAsio::addRosAdvertise(void)
 {
   ros::AdvertiseOptions ops;
@@ -26,12 +11,12 @@ void DsAsio::addRosAdvertise(void)
 
 void DsAsio::addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback)
 {
-  subs.push_back(nh->subscribe<std_msgs::String>(channel, queue, boost::bind(testCallback, _1)));
+  //subs.push_back(nh->subscribe<std_msgs::String>(channel, queue, boost::bind(testCallback, _1)));
 }
 
 void DsAsio::addRosTimer(ros::Duration interval)
 {
-  tmrs.push_back(nh->createTimer(interval, boost::bind(timerCallback, _1)));
+  //tmrs.push_back(nh->createTimer(interval, boost::bind(timerCallback, _1)));
 }
 
 void DsAsio::addConnection(boost::function<void(void)> callback)
@@ -60,7 +45,7 @@ DsAsio::DsAsio(int argc, char** argv, const std::string &name)
 
   //addConnection(boost::bind(connCallback));
 
-  addRosSubscription("test",1000,connCallback);
+  //addRosSubscription("test",1000,connCallback);
   //addRosTimer(ros::Duration(0.5));
 
   ROS_INFO_STREAM(ros::this_node::getName());

@@ -3,21 +3,21 @@
 #include "std_msgs/String.h"
 
 
-void DsAsio::addRosAdvertise(void)
-{
-  ros::AdvertiseOptions ops;
-  pubs.push_back(nh->advertise(ops));
-}
+//void DsAsio::addRosAdvertise(void)
+//{
+//  ros::AdvertiseOptions ops;
+//  pubs.push_back(nh->advertise(ops));
+//}
 
-void DsAsio::addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback)
-{
+//void DsAsio::addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback)
+//{
   //subs.push_back(nh->subscribe<std_msgs::String>(channel, queue, boost::bind(testCallback, _1)));
-}
+//}
 
-void DsAsio::addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback)
-{
-  tmrs.push_back(nh->createTimer(interval, callback));
-}
+//void DsAsio::addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback)
+//{
+//  tmrs.push_back(nh->createTimer(interval, callback));
+//}
 
 void DsAsio::addConnection(boost::function<void(void)> callback)
 {
@@ -33,6 +33,21 @@ ros::NodeHandle& DsAsio::getNh(void)
 DsAsio* DsAsio::asio(void)
 {
   return this;
+}
+
+void DsAsio::addSub(ros::Subscriber mySub)
+{
+  subs.push_back(mySub);
+}
+
+void DsAsio::addTmr(ros::Timer myTmr)
+{
+  tmrs.push_back(myTmr);
+}
+
+void DsAsio::addPub(ros::Publisher myPub)
+{
+  pubs.push_back(myPub);
 }
 
 DsAsio::DsAsio(int argc, char** argv, const std::string &name)

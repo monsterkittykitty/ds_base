@@ -17,15 +17,20 @@ public:
   ~DsAsio();
 
   void run(void);
-  void addRosAdvertise(void);
-  void addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback);
-  void addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback);
+  //void addRosAdvertise(void);
+  //template<class C>
+  //void addRosSubscription(std::string channel, int queue, const boost::function<void (C)>& callback);
+  //void addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback);
 
   void addConnection(boost::function<void(void)> callback);
 
   ros::NodeHandle& getNh(void);
   DsAsio* asio(void);
 
+  void addSub(ros::Subscriber mySub);
+  void addTmr(ros::Timer myTmr);
+  void addPub(ros::Publisher myPub);
+  
  private:
   boost::asio::io_service        io_service;
   ros::NodeHandle                *nh;

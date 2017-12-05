@@ -5,17 +5,17 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void()> callba
     DsConnection(),
     callback_(callback)
 {
-  receive(callback_);
+  receive();
 }
 
-void DsUdp::receive(boost::function<void()> callback)
+void DsUdp::receive(void)
 {
+  recv_buffer_.assign(0);
   socket_.async_receive_from(boost::asio::buffer(recv_buffer_), remote_endpoint_,
 			     boost::bind(&DsUdp::handle_receive, this,
 					 boost::asio::placeholders::error,
 					 boost::asio::placeholders::bytes_transferred));
 
-  callback();
 }
 
 void DsUdp::handle_receive(const boost::system::error_code& error,
@@ -23,7 +23,9 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
 {
   if (!error || error == boost::asio::error::message_size)
     {
-      receive(callback_);
+      ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
+      callback_();
+      receive();
     }
 }
 

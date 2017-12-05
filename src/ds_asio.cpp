@@ -5,7 +5,7 @@
 DsConnection* DsAsio::addConnection(boost::function<void(void)> callback)
 {
   connections.push_back(new DsUdp(io_service, callback));
-  connections[connections.size()]->receive(callback);
+  //connections[connections.size()]->receive(callback);
   return connections[connections.size()];
 }
 

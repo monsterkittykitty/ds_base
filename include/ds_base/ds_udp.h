@@ -1,6 +1,7 @@
 #ifndef DS_UDP_H
 #define DS_UDP_H
 
+#include "ds_base/ds_connection.h"
 #include <ros/ros.h>
 #include <ctime>
 #include <iostream>
@@ -9,7 +10,6 @@
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
-#include <ds_connection.h>
 
 using boost::asio::ip::udp;
 

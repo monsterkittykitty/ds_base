@@ -6,9 +6,7 @@
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
-//#include <ds_connection.h>
 #include <ds_udp.h>
-#include <functional>
 
 class DsAsio
 {
@@ -17,12 +15,8 @@ public:
   ~DsAsio();
 
   void run(void);
-  //void addRosAdvertise(void);
-  //template<class C>
-  //void addRosSubscription(std::string channel, int queue, const boost::function<void (C)>& callback);
-  //void addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback);
 
-  void addConnection(boost::function<void(void)> callback);
+  DsConnection* addConnection(boost::function<void(void)> callback);
 
   ros::NodeHandle& getNh(void);
   DsAsio* asio(void);

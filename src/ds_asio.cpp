@@ -1,28 +1,12 @@
 #include <ds_asio.h>
 #include <ds_callbackqueue.h>
-#include "std_msgs/String.h"
+//#include "std_msgs/String.h"
 
-
-//void DsAsio::addRosAdvertise(void)
-//{
-//  ros::AdvertiseOptions ops;
-//  pubs.push_back(nh->advertise(ops));
-//}
-
-//void DsAsio::addRosSubscription(std::string channel, int queue, boost::function<void(void)> callback)
-//{
-  //subs.push_back(nh->subscribe<std_msgs::String>(channel, queue, boost::bind(testCallback, _1)));
-//}
-
-//void DsAsio::addRosTimer(ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback)
-//{
-//  tmrs.push_back(nh->createTimer(interval, callback));
-//}
-
-void DsAsio::addConnection(boost::function<void(void)> callback)
+DsConnection* DsAsio::addConnection(boost::function<void(void)> callback)
 {
   connections.push_back(new DsUdp(io_service, callback));
   connections[connections.size()]->receive(callback);
+  return connections[connections.size()];
 }
 
 ros::NodeHandle& DsAsio::getNh(void)

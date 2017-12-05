@@ -2,7 +2,7 @@
 #include <ds_callbackqueue.h>
 //#include "std_msgs/String.h"
 
-DsConnection* DsAsio::addConnection(boost::function<void(void)> callback)
+DsConnection* DsAsio::addConnection(boost::function<void(std::string)> callback)
 {
   connections.push_back(new DsUdp(io_service, callback));
   //connections[connections.size()]->receive(callback);

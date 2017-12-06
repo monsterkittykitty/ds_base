@@ -1,9 +1,9 @@
 #ifndef DS_PROCESS_H
 #define DS_PROCESS_H
 
+#include "ds_base/ds_asio.h"
 #include <ros/ros.h>
 #include <boost/asio.hpp>
-#include <ds_asio.h>
 
 class DsProcess
 {

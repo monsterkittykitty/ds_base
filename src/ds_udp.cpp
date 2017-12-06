@@ -1,6 +1,6 @@
 #include <ds_udp.h>
 
-DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::string)> callback)
+DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback)
   : socket_(io_service, udp::endpoint(udp::v4(), 44444)),
     DsConnection(),
     callback_(callback)
@@ -24,7 +24,7 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
   if (!error || error == boost::asio::error::message_size)
     {
       ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
-      std::string data(recv_buffer_.begin(), recv_buffer_.end());
+      std::vector<unsigned char> data(recv_buffer_.begin(), recv_buffer_.end());
       callback_(data);
       receive();
     }

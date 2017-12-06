@@ -16,7 +16,7 @@ public:
 
   void run(void);
 
-  DsConnection* addConnection(boost::function<void(std::string)> callback);
+  DsConnection* addConnection(boost::function<void(std::vector<unsigned char>)> callback);
 
   ros::NodeHandle& getNh(void);
   DsAsio* asio(void);

@@ -9,7 +9,7 @@ class DsProcess
 {
 public:
   DsProcess(int argc, char** argv, const std::string &name);
-  ~DsProcess();
+  virtual ~DsProcess();
 
   DsAsio* myAsio;
 

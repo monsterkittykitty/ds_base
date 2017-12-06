@@ -20,14 +20,16 @@ public:
 
   virtual void receive(void);
 
-  virtual void send(boost::shared_ptr<std::string> /*message*/,
-		    const boost::system::error_code& /*error*/,
-		    std::size_t /*bytes_transferred*/);
+  virtual void send(boost::shared_ptr<std::string> message);
 
 private:
 
   void handle_receive(const boost::system::error_code& error,
 		      std::size_t /*bytes_transferred*/);
+
+  void handle_send(boost::shared_ptr<std::string> message,
+		   const boost::system::error_code& error,
+		   std::size_t bytes_transferred);
 
   udp::socket socket_;
   udp::endpoint remote_endpoint_;

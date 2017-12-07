@@ -25,6 +25,8 @@ public:
   void addTmr(ros::Timer myTmr);
   void addPub(ros::Publisher myPub);
 
+  void signalHandler(const boost::system::error_code& error, int signal_number);
+  
   boost::asio::io_service        io_service;
   
  private:

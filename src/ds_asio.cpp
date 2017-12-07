@@ -32,6 +32,20 @@ void DsAsio::addPub(ros::Publisher myPub)
   pubs.push_back(myPub);
 }
 
+void DsAsio::signalHandler(const boost::system::error_code& error, int signal_number)
+{
+  if (!error)
+    {
+      ROS_INFO_STREAM("A signal occurred, shutting down ROS and exiting...");
+      ros::shutdown();
+      exit(0);
+    }
+  else
+    {
+      ROS_INFO_STREAM("An error in the signal handler occurred");
+    }
+}
+
 DsAsio::DsAsio(int argc, char** argv, const std::string &name)
 {
   ros::init(argc, argv, name);
@@ -48,6 +62,8 @@ void DsAsio::run(void)
 {
   // Work object prevents io_service from quitting while it exists
   boost::asio::io_service::work work(io_service);
+  boost::asio::signal_set signals(io_service, SIGINT);
+  signals.async_wait(boost::bind(&DsAsio::signalHandler, this, _1, _2));
   io_service.run();
 }
 

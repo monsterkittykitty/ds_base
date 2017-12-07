@@ -24,9 +24,10 @@ public:
   void addSub(ros::Subscriber mySub);
   void addTmr(ros::Timer myTmr);
   void addPub(ros::Publisher myPub);
+
+  boost::asio::io_service        io_service;
   
  private:
-  boost::asio::io_service        io_service;
   ros::NodeHandle                *nh;
 
   std::vector<DsConnection*>     connections;

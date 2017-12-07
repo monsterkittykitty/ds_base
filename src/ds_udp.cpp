@@ -39,9 +39,9 @@ void DsUdp::send(boost::shared_ptr<std::string> message)
   ROS_INFO_STREAM("Scheduling UDP send");
   udp::endpoint myLocalHost(boost::asio::ip::address::from_string("127.0.0.1"), 44443);
   socket_.async_send_to(boost::asio::buffer(*message), myLocalHost,//remote_endpoint_,
-			boost::bind(&DsUdp::handle_send, this, message,
-				    boost::asio::placeholders::error,
-				    boost::asio::placeholders::bytes_transferred));
+  			boost::bind(&DsUdp::handle_send, this, message,
+  				    boost::asio::placeholders::error,
+  				    boost::asio::placeholders::bytes_transferred));
   ROS_INFO_STREAM("UDP send scheduled");
 }
 

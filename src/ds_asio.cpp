@@ -4,7 +4,7 @@
 DsConnection* DsAsio::addConnection(boost::function<void(std::vector<unsigned char>)> callback)
 {
   connections.push_back(new DsUdp(io_service, callback));
-  return connections[connections.size()];
+  return connections[connections.size() - 1];
 }
 
 ros::NodeHandle& DsAsio::getNh(void)

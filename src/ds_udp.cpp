@@ -1,11 +1,18 @@
 #include "ds_base/ds_udp.h"
 
 DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback, ros::NodeHandle* myNh)
-  : socket_(io_service, udp::endpoint(udp::v4(), 44444)),
+  : io_service_(io_service),
     DsConnection(),
     callback_(callback),
     nh_(myNh)
 {
+  setup();
+  receive();
+}
+
+void DsUdp::setup(void)
+{
+  
   // This method, through nh, resolves params relative to nh namespace
   if (nh_->hasParam("rosdistro"))
     {
@@ -15,19 +22,21 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vect
       ROS_INFO_STREAM(rosdistro);
     }
   else
-    ROS_INFO_STREAM("my_param does not exist");
+    ROS_INFO_STREAM("rosdistro does not exist");
 
-  // This method, through ros namespace, resolves params relative to the node's namespace
-  if (ros::param::has("rosdistro"))
+  if (nh_->hasParam("udp_rx"))
     {
-      ROS_INFO_STREAM("rosdistro exists");
-      std::string rosdistro;
-      ros::param::get("rosdistro", rosdistro);
-      ROS_INFO_STREAM(rosdistro);
+      ROS_INFO_STREAM("udp_rx exists");
+      int udp_rx;
+      nh_->getParam("udp_rx", udp_rx);
+      ROS_INFO_STREAM(udp_rx);
+      socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx));
     }
   else
-    ROS_INFO_STREAM("my_param does not exist");
-  receive();
+    {
+      ROS_INFO_STREAM("udp_rx does not exist, default to port 44444");
+      socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), 44444));
+    }
 }
 
 void DsUdp::receive(void)
@@ -37,7 +46,7 @@ void DsUdp::receive(void)
   //			     boost::bind(&DsUdp::handle_receive, this,
   //					 boost::asio::placeholders::error,
   //					 boost::asio::placeholders::bytes_transferred));
-  socket_.async_receive(boost::asio::buffer(recv_buffer_), 0,
+  socket_->async_receive(boost::asio::buffer(recv_buffer_), 0,
 			boost::bind(&DsUdp::handle_receive, this,
 				    boost::asio::placeholders::error,
 				    boost::asio::placeholders::bytes_transferred));
@@ -60,7 +69,7 @@ void DsUdp::send(boost::shared_ptr<std::string> message)
 {
   ROS_INFO_STREAM("Scheduling UDP send");
   udp::endpoint myLocalHost(boost::asio::ip::address::from_string("127.0.0.1"), 44443);
-  socket_.async_send_to(boost::asio::buffer(*message), myLocalHost,//remote_endpoint_,
+  socket_->async_send_to(boost::asio::buffer(*message), myLocalHost,//remote_endpoint_,
   			boost::bind(&DsUdp::handle_send, this, message,
   				    boost::asio::placeholders::error,
   				    boost::asio::placeholders::bytes_transferred));

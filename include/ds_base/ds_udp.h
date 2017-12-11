@@ -22,6 +22,8 @@ public:
 
   virtual void send(boost::shared_ptr<std::string> message);
 
+  void setup(void);
+  
 private:
 
   void handle_receive(const boost::system::error_code& error,
@@ -31,7 +33,8 @@ private:
 		   const boost::system::error_code& error,
 		   std::size_t bytes_transferred);
 
-  udp::socket socket_;
+  boost::asio::io_service& io_service_;
+  udp::socket* socket_;
   udp::endpoint remote_endpoint_;
   boost::array<char, 128> recv_buffer_;
   boost::function<void(std::vector<unsigned char>)> callback_;

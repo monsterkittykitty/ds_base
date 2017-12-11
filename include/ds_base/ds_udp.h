@@ -35,7 +35,7 @@ private:
 
   boost::asio::io_service& io_service_;
   udp::socket* socket_;
-  udp::endpoint remote_endpoint_;
+  udp::endpoint* remote_endpoint_;
   boost::array<char, 128> recv_buffer_;
   boost::function<void(std::vector<unsigned char>)> callback_;
   ros::NodeHandle* nh_;

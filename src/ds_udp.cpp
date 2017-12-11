@@ -24,10 +24,10 @@ void DsUdp::setup(void)
   else
     ROS_INFO_STREAM("rosdistro does not exist");
 
+  int udp_rx;
   if (nh_->hasParam("udp_rx"))
     {
       ROS_INFO_STREAM("udp_rx exists");
-      int udp_rx;
       nh_->getParam("udp_rx", udp_rx);
       ROS_INFO_STREAM(udp_rx);
       socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx));
@@ -37,6 +37,34 @@ void DsUdp::setup(void)
       ROS_INFO_STREAM("udp_rx does not exist, default to port 44444");
       socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), 44444));
     }
+
+  int udp_tx;
+  if (nh_->hasParam("udp_tx"))
+    {
+      ROS_INFO_STREAM("udp_tx exists");
+      nh_->getParam("udp_tx", udp_tx);
+      ROS_INFO_STREAM(udp_tx);
+    }
+  else
+    {
+      ROS_INFO_STREAM("udp_rx does not exist, default to port 50000");
+      udp_tx = 50000;
+    }
+
+  std::string udp_address;
+  if (nh_->hasParam("udp_address"))
+    {
+      ROS_INFO_STREAM("udp_address exists");
+      nh_->getParam("udp_address", udp_address);
+      ROS_INFO_STREAM(udp_address);
+    }
+  else
+    {
+      ROS_INFO_STREAM("udp_address does not exist, default to 127.0.0.1");
+      udp_address = "127.0.0.1";
+    }
+
+  remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
 }
 
 void DsUdp::receive(void)
@@ -68,8 +96,7 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
 void DsUdp::send(boost::shared_ptr<std::string> message)
 {
   ROS_INFO_STREAM("Scheduling UDP send");
-  udp::endpoint myLocalHost(boost::asio::ip::address::from_string("127.0.0.1"), 44443);
-  socket_->async_send_to(boost::asio::buffer(*message), myLocalHost,//remote_endpoint_,
+  socket_->async_send_to(boost::asio::buffer(*message), *remote_endpoint_,//remote_endpoint_,
   			boost::bind(&DsUdp::handle_send, this, message,
   				    boost::asio::placeholders::error,
   				    boost::asio::placeholders::bytes_transferred));

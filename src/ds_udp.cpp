@@ -5,6 +5,15 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vect
     DsConnection(),
     callback_(callback)
 {
+  if (ros::param::has("rosdistro"))
+    {
+      ROS_INFO_STREAM("rosdistro exists");
+      std::string rosdistro;
+      ros::param::get("rosdistro", rosdistro);
+      ROS_INFO_STREAM(rosdistro);
+    }
+  else
+    ROS_INFO_STREAM("my_param does not exist");
   receive();
 }
 

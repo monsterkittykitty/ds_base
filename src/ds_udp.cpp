@@ -1,10 +1,23 @@
 #include "ds_base/ds_udp.h"
 
-DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback)
+DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback, ros::NodeHandle* myNh)
   : socket_(io_service, udp::endpoint(udp::v4(), 44444)),
     DsConnection(),
-    callback_(callback)
+    callback_(callback),
+    nh_(myNh)
 {
+  // This method, through nh, resolves params relative to nh namespace
+  if (nh_->hasParam("rosdistro"))
+    {
+      ROS_INFO_STREAM("rosdistro exists");
+      std::string rosdistro;
+      nh_->getParam("rosdistro", rosdistro);
+      ROS_INFO_STREAM(rosdistro);
+    }
+  else
+    ROS_INFO_STREAM("my_param does not exist");
+
+  // This method, through ros namespace, resolves params relative to the node's namespace
   if (ros::param::has("rosdistro"))
     {
       ROS_INFO_STREAM("rosdistro exists");

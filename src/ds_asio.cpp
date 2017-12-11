@@ -3,13 +3,18 @@
 
 DsConnection* DsAsio::addConnection(boost::function<void(std::vector<unsigned char>)> callback)
 {
-  connections.push_back(new DsUdp(io_service, callback));
+  connections.push_back(new DsUdp(io_service, callback, this->getNhPtr()));
   return connections[connections.size() - 1];
 }
 
 ros::NodeHandle& DsAsio::getNh(void)
 {
   return *nh;
+}
+
+ros::NodeHandle* DsAsio::getNhPtr(void)
+{
+  return nh;
 }
 
 DsAsio* DsAsio::asio(void)

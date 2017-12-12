@@ -1,10 +1,17 @@
 #include "ds_base/ds_asio.h"
 #include "ds_base/ds_callbackqueue.h"
 
-DsConnection* DsAsio::addConnection(boost::function<void(std::vector<unsigned char>)> callback)
+DsConnection* DsAsio::addConnection(std::string type, std::string name, boost::function<void(std::vector<unsigned char>)> callback)
 {
-  connections.push_back(new DsUdp(io_service, callback, this->getNhPtr()));
-  return connections[connections.size() - 1];
+  if (type.compare("UDP") == 0)
+    {
+      connections.push_back(new DsUdp(io_service, callback, this->getNhPtr()));
+      return connections[connections.size() - 1];
+    }
+  else
+    {
+      return NULL;
+    }
 }
 
 ros::NodeHandle& DsAsio::getNh(void)

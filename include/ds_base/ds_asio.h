@@ -16,7 +16,7 @@ public:
 
   void run(void);
 
-  DsConnection* addConnection(boost::function<void(std::vector<unsigned char>)> callback);
+  DsConnection* addConnection(std::string type, std::string name, boost::function<void(std::vector<unsigned char>)> callback);
 
   ros::NodeHandle* getNhPtr(void);
   ros::NodeHandle& getNh(void);

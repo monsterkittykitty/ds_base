@@ -25,10 +25,10 @@ void DsUdp::setup(void)
     ROS_INFO_STREAM("rosdistro does not exist");
 
   int udp_rx;
-  if (nh_->hasParam("udp_rx"))
+  if (nh_->hasParam(nh_->resolveName("udp_rx")))
     {
       ROS_INFO_STREAM("udp_rx exists");
-      nh_->getParam("udp_rx", udp_rx);
+      nh_->getParam(nh_->resolveName("udp_rx"), udp_rx);
       ROS_INFO_STREAM(udp_rx);
       socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx));
     }
@@ -39,10 +39,10 @@ void DsUdp::setup(void)
     }
 
   int udp_tx;
-  if (nh_->hasParam("udp_tx"))
+  if (nh_->hasParam(nh_->resolveName("udp_tx")))
     {
       ROS_INFO_STREAM("udp_tx exists");
-      nh_->getParam("udp_tx", udp_tx);
+      nh_->getParam(nh_->resolveName("udp_tx"), udp_tx);
       ROS_INFO_STREAM(udp_tx);
     }
   else
@@ -52,10 +52,10 @@ void DsUdp::setup(void)
     }
 
   std::string udp_address;
-  if (nh_->hasParam("udp_address"))
+  if (nh_->hasParam(nh_->resolveName("udp_address")))
     {
       ROS_INFO_STREAM("udp_address exists");
-      nh_->getParam("udp_address", udp_address);
+      nh_->getParam(nh_->resolveName("udp_address"), udp_address);
       ROS_INFO_STREAM(udp_address);
     }
   else

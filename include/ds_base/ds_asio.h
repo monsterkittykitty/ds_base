@@ -7,6 +7,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include "ds_base/ds_udp.h"
+#include "ds_base/ds_serial.h"
 
 class DsAsio
 {

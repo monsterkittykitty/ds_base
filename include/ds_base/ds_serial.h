@@ -28,6 +28,10 @@ private:
   void handle_read(const boost::system::error_code& error,
 		   std::size_t /*bytes_transferred*/);
 
+  void handle_write(boost::shared_ptr<std::string> message,
+		   const boost::system::error_code& error,
+		   std::size_t bytes_transferred);
+
   boost::asio::io_service& io_service_;
   boost::asio::serial_port* port_;
   boost::array<char, 1> recv_buffer_;

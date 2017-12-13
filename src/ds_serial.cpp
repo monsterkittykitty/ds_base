@@ -40,6 +40,18 @@ void DsSerial::handle_read(const boost::system::error_code& error,
 void DsSerial::send(boost::shared_ptr<std::string> message)
 {
   ROS_INFO_STREAM("Scheduling serial send");
+  boost::asio::async_write(*port_, boost::asio::buffer(*message),
+			   boost::bind(&DsSerial::handle_write, this, message,
+				       boost::asio::placeholders::error,
+				       boost::asio::placeholders::bytes_transferred));
+
   ROS_INFO_STREAM("Serial send scheduled");
+}
+
+void DsSerial::handle_write(boost::shared_ptr<std::string> message,
+			    const boost::system::error_code& error,
+			    std::size_t bytes_transferred)
+{
+  ROS_INFO_STREAM("Serial data sent");
 }
 

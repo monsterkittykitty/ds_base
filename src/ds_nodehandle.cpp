@@ -16,4 +16,18 @@ namespace ros
     queue = rhs.queue;
     myIoService = rhs.myIoService;
   }
+
+  DsNodeHandle::DsNodeHandle(const DsNodeHandle &parent, const std::string &ns):
+    NodeHandle(parent, ns)
+  {
+    queue = parent.queue;
+    myIoService = parent.myIoService;
+  }
+
+  DsNodeHandle::DsNodeHandle(const DsNodeHandle &parent, const std::string &ns, const M_string &remappings):
+    NodeHandle(parent, ns, remappings)
+  {
+    queue = parent.queue;
+    myIoService = parent.myIoService;
+  } 
 }

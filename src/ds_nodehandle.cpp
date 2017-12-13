@@ -9,4 +9,11 @@ namespace ros
     queue = new ros::DsCallbackQueue(io_service);
     this->setCallbackQueue((ros::CallbackQueue*) queue);
   }
+
+  DsNodeHandle::DsNodeHandle(const DsNodeHandle &rhs):
+    NodeHandle(rhs)
+  {
+    queue = rhs.queue;
+    myIoService = rhs.myIoService;
+  }
 }

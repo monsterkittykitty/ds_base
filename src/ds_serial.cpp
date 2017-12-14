@@ -12,10 +12,14 @@ DsSerial::DsSerial(boost::asio::io_service& io_service, boost::function<void(ds_
 
 void DsSerial::setup(void)
 {
-  port_ = new boost::asio::serial_port(io_service_);  
+  std::string port_name;
+  nh_->param<std::string>(nh_->resolveName("port"), port_name, "/dev/ttyUSB0");
+  ROS_INFO_STREAM("Serial port: " << port_name);
+  
+  port_ = new boost::asio::serial_port(io_service_, port_name);  
 
   // The /raw channel should be appended to the nodehandle namespace
-  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("/raw",1);
+  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("raw",1);
 }
 
 void DsSerial::receive(void)

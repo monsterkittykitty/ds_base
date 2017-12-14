@@ -8,6 +8,7 @@
 #include <boost/asio.hpp>
 #include "ds_base/ds_udp.h"
 #include "ds_base/ds_serial.h"
+#include "ds_base/ds_connection_factory.h"
 #include "ds_core_msgs/RawData.h"
 
 class DsAsio

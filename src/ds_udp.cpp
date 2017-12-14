@@ -12,30 +12,18 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(ds_core_m
 
 void DsUdp::setup(void)
 {
-  
-  // This method, through nh, resolves params relative to nh namespace
-  if (nh_->hasParam("rosdistro"))
-    {
-      ROS_INFO_STREAM("rosdistro exists");
-      std::string rosdistro;
-      nh_->getParam("rosdistro", rosdistro);
-      ROS_INFO_STREAM(rosdistro);
-    }
-  else
-    ROS_INFO_STREAM("rosdistro does not exist");
-
   int udp_rx;
   if (nh_->hasParam(nh_->resolveName("udp_rx")))
     {
       ROS_INFO_STREAM("udp_rx exists");
-      nh_->getParam(nh_->resolveName("udp_rx"), udp_rx);
+      nh_->param<int>(nh_->resolveName("udp_rx"), udp_rx, 44444);
       ROS_INFO_STREAM(udp_rx);
       socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx));
     }
   else
     {
-      ROS_INFO_STREAM("udp_rx does not exist, default to port 44444");
-      socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), 44444));
+      ROS_INFO_STREAM("udp_rx does not exist");
+      //socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), 44444));
     }
 
   int udp_tx;
@@ -66,6 +54,7 @@ void DsUdp::setup(void)
 
   remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
 
+  // The /raw channel should be appended to the nodehandle namespace
   raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("/raw",1);
 }
 
@@ -84,10 +73,12 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
 {
   if (!error || error == boost::asio::error::message_size)
     {
+      // Store timestamp as soon as received
+      raw_data_.header.io_time = ros::Time::now();
+
       ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
       raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
       raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
-      raw_data_.header.io_time = ros::Time::now();
       raw_publisher_.publish(raw_data_);
       callback_(raw_data_);
       receive();

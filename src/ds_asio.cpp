@@ -10,7 +10,7 @@ DsConnection* DsAsio::addConnection(std::string type, std::string name, boost::f
     }
   else if (type.compare("SERIAL") == 0)
     {
-      //connections.push_back(new DsSerial(io_service, callback, this->getNhPtr()));
+      connections.push_back(new DsSerial(io_service, callback, this->getNhPtr()));
       return connections[connections.size() - 1];
     }
   else

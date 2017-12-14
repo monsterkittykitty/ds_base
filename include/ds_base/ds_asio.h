@@ -8,6 +8,7 @@
 #include <boost/asio.hpp>
 #include "ds_base/ds_udp.h"
 #include "ds_base/ds_serial.h"
+#include "ds_core_msgs/RawData.h"
 
 class DsAsio
 {
@@ -17,7 +18,7 @@ public:
 
   void run(void);
 
-  DsConnection* addConnection(std::string type, std::string name, boost::function<void(std::vector<unsigned char>)> callback);
+  DsConnection* addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback);
 
   ros::NodeHandle* getNhPtr(void);
   ros::NodeHandle& getNh(void);

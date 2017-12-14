@@ -9,6 +9,7 @@ project(ds_base)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  ds_core_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -103,7 +104,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ds_process ds_callbackqueue ds_connection ds_udp ds_asio ds_serial ds_nodehandle
-  CATKIN_DEPENDS roscpp
+  CATKIN_DEPENDS roscpp ds_core_msgs
   #DEPENDS system_lib
 )
 

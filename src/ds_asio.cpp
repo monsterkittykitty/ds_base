@@ -1,7 +1,7 @@
 #include "ds_base/ds_asio.h"
 #include "ds_base/ds_callbackqueue.h"
 
-DsConnection* DsAsio::addConnection(std::string type, std::string name, boost::function<void(std::vector<unsigned char>)> callback)
+DsConnection* DsAsio::addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback)
 {
   if (type.compare("UDP") == 0)
     {
@@ -10,7 +10,7 @@ DsConnection* DsAsio::addConnection(std::string type, std::string name, boost::f
     }
   else if (type.compare("SERIAL") == 0)
     {
-      connections.push_back(new DsSerial(io_service, callback, this->getNhPtr()));
+      //connections.push_back(new DsSerial(io_service, callback, this->getNhPtr()));
       return connections[connections.size() - 1];
     }
   else

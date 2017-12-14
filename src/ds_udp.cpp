@@ -1,6 +1,6 @@
 #include "ds_base/ds_udp.h"
 
-DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback, ros::NodeHandle* myNh)
+DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
   : io_service_(io_service),
     DsConnection(),
     callback_(callback),
@@ -65,15 +65,13 @@ void DsUdp::setup(void)
     }
 
   remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
+
+  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("/raw",1);
 }
 
 void DsUdp::receive(void)
 {
   recv_buffer_.assign(0);
-  //socket_.async_receive_from(boost::asio::buffer(recv_buffer_), remote_endpoint_,
-  //			     boost::bind(&DsUdp::handle_receive, this,
-  //					 boost::asio::placeholders::error,
-  //					 boost::asio::placeholders::bytes_transferred));
   socket_->async_receive(boost::asio::buffer(recv_buffer_), 0,
 			boost::bind(&DsUdp::handle_receive, this,
 				    boost::asio::placeholders::error,
@@ -82,13 +80,16 @@ void DsUdp::receive(void)
 }
 
 void DsUdp::handle_receive(const boost::system::error_code& error,
-			   std::size_t /*bytes_transferred*/)
+			   std::size_t bytes_transferred)
 {
   if (!error || error == boost::asio::error::message_size)
     {
       ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
-      std::vector<unsigned char> data(recv_buffer_.begin(), recv_buffer_.end());
-      callback_(data);
+      raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
+      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
+      raw_data_.header.io_time = ros::Time::now();
+      raw_publisher_.publish(raw_data_);
+      callback_(raw_data_);
       receive();
     }
 }

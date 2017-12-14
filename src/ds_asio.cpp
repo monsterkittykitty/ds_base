@@ -1,21 +1,17 @@
 #include "ds_base/ds_asio.h"
 #include "ds_base/ds_callbackqueue.h"
 
-DsConnection* DsAsio::addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback)
+boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback)
 {
   if (type.compare("UDP") == 0)
     {
-      connections.push_back(new DsUdp(io_service, callback, this->getNhPtr()));
+      connections.push_back(boost::shared_ptr<DsConnection>(new DsUdp(io_service, callback, this->getNhPtr())));
       return connections[connections.size() - 1];
     }
   else if (type.compare("SERIAL") == 0)
     {
-      connections.push_back(new DsSerial(io_service, callback, this->getNhPtr()));
+      connections.push_back(boost::shared_ptr<DsConnection>(new DsSerial(io_service, callback, this->getNhPtr())));
       return connections[connections.size() - 1];
-    }
-  else
-    {
-      return NULL;
     }
 }
 

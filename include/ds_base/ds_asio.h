@@ -19,7 +19,7 @@ public:
 
   void run(void);
 
-  DsConnection* addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback);
+  boost::shared_ptr<DsConnection> addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback);
 
   ros::NodeHandle* getNhPtr(void);
   ros::NodeHandle& getNh(void);
@@ -36,10 +36,10 @@ public:
  private:
   ros::NodeHandle                *nh;
 
-  std::vector<DsConnection*>     connections;
-  std::vector<ros::Subscriber>   subs;
-  std::vector<ros::Timer>        tmrs;
-  std::vector<ros::Publisher>    pubs;
+  std::vector<boost::shared_ptr<DsConnection> >  connections;
+  std::vector<ros::Subscriber>                   subs;
+  std::vector<ros::Timer>                        tmrs;
+  std::vector<ros::Publisher>                    pubs;
   
 };
 

@@ -1,6 +1,6 @@
 #include "ds_base/ds_udp.h"
 
-DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback, ros::NodeHandle* myNh)
+DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
   : io_service_(io_service),
     DsConnection(),
     callback_(callback),
@@ -12,30 +12,18 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vect
 
 void DsUdp::setup(void)
 {
-  
-  // This method, through nh, resolves params relative to nh namespace
-  if (nh_->hasParam("rosdistro"))
-    {
-      ROS_INFO_STREAM("rosdistro exists");
-      std::string rosdistro;
-      nh_->getParam("rosdistro", rosdistro);
-      ROS_INFO_STREAM(rosdistro);
-    }
-  else
-    ROS_INFO_STREAM("rosdistro does not exist");
-
   int udp_rx;
   if (nh_->hasParam(nh_->resolveName("udp_rx")))
     {
       ROS_INFO_STREAM("udp_rx exists");
-      nh_->getParam(nh_->resolveName("udp_rx"), udp_rx);
+      nh_->param<int>(nh_->resolveName("udp_rx"), udp_rx, 44444);
       ROS_INFO_STREAM(udp_rx);
       socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx));
     }
   else
     {
-      ROS_INFO_STREAM("udp_rx does not exist, default to port 44444");
-      socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), 44444));
+      ROS_INFO_STREAM("udp_rx does not exist");
+      //socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), 44444));
     }
 
   int udp_tx;
@@ -65,15 +53,14 @@ void DsUdp::setup(void)
     }
 
   remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
+
+  // The /raw channel should be appended to the nodehandle namespace
+  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("raw",1);
 }
 
 void DsUdp::receive(void)
 {
   recv_buffer_.assign(0);
-  //socket_.async_receive_from(boost::asio::buffer(recv_buffer_), remote_endpoint_,
-  //			     boost::bind(&DsUdp::handle_receive, this,
-  //					 boost::asio::placeholders::error,
-  //					 boost::asio::placeholders::bytes_transferred));
   socket_->async_receive(boost::asio::buffer(recv_buffer_), 0,
 			boost::bind(&DsUdp::handle_receive, this,
 				    boost::asio::placeholders::error,
@@ -82,13 +69,18 @@ void DsUdp::receive(void)
 }
 
 void DsUdp::handle_receive(const boost::system::error_code& error,
-			   std::size_t /*bytes_transferred*/)
+			   std::size_t bytes_transferred)
 {
   if (!error || error == boost::asio::error::message_size)
     {
+      // Store timestamp as soon as received
+      raw_data_.header.io_time = ros::Time::now();
+
       ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
-      std::vector<unsigned char> data(recv_buffer_.begin(), recv_buffer_.end());
-      callback_(data);
+      raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
+      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
+      raw_publisher_.publish(raw_data_);
+      callback_(raw_data_);
       receive();
     }
 }
@@ -107,6 +99,12 @@ void DsUdp::handle_send(boost::shared_ptr<std::string> message,
 			const boost::system::error_code& error,
 			std::size_t bytes_transferred)
 {
+  // Store timestamp as soon as received
+  raw_data_.header.io_time = ros::Time::now();
+
   ROS_INFO_STREAM("UDP data sent");
+  raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
+  raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
+  raw_publisher_.publish(raw_data_);
 }
 

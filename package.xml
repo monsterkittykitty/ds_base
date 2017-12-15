@@ -50,7 +50,9 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>ds_core_msgs</build_depend>
   <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>ds_core_msgs</build_export_depend>
   <exec_depend>roscpp</exec_depend>
 
 

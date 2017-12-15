@@ -1,6 +1,6 @@
 #include "ds_base/ds_serial.h"
 
-DsSerial::DsSerial(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback, ros::NodeHandle* myNh)
+DsSerial::DsSerial(boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
   : io_service_(io_service),
     DsConnection(),
     callback_(callback),
@@ -12,7 +12,14 @@ DsSerial::DsSerial(boost::asio::io_service& io_service, boost::function<void(std
 
 void DsSerial::setup(void)
 {
-  port_ = new boost::asio::serial_port(io_service_);  
+  std::string port_name;
+  nh_->param<std::string>(nh_->resolveName("port"), port_name, "/dev/ttyUSB0");
+  ROS_INFO_STREAM("Serial port: " << port_name);
+  
+  port_ = new boost::asio::serial_port(io_service_, port_name);  
+
+  // The /raw channel should be appended to the nodehandle namespace
+  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("raw",1);
 }
 
 void DsSerial::receive(void)
@@ -26,13 +33,19 @@ void DsSerial::receive(void)
 }
 
 void DsSerial::handle_read(const boost::system::error_code& error,
-			std::size_t /*bytes_transferred*/)
+			std::size_t bytes_transferred)
 {
   if (!error || error == boost::asio::error::message_size)
     {
-      ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
-      std::vector<unsigned char> data(recv_buffer_.begin(), recv_buffer_.end());
-      callback_(data);
+      // Store timestamp as soon as received
+      raw_data_.header.io_time = ros::Time::now();
+
+      // Need to add delimiter test, etc...
+      ROS_INFO_STREAM("Serial received: " << recv_buffer_.data());
+      raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
+      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
+      raw_publisher_.publish(raw_data_);
+      callback_(raw_data_);
       receive();
     }
 }
@@ -52,6 +65,12 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message,
 			    const boost::system::error_code& error,
 			    std::size_t bytes_transferred)
 {
+  // Store timestamp as soon as received
+  raw_data_.header.io_time = ros::Time::now();
+
   ROS_INFO_STREAM("Serial data sent");
+  raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
+  raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
+  raw_publisher_.publish(raw_data_);
 }
 

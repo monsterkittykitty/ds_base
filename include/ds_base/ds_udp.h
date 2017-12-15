@@ -10,13 +10,14 @@
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
+#include "ds_core_msgs/RawData.h"
 
 using boost::asio::ip::udp;
 
 class DsUdp : public DsConnection
 {
 public:
-  DsUdp(boost::asio::io_service& io_service, boost::function<void(std::vector<unsigned char>)> callback, ros::NodeHandle* myNh);
+  DsUdp(boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh);
 
   virtual void receive(void);
 
@@ -27,7 +28,7 @@ public:
 private:
 
   void handle_receive(const boost::system::error_code& error,
-		      std::size_t /*bytes_transferred*/);
+		      std::size_t bytes_transferred);
 
   void handle_send(boost::shared_ptr<std::string> message,
 		   const boost::system::error_code& error,
@@ -37,8 +38,10 @@ private:
   udp::socket* socket_;
   udp::endpoint* remote_endpoint_;
   boost::array<char, 128> recv_buffer_;
-  boost::function<void(std::vector<unsigned char>)> callback_;
+  boost::function<void(ds_core_msgs::RawData)> callback_;
   ros::NodeHandle* nh_;
+  ros::Publisher raw_publisher_;
+  ds_core_msgs::RawData raw_data_;
 };
 
 #endif

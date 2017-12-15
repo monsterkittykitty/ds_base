@@ -9,6 +9,7 @@ project(ds_base)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  ds_core_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -102,8 +103,8 @@ find_package(Boost REQUIRED COMPONENTS system)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ds_process ds_callbackqueue ds_connection ds_udp ds_asio ds_serial ds_nodehandle
-  CATKIN_DEPENDS roscpp
+  LIBRARIES ds_process ds_callbackqueue ds_connection ds_udp ds_asio ds_serial ds_nodehandle ds_connection_factory
+  CATKIN_DEPENDS roscpp ds_core_msgs
   #DEPENDS system_lib
 )
 
@@ -152,6 +153,10 @@ add_library(ds_nodehandle
   src/ds_nodehandle.cpp
 )
 
+add_library(ds_connection_factory
+  src/ds_connection_factory.cpp
+)
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -181,6 +186,7 @@ target_link_libraries(ds_process
   ds_udp
   ds_serial
   ds_nodehandle
+  ds_connection_factory
 )
 
 target_link_libraries(ds_callbackqueue
@@ -206,6 +212,10 @@ target_link_libraries(ds_asio
 )
 
 target_link_libraries(ds_nodehandle
+  ${Boost_SYSTEM_LIBRARY}
+)
+
+target_link_libraries(ds_connection_factory
   ${Boost_SYSTEM_LIBRARY}
 )
 

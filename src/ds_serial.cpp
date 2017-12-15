@@ -65,6 +65,12 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message,
 			    const boost::system::error_code& error,
 			    std::size_t bytes_transferred)
 {
+  // Store timestamp as soon as received
+  raw_data_.header.io_time = ros::Time::now();
+
   ROS_INFO_STREAM("Serial data sent");
+  raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
+  raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
+  raw_publisher_.publish(raw_data_);
 }
 

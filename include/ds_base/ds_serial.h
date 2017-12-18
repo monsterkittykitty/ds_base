@@ -16,7 +16,7 @@
 class DsSerial : public DsConnection
 {
 public:
-  DsSerial(boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh);
+  DsSerial(boost::asio::io_service& io_service, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh);
 
   virtual void receive(void);
 

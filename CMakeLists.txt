@@ -112,6 +112,9 @@ target_link_libraries(ds_nodehandle
 
 target_link_libraries(ds_connection_factory
   ${Boost_SYSTEM_LIBRARY}
+  ds_serial
+  ds_udp
+  ds_connection
 )
 
 #############

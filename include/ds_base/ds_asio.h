@@ -22,8 +22,6 @@ public:
 
   boost::shared_ptr<DsConnection> addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh);
 
-  //ros::NodeHandle* getNhPtr(void);
-  //ros::NodeHandle& getNh(void);
   DsAsio* asio(void);
 
   void addSub(std::string name, ros::Subscriber mySub);

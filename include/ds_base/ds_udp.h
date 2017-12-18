@@ -24,7 +24,9 @@ public:
   virtual void send(boost::shared_ptr<std::string> message);
 
   void setup(void);
-  
+
+  udp::socket& get_io_object(void);
+
 private:
 
   void handle_receive(const boost::system::error_code& error,

@@ -23,7 +23,9 @@ public:
   virtual void send(boost::shared_ptr<std::string> message);
 
   void setup(void);
-  
+
+  boost::asio::serial_port& get_io_object(void);
+
 private:
 
   void handle_read(const boost::system::error_code& error,

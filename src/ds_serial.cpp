@@ -84,3 +84,7 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message,
   raw_publisher_.publish(raw_data_);
 }
 
+boost::asio::serial_port& DsSerial::get_io_object(void)
+{
+  return *port_;
+}

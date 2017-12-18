@@ -108,3 +108,7 @@ void DsUdp::handle_send(boost::shared_ptr<std::string> message,
   raw_publisher_.publish(raw_data_);
 }
 
+udp::socket& DsUdp::get_io_object(void)
+{
+  return *socket_;
+}

@@ -12,19 +12,19 @@ DsAsio* DsAsio::asio(void)
   return this;
 }
 
-void DsAsio::addSub(ros::Subscriber mySub)
+void DsAsio::addSub(std::string name, ros::Subscriber mySub)
 {
-  subs.push_back(mySub);
+  subs[name] = mySub;
 }
 
-void DsAsio::addTmr(ros::Timer myTmr)
+void DsAsio::addTmr(std::string name, ros::Timer myTmr)
 {
-  tmrs.push_back(myTmr);
+  tmrs[name] = myTmr;
 }
 
-void DsAsio::addPub(ros::Publisher myPub)
+void DsAsio::addPub(std::string name, ros::Publisher myPub)
 {
-  pubs.push_back(myPub);
+  pubs[name] = myPub;
 }
 
 void DsAsio::signalHandler(const boost::system::error_code& error, int signal_number)

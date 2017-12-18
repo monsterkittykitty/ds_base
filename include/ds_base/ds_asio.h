@@ -26,23 +26,22 @@ public:
   //ros::NodeHandle& getNh(void);
   DsAsio* asio(void);
 
-  void addSub(ros::Subscriber mySub);
-  void addTmr(ros::Timer myTmr);
-  void addPub(ros::Publisher myPub);
+  void addSub(std::string name, ros::Subscriber mySub);
+  void addTmr(std::string name, ros::Timer myTmr);
+  void addPub(std::string name, ros::Publisher myPub);
 
   void signalHandler(const boost::system::error_code& error, int signal_number);
   
   boost::asio::io_service        io_service;
 
  protected:
+  std::map<std::string, ros::Subscriber>         subs;
+  std::map<std::string, ros::Timer>              tmrs;
+  std::map<std::string, ros::Publisher>          pubs;
  
  private:
-  //ros::NodeHandle                *nh;
 
   std::vector<boost::shared_ptr<DsConnection> >  connections;
-  std::vector<ros::Subscriber>                   subs;
-  std::vector<ros::Timer>                        tmrs;
-  std::vector<ros::Publisher>                    pubs;
   
 };
 

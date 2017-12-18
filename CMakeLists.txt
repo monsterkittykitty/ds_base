@@ -213,6 +213,7 @@ target_link_libraries(ds_asio
 
 target_link_libraries(ds_nodehandle
   ${Boost_SYSTEM_LIBRARY}
+  ds_callbackqueue
 )
 
 target_link_libraries(ds_connection_factory

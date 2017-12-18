@@ -1,29 +1,29 @@
 #include "ds_base/ds_asio.h"
 #include "ds_base/ds_callbackqueue.h"
 
-boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback)
+boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh)
 {
   if (type.compare("UDP") == 0)
     {
-      connections.push_back(boost::shared_ptr<DsConnection>(new DsUdp(io_service, callback, this->getNhPtr())));
+      connections.push_back(boost::shared_ptr<DsConnection>(new DsUdp(io_service, callback, &myNh)));
       return connections[connections.size() - 1];
     }
   else if (type.compare("SERIAL") == 0)
     {
-      connections.push_back(boost::shared_ptr<DsConnection>(new DsSerial(io_service, callback, this->getNhPtr())));
+      connections.push_back(boost::shared_ptr<DsConnection>(new DsSerial(io_service, callback, &myNh)));
       return connections[connections.size() - 1];
     }
 }
 
-ros::NodeHandle& DsAsio::getNh(void)
-{
-  return *nh;
-}
+//ros::NodeHandle& DsAsio::getNh(void)
+//{
+//  return *nh;
+//}
 
-ros::NodeHandle* DsAsio::getNhPtr(void)
-{
-  return nh;
-}
+//ros::NodeHandle* DsAsio::getNhPtr(void)
+//{
+//  return nh;
+//}
 
 DsAsio* DsAsio::asio(void)
 {
@@ -63,9 +63,8 @@ DsAsio::DsAsio(int argc, char** argv, const std::string &name)
 {
   ros::init(argc, argv, name);
 
-  nh = new ros::NodeHandle();
-  ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
-  nh->setCallbackQueue((ros::CallbackQueue*) queue);
+  //ros::DsCallbackQueue* queue = new ros::DsCallbackQueue(&io_service);
+  //nh->setCallbackQueue((ros::CallbackQueue*) queue);
 
   ROS_INFO_STREAM(ros::this_node::getName());
   ROS_INFO_STREAM(ros::this_node::getNamespace());

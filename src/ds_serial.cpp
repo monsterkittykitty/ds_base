@@ -15,8 +15,18 @@ void DsSerial::setup(void)
   std::string port_name;
   nh_->param<std::string>(nh_->resolveName("port"), port_name, "/dev/ttyUSB0");
   ROS_INFO_STREAM("Serial port: " << port_name);
+
+  int baud_rate;
+  nh_->param<int>(nh_->resolveName("baud"), baud_rate, 9600);
+  ROS_INFO_STREAM("Baud rate: " << port_name);
   
-  port_ = new boost::asio::serial_port(io_service_, port_name);  
+  port_ = new boost::asio::serial_port(io_service_, port_name);
+
+  port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+  port_->set_option(boost::asio::serial_port_base::character_size(8));
+  port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+  port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+  port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
   // The /raw channel should be appended to the nodehandle namespace
   raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("raw",1);

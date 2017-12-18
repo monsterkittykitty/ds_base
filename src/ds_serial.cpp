@@ -19,6 +19,11 @@ void DsSerial::setup(void)
   int baud_rate;
   nh_->param<int>(nh_->resolveName("baud"), baud_rate, 9600);
   ROS_INFO_STREAM("Baud rate: " << port_name);
+
+  char defaultc = '\n';
+  eol_ = defaultc;
+  //nh_->param<char>(nh_->resolveName("eol"), eol_, defaultc);
+  ROS_INFO_STREAM("Eol character: " << eol_);
   
   port_ = new boost::asio::serial_port(io_service_, port_name);
 
@@ -47,15 +52,27 @@ void DsSerial::handle_read(const boost::system::error_code& error,
 {
   if (!error || error == boost::asio::error::message_size)
     {
-      // Store timestamp as soon as received
-      raw_data_.header.io_time = ros::Time::now();
-
-      // Need to add delimiter test, etc...
-      ROS_INFO_STREAM("Serial received: " << recv_buffer_.data());
-      raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
-      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
-      raw_publisher_.publish(raw_data_);
-      callback_(raw_data_);
+      for (unsigned int i = 0; i < bytes_transferred; ++i)
+	{
+	  char c = recv_buffer_[i];
+	  ROS_INFO_STREAM("rxd: " << c);
+	  if (c == eol_)
+	    {	  
+	      // Store timestamp as soon as received
+	      raw_data_.header.io_time = ros::Time::now();
+	      
+	      ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
+	      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
+	      raw_publisher_.publish(raw_data_);
+	      callback_(raw_data_);
+	      raw_data_.data.clear();
+	    }
+	  else
+	    {
+	      ROS_INFO_STREAM("append: " << c);
+	      raw_data_.data.push_back(c);
+	    }
+	}
       receive();
     }
 }

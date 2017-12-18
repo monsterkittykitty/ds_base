@@ -42,6 +42,7 @@ private:
   ros::NodeHandle* nh_;
   ros::Publisher raw_publisher_;
   ds_core_msgs::RawData raw_data_;
+  char eol_;
 };
 
 

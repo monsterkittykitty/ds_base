@@ -43,6 +43,8 @@ private:
   ros::Publisher raw_publisher_;
   ds_core_msgs::RawData raw_data_;
   char eol_;
+  std::string name_;
+
 };
 
 

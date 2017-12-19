@@ -4,7 +4,8 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, boost::funct
   : io_service_(io_service),
     DsConnection(),
     callback_(callback),
-    nh_(myNh)
+    nh_(myNh),
+    name_(name)
 {
   setup();
   receive();
@@ -13,10 +14,10 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, boost::funct
 void DsUdp::setup(void)
 {
   int udp_rx;
-  if (nh_->hasParam(ros::this_node::getName() + "/udp_rx"))
+  if (nh_->hasParam(ros::this_node::getName() + "/" + name_ + "/udp_rx"))
     {
       ROS_INFO_STREAM("udp_rx exists");
-      nh_->param<int>(ros::this_node::getName() + "/udp_rx", udp_rx, 44444);
+      nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/udp_rx", udp_rx, 44444);
       ROS_INFO_STREAM(udp_rx);
       socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx));
     }
@@ -27,10 +28,10 @@ void DsUdp::setup(void)
     }
 
   int udp_tx;
-  if (nh_->hasParam(ros::this_node::getName() + "/udp_tx"))
+  if (nh_->hasParam(ros::this_node::getName() + "/" + name_ + "/udp_tx"))
     {
       ROS_INFO_STREAM("udp_tx exists");
-      nh_->getParam(ros::this_node::getName() + "/udp_tx", udp_tx);
+      nh_->getParam(ros::this_node::getName() + "/" + name_ + "/udp_tx", udp_tx);
       ROS_INFO_STREAM(udp_tx);
     }
   else
@@ -40,10 +41,10 @@ void DsUdp::setup(void)
     }
 
   std::string udp_address;
-  if (nh_->hasParam(ros::this_node::getName() + "/udp_address"))
+  if (nh_->hasParam(ros::this_node::getName() + "/" + name_ + "/udp_address"))
     {
       ROS_INFO_STREAM("udp_address exists");
-      nh_->getParam(ros::this_node::getName() + "/udp_address", udp_address);
+      nh_->getParam(ros::this_node::getName() + "/" + name_ + "/udp_address", udp_address);
       ROS_INFO_STREAM(udp_address);
     }
   else

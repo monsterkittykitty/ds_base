@@ -4,7 +4,8 @@ DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost:
   : io_service_(io_service),
     DsConnection(),
     callback_(callback),
-    nh_(myNh)
+    nh_(myNh),
+    name_(name)
 {
   setup();
   receive();
@@ -13,12 +14,12 @@ DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost:
 void DsSerial::setup(void)
 {
   std::string port_name;
-  nh_->param<std::string>(ros::this_node::getName() + "/port", port_name, "/dev/ttyUSB0");
+  nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/port", port_name, "/dev/ttyUSB0");
   ROS_INFO_STREAM("Serial port: " << port_name);
 
   int baud_rate;
-  nh_->param<int>(ros::this_node::getName() + "/baud", baud_rate, 9600);
-  ROS_INFO_STREAM("Baud rate: " << port_name);
+  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/baud", baud_rate, 9600);
+  ROS_INFO_STREAM("Baud rate: " << baud_rate);
 
   char defaultc = '\n';
   eol_ = defaultc;

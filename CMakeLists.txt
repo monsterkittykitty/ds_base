@@ -58,6 +58,7 @@ add_library(ds_connection
 add_library(ds_asio
   src/ds_asio.cpp
 )
+add_dependencies(ds_asio ${ds_core_msgs_EXPORTED_TARGETS})
 
 add_library(ds_serial
   src/ds_serial.cpp

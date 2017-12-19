@@ -21,6 +21,10 @@ void DsSerial::setup(void)
   nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/baud", baud_rate, 9600);
   ROS_INFO_STREAM("Baud rate: " << baud_rate);
 
+  int data_bits;
+  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/data_bits", data_bits, 8);
+  ROS_INFO_STREAM("Data bits: " << data_bits);
+
   char defaultc = '\n';
   eol_ = defaultc;
   //nh_->param<char>(nh_->resolveName("eol"), eol_, defaultc);
@@ -29,7 +33,7 @@ void DsSerial::setup(void)
   port_ = new boost::asio::serial_port(io_service_, port_name);
 
   port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
-  port_->set_option(boost::asio::serial_port_base::character_size(8));
+  port_->set_option(boost::asio::serial_port_base::character_size(data_bits));
   port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
   port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
   port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));

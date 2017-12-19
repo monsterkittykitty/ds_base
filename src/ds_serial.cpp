@@ -13,11 +13,11 @@ DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost:
 void DsSerial::setup(void)
 {
   std::string port_name;
-  nh_->param<std::string>(nh_->resolveName("port"), port_name, "/dev/ttyUSB0");
+  nh_->param<std::string>(ros::this_node::getName() + "/port", port_name, "/dev/ttyUSB0");
   ROS_INFO_STREAM("Serial port: " << port_name);
 
   int baud_rate;
-  nh_->param<int>(nh_->resolveName("baud"), baud_rate, 9600);
+  nh_->param<int>(ros::this_node::getName() + "/baud", baud_rate, 9600);
   ROS_INFO_STREAM("Baud rate: " << port_name);
 
   char defaultc = '\n';

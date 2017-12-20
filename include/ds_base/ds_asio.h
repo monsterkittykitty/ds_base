@@ -28,6 +28,8 @@ public:
   void addTmr(std::string name, ros::Timer myTmr);
   void addPub(std::string name, ros::Publisher myPub);
 
+  std::map<std::string, boost::shared_ptr<DsConnection> > startConnections(ros::DsNodeHandle& myNh, std::map<std::string, boost::function<void(ds_core_msgs::RawData data)> > mapping);
+
   void signalHandler(const boost::system::error_code& error, int signal_number);
   
   boost::asio::io_service        io_service;

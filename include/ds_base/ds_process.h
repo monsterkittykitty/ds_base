@@ -10,13 +10,28 @@ class DsProcess
 {
 
 public:
+  /// @brief Construct a new DsProcess
+  ///
+  /// When using this constructor you must call ros::init elsewhere in your code
   DsProcess();
+
+  /// @biref Construct a new DsProcess
+  ///
+  /// This constructor calls ros::init(argc, argv, name) for you
+  ///
+  /// \param argc
+  /// \param argv
+  /// \param name
   DsProcess(int argc, char** argv, const std::string &name);
 
   virtual ~DsProcess();
 
+  /// @brief Access the owned DsNodeHandle
   ros::DsNodeHandle* getNh();
 
+  /// @brief Run the owned asio io_service event loop.
+  ///
+  /// This method blocks until terminated by signals.
   void run();
 
 protected:

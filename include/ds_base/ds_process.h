@@ -9,15 +9,17 @@
 class DsProcess
 {
 public:
+  DsProcess();
   DsProcess(int argc, char** argv, const std::string &name);
+
   virtual ~DsProcess();
 
-  DsAsio* myAsio;
+  ros::DsNodeHandle* getNh();
 
 protected:
-  ros::DsNodeHandle              *nh;
-  
-private:
+  std::unique_ptr<ros::DsNodeHandle> nh;
+  std::unique_ptr<DsAsio> myAsio;
+
 };
 
 #endif

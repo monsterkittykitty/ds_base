@@ -39,7 +39,7 @@ void DsSerial::setup(void)
   port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
   // The /raw channel should be appended to the nodehandle namespace
-  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("raw",1);
+  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>(name_ + "/raw",1);
 }
 
 void DsSerial::receive(void)

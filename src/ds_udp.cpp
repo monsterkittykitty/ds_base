@@ -56,7 +56,7 @@ void DsUdp::setup(void)
   remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
 
   // The /raw channel should be appended to the nodehandle namespace
-  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>("raw",1);
+  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>(name_ + "/raw",1);
 }
 
 void DsUdp::receive(void)

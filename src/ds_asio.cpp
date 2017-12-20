@@ -1,9 +1,9 @@
 #include "ds_base/ds_asio.h"
 #include "ds_base/ds_callbackqueue.h"
 
-boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh)
+boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh)
 {
-  connections.push_back(DsConnectionFactory::createConnection(type, name, io_service, callback, myNh));
+  connections.push_back(DsConnectionFactory::createConnection(name, io_service, callback, myNh));
   return connections[connections.size() - 1];
 }
 
@@ -11,32 +11,38 @@ std::map<std::string, boost::shared_ptr<DsConnection> > DsAsio::startConnections
 {
   std::map<std::string, boost::shared_ptr<DsConnection> > handle;
 
+  // Iterate over mapping keys
+  for ( const auto &myPair : mapping )
+    {
+      ROS_INFO_STREAM("Looking for connection: " << myPair.first);
+      handle[myPair.first] = this->addConnection(myPair.first, mapping[myPair.first], myNh);
+    }
   // TODO! Check that the mapping matches what is in the parameter server
-  XmlRpc::XmlRpcValue v;
-  std::vector<std::string> connType;
-  if (myNh.hasParam(ros::this_node::getName() + "/conn"))
-    {
-      ROS_INFO_STREAM("conn exists: " << ros::this_node::getName() + "/conn");
-      ros::param::get(ros::this_node::getName() + "/conn", v);
-      for(int i =0; i < v.size(); i++)
-	{
-	  connType.push_back(v[i]);
-	  ROS_INFO_STREAM("connType: " << connType[i]);
-	}
-    }
-  std::vector<std::string> connName;
-  if (myNh.hasParam(ros::this_node::getName() + "/conn_name"))
-    {
-      ROS_INFO_STREAM("conn_name exists: " << ros::this_node::getName() + "/conn_name");
-      ros::param::get(ros::this_node::getName() + "/conn_name", v);
-      for(int i =0; i < v.size(); i++)
-	{
-	  connName.push_back(v[i]);
-	  ROS_INFO_STREAM("connName: " << connName[i]);
-	}
-    }
-  for (int i = 0; i < connType.size(); ++i)
-    handle[connName[i]] = this->addConnection(connType[i], connName[i], mapping[connName[i]], myNh);
+  // XmlRpc::XmlRpcValue v;
+  // std::vector<std::string> connType;
+  // if (myNh.hasParam(ros::this_node::getName() + "/conn"))
+  //   {
+  //     ROS_INFO_STREAM("conn exists: " << ros::this_node::getName() + "/conn");
+  //     ros::param::get(ros::this_node::getName() + "/conn", v);
+  //     for(int i =0; i < v.size(); i++)
+  // 	{
+  // 	  connType.push_back(v[i]);
+  // 	  ROS_INFO_STREAM("connType: " << connType[i]);
+  // 	}
+  //   }
+  // std::vector<std::string> connName;
+  // if (myNh.hasParam(ros::this_node::getName() + "/conn_name"))
+  //   {
+  //     ROS_INFO_STREAM("conn_name exists: " << ros::this_node::getName() + "/conn_name");
+  //     ros::param::get(ros::this_node::getName() + "/conn_name", v);
+  //     for(int i =0; i < v.size(); i++)
+  // 	{
+  // 	  connName.push_back(v[i]);
+  // 	  ROS_INFO_STREAM("connName: " << connName[i]);
+  // 	}
+  //   }
+  // for (int i = 0; i < connType.size(); ++i)
+  //   handle[connName[i]] = this->addConnection(connType[i], connName[i], mapping[connName[i]], myNh);
 
   return handle;
 }

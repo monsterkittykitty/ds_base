@@ -20,7 +20,7 @@ public:
 
   void run(void);
 
-  boost::shared_ptr<DsConnection> addConnection(std::string type, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh);
+  boost::shared_ptr<DsConnection> addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh);
 
   DsAsio* asio(void);
 

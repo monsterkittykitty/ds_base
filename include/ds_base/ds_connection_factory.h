@@ -18,7 +18,7 @@ public:
     SERIAL
   };
 
-  static boost::shared_ptr<DsConnection> createConnection(std::string connectionType, std::string name, boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle& myNh);
+  static boost::shared_ptr<DsConnection> createConnection(std::string name, boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle& myNh);
 
 };
 

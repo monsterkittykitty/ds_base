@@ -8,6 +8,7 @@
 
 class DsProcess
 {
+
 public:
   DsProcess();
   DsProcess(int argc, char** argv, const std::string &name);
@@ -15,6 +16,8 @@ public:
   virtual ~DsProcess();
 
   ros::DsNodeHandle* getNh();
+
+  void run();
 
 protected:
   std::unique_ptr<ros::DsNodeHandle> nh;

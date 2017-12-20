@@ -23,3 +23,7 @@ ros::DsNodeHandle* DsProcess::getNh() {
 
   return nh.get();
 }
+
+void DsProcess::run() {
+  myAsio->run();
+}

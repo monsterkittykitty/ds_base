@@ -15,6 +15,8 @@
 class DsAsio
 {
 public:
+
+  DsAsio();
   DsAsio(int argc, char** argv, const std::string &name);
   ~DsAsio();
 

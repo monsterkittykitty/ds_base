@@ -81,7 +81,10 @@ void DsAsio::signalHandler(const boost::system::error_code& error, int signal_nu
     }
 }
 
+DsAsio::DsAsio() = default;
+
 DsAsio::DsAsio(int argc, char** argv, const std::string &name)
+  : DsAsio()
 {
   ros::init(argc, argv, name);
 

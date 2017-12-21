@@ -30,4 +30,9 @@ namespace ros
     queue = parent.queue;
     myIoService = parent.myIoService;
   } 
+
+  DsNodeHandle::~DsNodeHandle()
+  {
+    this->NodeHandle::~NodeHandle();
+  }  
 }

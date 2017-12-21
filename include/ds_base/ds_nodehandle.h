@@ -16,7 +16,9 @@ namespace ros
     DsNodeHandle(const DsNodeHandle &parent, const std::string &ns);
 
     DsNodeHandle(const DsNodeHandle &parent, const std::string &ns, const M_string &remappings);
-    
+
+    virtual ~DsNodeHandle();
+
   private:
     boost::asio::io_service *myIoService;
     ros::DsCallbackQueue    *queue;

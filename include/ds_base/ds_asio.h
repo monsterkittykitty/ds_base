@@ -34,7 +34,7 @@ public:
 
   void signalHandler(const boost::system::error_code& error, int signal_number);
   
-  boost::asio::io_service        io_service;
+  boost::asio::io_service                        io_service;
 
  protected:
   std::map<std::string, ros::Subscriber>         subs;

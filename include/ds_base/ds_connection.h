@@ -13,8 +13,12 @@ public:
   DsConnection();
   ~DsConnection();
 
+  /// @brief An interface to send data through a connection
+  ///
+  /// @param[in] message The message to send through the connection
   virtual void send(boost::shared_ptr<std::string> message) = 0;
-  
+
+  /// @brief An interface to receive data through a connection
   virtual void receive(void) = 0;
 };
 

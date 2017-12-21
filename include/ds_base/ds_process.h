@@ -15,18 +15,21 @@ public:
   /// When using this constructor you must call ros::init elsewhere in your code
   DsProcess();
 
-  /// @biref Construct a new DsProcess
+  /// @brief Construct a new DsProcess
   ///
   /// This constructor calls ros::init(argc, argv, name) for you
   ///
-  /// \param argc
-  /// \param argv
-  /// \param name
+  /// @param[in] argc
+  /// @param[in] argv
+  /// @param[in] name The name of the process type
   DsProcess(int argc, char** argv, const std::string &name);
 
+  /// @brief Destroys a DsProcess
   virtual ~DsProcess();
 
   /// @brief Access the owned DsNodeHandle
+  ///
+  /// @return A pointer to the protected DsNodeHandle instance. If the DsNodeHandle does not already exist, it in instantiated here
   ros::DsNodeHandle* getNh();
 
   /// @brief Run the owned asio io_service event loop.

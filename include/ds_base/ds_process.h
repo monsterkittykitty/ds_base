@@ -35,8 +35,8 @@ public:
   void run();
 
 protected:
-  std::unique_ptr<ros::DsNodeHandle> nh;
   std::unique_ptr<DsAsio> myAsio;
+  std::unique_ptr<ros::DsNodeHandle> nh;
 
 };
 

@@ -15,15 +15,18 @@ DsProcess::DsProcess(int argc, char** argv, const std::string &name)
 DsProcess::~DsProcess() = default;
 
 
-ros::DsNodeHandle* DsProcess::getNh() {
-
-  if(!nh) {
-    nh.reset(new ros::DsNodeHandle(&(myAsio->io_service)));
-  }
+ros::DsNodeHandle* DsProcess::getNh()
+{
+  if(!nh)
+    {
+      nh.reset(new ros::DsNodeHandle(&(myAsio->io_service)));
+    }
 
   return nh.get();
 }
 
-void DsProcess::run() {
+void DsProcess::run()
+{
   myAsio->run();
 }
+

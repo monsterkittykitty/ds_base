@@ -42,7 +42,8 @@ private:
   ros::NodeHandle* nh_;
   ros::Publisher raw_publisher_;
   ds_core_msgs::RawData raw_data_;
-  char eol_;
+  //char eol_;
+  std::string eol_; // end of line, may be a single character
   std::string name_;
 
 };

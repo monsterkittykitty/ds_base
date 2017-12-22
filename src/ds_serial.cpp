@@ -25,9 +25,9 @@ void DsSerial::setup(void)
   nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/data_bits", data_bits, 8);
   ROS_INFO_STREAM("Data bits: " << data_bits);
 
-  char defaultc = '\n';
+  std::string defaultc(1,'\n');
   eol_ = defaultc;
-  //nh_->param<char>(nh_->resolveName("eol"), eol_, defaultc);
+  //eol_ = nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/eol", defaultc);
   ROS_INFO_STREAM("Eol character: " << eol_);
   
   port_ = new boost::asio::serial_port(io_service_, port_name);
@@ -61,7 +61,7 @@ void DsSerial::handle_read(const boost::system::error_code& error,
 	{
 	  char c = recv_buffer_[i];
 	  ROS_INFO_STREAM("rxd: " << c);
-	  if (c == eol_)
+	  if (c == eol_.at(0))
 	    {	  
 	      // Store timestamp as soon as received
 	      raw_data_.header.io_time = ros::Time::now();

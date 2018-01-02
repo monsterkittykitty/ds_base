@@ -21,7 +21,7 @@ catkin_package(
   #LIBRARIES ds_process ds_callbackqueue ds_connection ds_udp ds_asio ds_serial ds_nodehandle ds_connection_factory
   LIBRARIES ds_process ds_asio
   CATKIN_DEPENDS roscpp ds_core_msgs
-  #DEPENDS system_lib
+  DEPENDS Boost
 )
 
 ###########

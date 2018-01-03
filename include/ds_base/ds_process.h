@@ -37,9 +37,33 @@ public:
   /// This method blocks until terminated by signals.
   void run();
 
-protected:
+  /// @brief Period betweeen process health checks.
+  ///
+  /// \return
+  ros::Duration statusCheckPeriod() const noexcept;
+
+  /// @brief Set the period for status health checks.
+  ///
+  /// A period < 0 disables health checks.
+  void setStatusCheckPeriod(ros::Duration period) noexcept;
+
+ protected:
   std::unique_ptr<DsAsio> myAsio;
   std::unique_ptr<ros::DsNodeHandle> nh;
+
+  /// @brief Check the process status.
+  ///
+  /// This method is triggered by the status check timer.  The default
+  /// implementation does nothing.
+  ///
+  /// This is where you can add hooks to check process-specific details
+  /// and emit a ds_core_msgs::Status message.
+  ///
+  /// \param event
+  virtual void checkProcessStatus(const ros::TimerEvent &event) {};
+
+  ros::Duration status_check_period_;   //!< The period for the status health timer (<0 disables)
+  ros::Timer status_check_timer_;       //!< The status health timer itself.
 
 };
 

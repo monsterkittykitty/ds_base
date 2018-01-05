@@ -50,7 +50,7 @@ void DsSerial::receive(void)
   // 				      boost::asio::placeholders::error,
   // 				      boost::asio::placeholders::bytes_transferred));
   //boost::asio::streambuf b;
-  boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
+  boost::asio::async_read_until(*port_, streambuf_, '\n',//match_char('\n'),
 				boost::bind(&DsSerial::handle_read, this,
 					    boost::asio::placeholders::error,
 					    boost::asio::placeholders::bytes_transferred));

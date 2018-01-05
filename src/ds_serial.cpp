@@ -39,13 +39,30 @@ void DsSerial::setup(void)
       ROS_INFO_STREAM("Hex ascii" << hexAscii << hexAscii.c_str());
       set_matcher(match_char((char) delimiter));
     }
-  
+
+  std::string myParity;
+  nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");
+
+  int myStopbits;
+  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/stopbits", myStopbits, 1);
+
   port_ = new boost::asio::serial_port(io_service_, port_name);
 
   port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
   port_->set_option(boost::asio::serial_port_base::character_size(data_bits));
-  port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-  port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+
+  if (myStopbits == 1)
+    port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+  else if (myStopbits == 2)
+    port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::two));
+
+  if (!myParity.compare("none"))
+    port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+  else if (!myParity.compare("odd"))
+    port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::odd));
+  else if (!myParity.compare("even"))
+    port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::even));
+  
   port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
   // The /raw channel should be appended to the nodehandle namespace

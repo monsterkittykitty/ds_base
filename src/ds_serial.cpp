@@ -50,7 +50,7 @@ void DsSerial::receive(void)
   // 				      boost::asio::placeholders::error,
   // 				      boost::asio::placeholders::bytes_transferred));
   //boost::asio::streambuf b;
-  boost::asio::async_read_until(*port_, streambuf_, '\n',//match_char('\n'),
+  boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
 				boost::bind(&DsSerial::handle_read, this,
 					    boost::asio::placeholders::error,
 					    boost::asio::placeholders::bytes_transferred));
@@ -72,7 +72,8 @@ void DsSerial::handle_read(const boost::system::error_code& error,
       raw_publisher_.publish(raw_data_);
       callback_(raw_data_);
       raw_data_.data.clear();
-
+      // The consume method of the strembuffer marks as used the bytes that we last processed, so the next call to async_read_until does not re-analyze them
+      streambuf_.consume(bytes_transferred);
       // for (unsigned int i = 0; i < bytes_transferred; ++i)
       // 	{
       // 	  char c = recv_buffer_[i];
@@ -121,6 +122,7 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message,
   raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
   raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
   raw_publisher_.publish(raw_data_);
+  raw_data_.data.clear();
 }
 
 boost::asio::serial_port& DsSerial::get_io_object(void)

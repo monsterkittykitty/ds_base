@@ -1,10 +1,14 @@
 #ifndef DS_MATCH_FUNCTIONS_H
 #define DS_MATCH_FUNCTIONS_H
 
+//typedef boost::asio::buffers_iterator< boost::asio::streambuf::const_buffers_type > Iterator;
+
 class match_char
 {
 public:
   explicit match_char(char c) : c_(c) {}
+
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
 
   template <typename Iterator>
   std::pair<Iterator, bool> operator()(

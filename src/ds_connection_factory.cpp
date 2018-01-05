@@ -11,3 +11,4 @@ boost::shared_ptr<DsConnection> DsConnectionFactory::createConnection(std::strin
     return boost::shared_ptr<DsSerial>(new DsSerial(io_service, name, callback, &myNh));
 
 }
+

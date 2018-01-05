@@ -45,6 +45,7 @@ private:
   //char eol_;
   std::string eol_; // end of line, may be a single character
   std::string name_;
+  boost::asio::streambuf streambuf_;
 
 };
 

@@ -1,4 +1,5 @@
 #include "ds_base/ds_serial.h"
+#include <cstdlib>
 
 DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
   : io_service_(io_service),
@@ -25,10 +26,19 @@ void DsSerial::setup(void)
   nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/data_bits", data_bits, 8);
   ROS_INFO_STREAM("Data bits: " << data_bits);
 
-  std::string defaultc(1,'\n');
-  eol_ = defaultc;
-  //eol_ = nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/eol", defaultc);
-  ROS_INFO_STREAM("Eol character: " << eol_);
+  std::string myMatch;
+  nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/matcher", myMatch, "match_char");
+  ROS_INFO_STREAM("Matcher: " << myMatch);
+  if (!myMatch.compare("match_char"))
+    {
+      //char delimiter;
+      std::string hexAscii;
+      nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/delimiter", hexAscii, "0A");
+      unsigned int delimiter;
+      sscanf(hexAscii.c_str(), "%X", &delimiter);
+      ROS_INFO_STREAM("Hex ascii" << hexAscii << hexAscii.c_str());
+      set_matcher(match_char((char) delimiter));
+    }
   
   port_ = new boost::asio::serial_port(io_service_, port_name);
 
@@ -50,11 +60,20 @@ void DsSerial::receive(void)
   // 				      boost::asio::placeholders::error,
   // 				      boost::asio::placeholders::bytes_transferred));
   //boost::asio::streambuf b;
-  boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
+  // boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
+  // 				boost::bind(&DsSerial::handle_read, this,
+  // 					    boost::asio::placeholders::error,
+  // 					    boost::asio::placeholders::bytes_transferred));
+  boost::asio::async_read_until(*port_, streambuf_, matchFunction_,
 				boost::bind(&DsSerial::handle_read, this,
 					    boost::asio::placeholders::error,
 					    boost::asio::placeholders::bytes_transferred));
+  
+}
 
+void DsSerial::set_matcher(boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction)
+{
+  matchFunction_ = matchFunction;
 }
 
 void DsSerial::handle_read(const boost::system::error_code& error,

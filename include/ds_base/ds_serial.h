@@ -12,6 +12,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/serial_port.hpp>
 #include "ds_core_msgs/RawData.h"
+#include <boost/function.hpp>
 
 class DsSerial : public DsConnection
 {
@@ -25,6 +26,9 @@ public:
   void setup(void);
 
   boost::asio::serial_port& get_io_object(void);
+
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+  void set_matcher(boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction);
 
 private:
 
@@ -46,6 +50,7 @@ private:
   std::string eol_; // end of line, may be a single character
   std::string name_;
   boost::asio::streambuf streambuf_;
+  boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction_;
 
 };
 

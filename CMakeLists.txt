@@ -41,10 +41,19 @@ link_directories(
 )
 
 add_library(ds_process
+  include/ds_base/ds_process.h
   src/ds_process.cpp
 )
 
 add_library(ds_asio
+  include/ds_base/ds_asio.h
+  include/ds_base/ds_callbackqueue.h
+  include/ds_base/ds_udp.h
+  include/ds_base/ds_connection.h
+  include/ds_base/ds_serial.h
+  include/ds_base/ds_nodehandle.h
+  include/ds_base/ds_connection_factory.h
+
   src/ds_asio.cpp
   src/ds_callbackqueue.cpp
   src/ds_udp.cpp

@@ -41,8 +41,10 @@ void DsSerial::setup(void)
     }
   else if (!myMatch.compare("match_header_length"))
     {
-      std::vector<unsigned char> myHeader(0x7F, 0x7F);
-      int length = 100;
+      unsigned char pd0[] = {0x7F, 0x7F};
+      std::vector<unsigned char> myHeader(pd0,pd0+sizeof(pd0)/sizeof(unsigned char));
+      int length = 833; // DVL with 30 water bins
+      ROS_INFO_STREAM(myHeader.size() << " " << static_cast<unsigned>(myHeader[0]) << " " << static_cast<unsigned>(myHeader[1]) << " " << length);
       set_matcher(match_header_length(myHeader, length));
     }
 
@@ -108,6 +110,7 @@ void DsSerial::handle_read(const boost::system::error_code& error,
       raw_data_.ds_header.io_time = ros::Time::now();
 
       boost::asio::streambuf::const_buffers_type bufs = streambuf_.data();
+      ROS_INFO_STREAM("Streambuf data size: " << bytes_transferred);
       raw_data_.data = std::vector<unsigned char>(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + bytes_transferred);
       ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
       raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;

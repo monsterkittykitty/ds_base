@@ -41,9 +41,18 @@ void DsSerial::setup(void)
     }
   else if (!myMatch.compare("match_header_length"))
     {
-      unsigned char pd0[] = {0x7F, 0x7F};
-      std::vector<unsigned char> myHeader(pd0,pd0+sizeof(pd0)/sizeof(unsigned char));
-      int length = 833; // DVL with 30 water bins
+      int length;
+      nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/length", length, 833);
+      std::string hexAscii;
+      nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/header", hexAscii, "7F7F");
+      std::vector<unsigned char> myHeader;
+      for (int i = 0; i < hexAscii.length(); i += 2)
+	{
+	  std::string byteString = hexAscii.substr(i, 2);
+	  unsigned int myByte;
+	  sscanf(byteString.c_str(), "%X", &myByte);
+	  myHeader.push_back((unsigned char) myByte);
+	}
       ROS_INFO_STREAM(myHeader.size() << " " << static_cast<unsigned>(myHeader[0]) << " " << static_cast<unsigned>(myHeader[1]) << " " << length);
       set_matcher(match_header_length(myHeader, length));
     }

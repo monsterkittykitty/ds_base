@@ -39,6 +39,12 @@ void DsSerial::setup(void)
       ROS_INFO_STREAM("Hex ascii" << hexAscii << hexAscii.c_str());
       set_matcher(match_char((char) delimiter));
     }
+  else if (!myMatch.compare("match_header_length"))
+    {
+      std::vector<unsigned char> myHeader(0x7F, 0x7F);
+      int length = 100;
+      set_matcher(match_header_length(myHeader, length));
+    }
 
   std::string myParity;
   nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");

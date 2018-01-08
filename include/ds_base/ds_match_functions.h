@@ -80,6 +80,8 @@ public:
   std::pair<Iterator, bool> operator()(
       Iterator begin, Iterator end) const
   {
+    Iterator i = begin;
+
     return std::make_pair(i, true);
   }
 

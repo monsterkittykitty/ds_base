@@ -1,16 +1,17 @@
 #ifndef DS_ASIO_H
 #define DS_ASIO_H
 
-#include <ros/ros.h>
-#include <boost/array.hpp>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/asio.hpp>
 #include "ds_base/ds_udp.h"
 #include "ds_base/ds_serial.h"
 #include "ds_base/ds_connection_factory.h"
 #include "ds_base/ds_nodehandle.h"
 #include "ds_core_msgs/RawData.h"
+#include <boost/array.hpp>
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/asio.hpp>
+#include <ros/ros.h>
+#include <unordered_map>
 
 class DsAsio
 {
@@ -43,6 +44,14 @@ public:
   /// @return A boost::shared_ptr object that is a handle for the created connection
   boost::shared_ptr<DsConnection> addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh);
 
+  /// @brief Get a connection handle previously added with addConnection
+  ///
+  /// Returns an empty shared pointer if the connection does not exist.
+  ///
+  /// \param name
+  /// \return
+  boost::shared_ptr<DsConnection> connection(const std::string& name);
+
   /// @brief Method to start all connections specified in the application
   ///
   /// @param[in] myNh A reference to the nodehandle object for accessing the parameter server
@@ -56,15 +65,6 @@ public:
   /// @return A pointer to this DsAsio instance
   DsAsio* asio(void);
 
-  /// @brief Adds a ros::Subscriber object to the member subs associative array
-  void addSub(std::string name, ros::Subscriber mySub);
-
-  /// @brief Adds a ros::Timer object to the member tmrs associative array
-  void addTmr(std::string name, ros::Timer myTmr);
-
-  /// @brief Adds a ros::Publisher object to the member pubs associative array
-  void addPub(std::string name, ros::Publisher myPub);
-
   /// @brief A custom signal handler that gracefully shuts down ROS before exiting the process
   void signalHandler(const boost::system::error_code& error, int signal_number);
   
@@ -76,8 +76,7 @@ public:
   std::map<std::string, ros::Publisher>          pubs;
  
  private:
-
-  std::vector<boost::shared_ptr<DsConnection> >  connections;
+  std::unordered_map<std::string, boost::shared_ptr<DsConnection> >  connections; //!< Map of active connections.
   
 };
 

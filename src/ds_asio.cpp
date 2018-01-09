@@ -3,8 +3,27 @@
 
 boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh)
 {
-  connections.push_back(DsConnectionFactory::createConnection(name, io_service, callback, myNh));
-  return connections[connections.size() - 1];
+  if(connections.find(name) != connections.end()) {
+    ROS_ERROR_STREAM("Unable to add connection: " << name << ".  Connection by that name already exists.");
+    return {};
+  }
+
+  auto connection = DsConnectionFactory::createConnection(name, io_service, callback, myNh);
+  ROS_INFO_STREAM("Created new connection named: " << name);
+  connections.insert({name, connection});
+  return connection;
+}
+
+boost::shared_ptr<DsConnection> DsAsio::connection(const std::string& name)
+{
+
+  const auto it = connections.find(name);
+  if(it == connections.end()) {
+    ROS_ERROR_STREAM("No connection named: " << name);
+    return {};
+  }
+
+  return it->second;
 }
 
 std::map<std::string, boost::shared_ptr<DsConnection> > DsAsio::startConnections(ros::DsNodeHandle& myNh, std::map<std::string, boost::function<void(ds_core_msgs::RawData data)> > mapping)
@@ -24,21 +43,6 @@ std::map<std::string, boost::shared_ptr<DsConnection> > DsAsio::startConnections
 DsAsio* DsAsio::asio(void)
 {
   return this;
-}
-
-void DsAsio::addSub(std::string name, ros::Subscriber mySub)
-{
-  subs[name] = mySub;
-}
-
-void DsAsio::addTmr(std::string name, ros::Timer myTmr)
-{
-  tmrs[name] = myTmr;
-}
-
-void DsAsio::addPub(std::string name, ros::Publisher myPub)
-{
-  pubs[name] = myPub;
 }
 
 void DsAsio::signalHandler(const boost::system::error_code& error, int signal_number)

@@ -1,7 +1,10 @@
 #include "ds_asio/ds_asio.h"
 #include "ds_asio/ds_callbackqueue.h"
 
-boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::DsNodeHandle& myNh)
+namespace ds_asio
+{
+
+boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, DsNodeHandle& myNh)
 {
   if(connections.find(name) != connections.end()) {
     ROS_ERROR_STREAM("Unable to add connection: " << name << ".  Connection by that name already exists.");
@@ -26,7 +29,7 @@ boost::shared_ptr<DsConnection> DsAsio::connection(const std::string& name)
   return it->second;
 }
 
-std::map<std::string, boost::shared_ptr<DsConnection> > DsAsio::startConnections(ros::DsNodeHandle& myNh, std::map<std::string, boost::function<void(ds_core_msgs::RawData data)> > mapping)
+std::map<std::string, boost::shared_ptr<DsConnection> > DsAsio::startConnections(DsNodeHandle& myNh, std::map<std::string, boost::function<void(ds_core_msgs::RawData data)> > mapping)
 {
   std::map<std::string, boost::shared_ptr<DsConnection> > handle;
 
@@ -83,3 +86,4 @@ DsAsio::~DsAsio()
 {
 }
 
+}

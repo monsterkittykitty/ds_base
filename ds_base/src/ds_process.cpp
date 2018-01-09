@@ -1,16 +1,19 @@
 #include "ds_base/ds_process.h"
 #include "ds_core_msgs/Status.h"
 
+namespace ds_base
+{
+
 
 DsProcess::DsProcess()
-  : myAsio(std::unique_ptr<DsAsio>(new DsAsio()))
+  : myAsio(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio()))
   , status_check_period_(ros::Duration(-1))
 {
 }
 
 DsProcess::DsProcess(int argc, char** argv, const std::string &name)
-  : myAsio(std::unique_ptr<DsAsio>(new DsAsio(argc, argv, name)))
-  , nh(std::unique_ptr<ros::DsNodeHandle>(new ros::DsNodeHandle(&myAsio->io_service)))
+  : myAsio(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio(argc, argv, name)))
+  , nh(std::unique_ptr<ds_asio::DsNodeHandle>(new ds_asio::DsNodeHandle(&myAsio->io_service)))
   , status_check_period_(ros::Duration(-1))
 {
 }
@@ -18,11 +21,11 @@ DsProcess::DsProcess(int argc, char** argv, const std::string &name)
 DsProcess::~DsProcess() = default;
 
 
-ros::DsNodeHandle* DsProcess::getNh()
+ds_asio::DsNodeHandle* DsProcess::getNh()
 {
   if(!nh)
     {
-      nh.reset(new ros::DsNodeHandle(&(myAsio->io_service)));
+      nh.reset(new ds_asio::DsNodeHandle(&(myAsio->io_service)));
     }
 
   return nh.get();
@@ -103,13 +106,15 @@ void DsProcess::setStatusCheckPeriod(ros::Duration period) noexcept
   ROS_INFO_STREAM("Status check timer set to " << status_check_period_);
 }
 
-boost::shared_ptr<DsConnection> DsProcess::addConnection(const std::string &name, boost::function<void(ds_core_msgs::RawData)> callback)
+boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string &name, boost::function<void(ds_core_msgs::RawData)> callback)
 {
   auto nh = getNh();
   ROS_ASSERT(nh);
   return myAsio->addConnection(name, callback, *nh);
 }
 
-boost::shared_ptr<DsConnection> DsProcess::connection(const std::string &name) {
+boost::shared_ptr<ds_asio::DsConnection> DsProcess::connection(const std::string &name) {
   return myAsio->connection(name);
+}
+
 }

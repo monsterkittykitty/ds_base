@@ -7,6 +7,9 @@
 #include <ros/ros.h>
 #include <boost/asio.hpp>
 
+namespace ds_base
+{
+
 class DsProcess
 {
 
@@ -31,7 +34,7 @@ public:
   /// @brief Access the owned DsNodeHandle
   ///
   /// @return A pointer to the protected DsNodeHandle instance. If the DsNodeHandle does not already exist, it in instantiated here
-  ros::DsNodeHandle* getNh();
+  ds_asio::DsNodeHandle* getNh();
 
   /// @brief Run the owned asio io_service event loop.
   ///
@@ -133,17 +136,17 @@ public:
   /// \param name
   /// \param callback
   /// \return
-  boost::shared_ptr<DsConnection> addConnection(const std::string& name, boost::function<void(ds_core_msgs::RawData)> callback);
+  boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name, boost::function<void(ds_core_msgs::RawData)> callback);
 
   /// @brief Get a DsConnection object for a connection added previously by addConnection
   ///
   /// \param name
   /// \return
-  boost::shared_ptr<DsConnection> connection(const std::string& name);
+  boost::shared_ptr<ds_asio::DsConnection> connection(const std::string& name);
 
  protected:
-  std::unique_ptr<DsAsio> myAsio;
-  std::unique_ptr<ros::DsNodeHandle> nh;
+  std::unique_ptr<ds_asio::DsAsio> myAsio;
+  std::unique_ptr<ds_asio::DsNodeHandle> nh;
 
   /// @brief Setup node after ros has been initialized.
   ///
@@ -196,4 +199,5 @@ public:
 
 };
 
+}
 #endif

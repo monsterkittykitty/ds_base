@@ -15,6 +15,9 @@
 
 using boost::asio::ip::udp;
 
+namespace ds_asio
+{
+
 class DsUdp : public DsConnection
 {
 public:
@@ -48,4 +51,5 @@ private:
   std::string name_;
 };
 
+}
 #endif

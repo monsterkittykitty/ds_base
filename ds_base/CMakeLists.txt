@@ -31,24 +31,15 @@ catkin_package(
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-)
-
-link_directories(
-  ${Boost_LIBRARY_DIRS}
 )
 
 add_library(${PROJECT_NAME}
   include/ds_base/ds_process.h
   src/ds_process.cpp
-
 )
-
-add_dependencies(ds_asio ${ds_core_msgs_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  ${Boost_SYSTEM_LIBRARY}
 )
 
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

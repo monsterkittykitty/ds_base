@@ -1,5 +1,8 @@
 #include "ds_asio/ds_udp.h"
 
+namespace ds_asio
+{
+
 DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
   : io_service_(io_service),
     DsConnection(),
@@ -112,4 +115,5 @@ void DsUdp::handle_send(boost::shared_ptr<std::string> message,
 udp::socket& DsUdp::get_io_object(void)
 {
   return *socket_;
+}
 }

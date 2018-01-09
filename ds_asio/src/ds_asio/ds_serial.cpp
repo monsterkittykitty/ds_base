@@ -1,6 +1,9 @@
 #include "ds_asio/ds_serial.h"
 #include <cstdlib>
 
+namespace ds_asio
+{
+
 DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
   : io_service_(io_service),
     DsConnection(),
@@ -181,4 +184,6 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message,
 boost::asio::serial_port& DsSerial::get_io_object(void)
 {
   return *port_;
+}
+
 }

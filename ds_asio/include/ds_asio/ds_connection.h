@@ -8,6 +8,9 @@
 #include <boost/asio.hpp>
 #include "ds_asio/ds_match_functions.h"
 
+namespace ds_asio
+{
+
 class DsConnection
 {
 public:
@@ -23,4 +26,5 @@ public:
   virtual void receive(void) = 0;
 };
 
+}
 #endif

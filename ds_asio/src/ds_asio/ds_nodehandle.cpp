@@ -1,12 +1,12 @@
 #include "ds_asio/ds_nodehandle.h"
 
-namespace ros
+namespace ds_asio
 {
-  DsNodeHandle::DsNodeHandle(boost::asio::io_service *io_service, const std::string &ns, const M_string &remappings):
+  DsNodeHandle::DsNodeHandle(boost::asio::io_service *io_service, const std::string &ns, const ros::M_string &remappings):
     NodeHandle(ns, remappings),
     myIoService(io_service)
   {
-    queue = new ros::DsCallbackQueue(io_service);
+    queue = new ds_asio::DsCallbackQueue(io_service);
     this->setCallbackQueue((ros::CallbackQueue*) queue);
   }
 
@@ -24,7 +24,7 @@ namespace ros
     myIoService = parent.myIoService;
   }
 
-  DsNodeHandle::DsNodeHandle(const DsNodeHandle &parent, const std::string &ns, const M_string &remappings):
+  DsNodeHandle::DsNodeHandle(const DsNodeHandle &parent, const std::string &ns, const ros::M_string &remappings):
     NodeHandle(parent, ns, remappings)
   {
     queue = parent.queue;

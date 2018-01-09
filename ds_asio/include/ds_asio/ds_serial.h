@@ -14,6 +14,9 @@
 #include <iostream>
 #include <string>
 
+namespace ds_asio
+{
+
 class DsSerial : public DsConnection
 {
 public:
@@ -54,5 +57,6 @@ private:
 
 };
 
+}
 
 #endif

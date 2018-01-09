@@ -1,14 +1,14 @@
 #include "ds_asio/ds_callbackqueue.h"
 
-namespace ros
+namespace ds_asio
 {
   DsCallbackQueue::DsCallbackQueue(boost::asio::io_service *io_service):
-    CallbackQueue(),
+    ros::CallbackQueue(),
     myIoService(io_service)
   {
   }
   
-  void DsCallbackQueue::addCallback(const CallbackInterfacePtr& callback, uint64_t removal_id)
+  void DsCallbackQueue::addCallback(const ros::CallbackInterfacePtr& callback, uint64_t removal_id)
   {
     CallbackInfo info;
     info.callback = callback;
@@ -40,6 +40,6 @@ namespace ros
     condition_.notify_one();
 
     // SS - add posting of event to boost::asio io_service here
-    myIoService->post(boost::bind(&ros::DsCallbackQueue::callAvailable, this));
+    myIoService->post(boost::bind(&ds_asio::DsCallbackQueue::callAvailable, this));
   }
 }

@@ -5,9 +5,9 @@
 #include "boost/asio.hpp"
 #include "boost/bind.hpp"
 
-namespace ros
+namespace ds_asio
 {
-  class ROSCPP_DECL DsCallbackQueue : public CallbackQueue
+  class ROSCPP_DECL DsCallbackQueue : public ros::CallbackQueue
   {
   public:
     /// @brief Construct a new DsCallbackQueue
@@ -19,7 +19,7 @@ namespace ros
     ///
     /// @param[in] callback A reference to the callback that is being inserted in the queue
     /// @param[in] removal_id An optional parameter used if ros wants to remove the callack from the queue
-    virtual void addCallback(const CallbackInterfacePtr& callback, uint64_t removal_id = 0);
+    virtual void addCallback(const ros::CallbackInterfacePtr& callback, uint64_t removal_id = 0);
 
   private:
     boost::asio::io_service *myIoService;

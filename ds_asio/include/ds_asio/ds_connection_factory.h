@@ -9,6 +9,9 @@
 #include <boost/function.hpp>
 #include <ros/ros.h>
 
+namespace ds_asio
+{
+
 class DsConnectionFactory
 {
 public:
@@ -36,6 +39,7 @@ public:
   }
 };
 
+}
 
 
 #endif

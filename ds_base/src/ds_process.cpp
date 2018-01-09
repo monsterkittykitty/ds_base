@@ -76,24 +76,7 @@ ros::Duration DsProcess::statusCheckPeriod() const noexcept
 void DsProcess::setStatusCheckPeriod(ros::Duration period) noexcept
 {
   auto d = d_func();
-  if(period == d->status_check_period_) {
-    return;
-  }
-
-  // Stop pending triggers.
-  d->status_check_timer_.stop();
-
-  // Negative durations disable the timer
-  if(period < ros::Duration(0)) {
-    ROS_INFO_STREAM("Disabling status check timer");
-    d->status_check_period_ = ros::Duration(-1);
-    return;
-  }
-
-  d->status_check_period_ = period;
-  // Create a new periodic, auto-starting timer using the nodehandle with our asio callback queue
-  d->status_check_timer_ = getNh()->createTimer(d->status_check_period_, &DsProcess::checkProcessStatus, this);
-  ROS_INFO_STREAM("Status check timer set to " << d->status_check_period_);
+  d->updateStatusCheckTimer(this, period);
 }
 
 boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string &name, boost::function<void(ds_core_msgs::RawData)> callback)

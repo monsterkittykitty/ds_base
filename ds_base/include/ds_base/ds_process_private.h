@@ -18,47 +18,6 @@ struct DsProcess::Impl
   Impl();
   virtual ~Impl() = default;
 
-  /// @brief Convenience function for adding a publisher
-  ///
-  /// Relative topic names (names not starting with '/') are appended to the node's name.  **HOWEVER!** The publisher
-  /// object is STILL stored using the original passed topic.  Let's have a few examples:
-  ///
-  ///
-  /// node name:  sensor
-  /// topic name: data
-  ///   --> messages will be published on 'sensor/data'
-  ///   --> publisher can be retrieved by getting publisher_.at('data')
-  ///
-  /// node name: sensor
-  /// topic name: /absolute
-  ///   --> messages will be published on '/absolute'
-  ///   --> publisher can be retrieved by getting publisher_at('/absolute')
-  ///
-  /// \tparam T      ROS message type
-  /// \param base    The owning SensorBase instance.
-  /// \param topic   Name of the topic to publish on
-  /// \param queue   Size of the publishing queue
-  template <class T>
-  void addPublisher(DsProcess* base, const std::string& topic, uint32_t queue)
-  {
-    // do nothing for empty strings...
-    if (topic.empty())
-    {
-      return;
-    }
-
-    if (publishers_.find(topic) != publishers_.end()) {
-      ROS_ERROR_STREAM("Unable to add publisher named: " << topic << ". A publisher on that topic already exists.");
-      return;
-    }
-
-    // construct our topic name and create the publisher.
-    auto full_topic_name = topic.at(0) == '/' ? topic : ros::this_node::getName() + '/' + topic;
-    publishers_[topic] = base->getNh()->advertise<T>(full_topic_name, queue);
-
-    ROS_INFO_STREAM("New topic: " << full_topic_name);
-  };
-
   /// @brief Setup node after ros has been initialized.
   ///
   /// This method is called in DsProcess' constructors, after the object has
@@ -92,6 +51,20 @@ struct DsProcess::Impl
   /// The default implementation creates the following publishers:
   ///  - status  [ds_core_msgs::Status]
   virtual void setupPublishers(DsProcess* base);
+
+  /// @brief Check the process status.
+  ///
+  /// This method is triggered by the status check timer.  The default
+  /// implementation does nothing.
+  ///
+  /// This is where you can add hooks to check process-specific details
+  /// and emit a ds_core_msgs::Status message.
+  ///
+  /// \param event
+  virtual void checkProcessStatus(const ros::TimerEvent &event) {};
+
+
+  void updateStatusCheckTimer(DsProcess* base, ros::Duration period);
 
   std::unique_ptr<ds_asio::DsAsio> myAsio;
   std::unique_ptr<ds_asio::DsNodeHandle> nh;

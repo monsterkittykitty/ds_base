@@ -39,4 +39,25 @@ void DsProcess::Impl::setupPublishers(DsProcess* base)
   base->addPublisher<ds_core_msgs::Status>("status", 10);
 }
 
+void DsProcess::Impl::updateStatusCheckTimer(DsProcess* base, ros::Duration period)
+{
+  if(period == status_check_period_) {
+    return;
+  }
+
+  // Stop pending triggers.
+  status_check_timer_.stop();
+
+  // Negative durations disable the timer
+  if(period < ros::Duration(0)) {
+    ROS_INFO_STREAM("Disabling status check timer");
+    status_check_period_ = ros::Duration(-1);
+    return;
+  }
+
+  status_check_period_ = period;
+  status_check_timer_ = base->getNh()->createTimer(status_check_period_, &DsProcess::Impl::checkProcessStatus, this);
+  ROS_INFO_STREAM("Status check timer set to " << status_check_period_);
+}
+
 }

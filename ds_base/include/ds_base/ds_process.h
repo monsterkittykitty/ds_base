@@ -103,7 +103,9 @@ public:
     auto full_topic_name = topic.at(0) == '/' ? topic : ros::this_node::getName() + '/' + topic;
     auto pub = getNh()->advertise<T>(full_topic_name, queue);
 
+    // Store the publisher inside the impl.
     _addPublisher(topic, std::move(pub));
+
     ROS_INFO_STREAM("New topic: " << full_topic_name);
   }
 
@@ -166,19 +168,9 @@ public:
     return impl_.get();
   }
 
-  /// @brief Check the process status.
-  ///
-  /// This method is triggered by the status check timer.  The default
-  /// implementation does nothing.
-  ///
-  /// This is where you can add hooks to check process-specific details
-  /// and emit a ds_core_msgs::Status message.
-  ///
-  /// \param event
-  virtual void checkProcessStatus(const ros::TimerEvent &event) {};
-
  private:
-
+  // Called from DsProcess::addPublisher to store the created
+  // ros::Publisher object inside the impl object.
   void _addPublisher(const std::string& name, ros::Publisher pub);
 
   std::shared_ptr<Impl> impl_;

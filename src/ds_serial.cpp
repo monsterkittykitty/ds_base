@@ -53,7 +53,6 @@ void DsSerial::setup(void)
 	  sscanf(byteString.c_str(), "%X", &myByte);
 	  myHeader.push_back((unsigned char) myByte);
 	}
-      ROS_INFO_STREAM(myHeader.size() << " " << static_cast<unsigned>(myHeader[0]) << " " << static_cast<unsigned>(myHeader[1]) << " " << length);
       set_matcher(match_header_length(myHeader, length));
     }
 

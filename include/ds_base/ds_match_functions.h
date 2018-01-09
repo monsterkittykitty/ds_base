@@ -67,10 +67,6 @@ public:
 	  	  sync_ = true;
 	  	  // Increment the binary frame len_ that we already read by the size of the header
 	  	  len_ += header_.size();
-		  ROS_INFO_STREAM("cb_     " << static_cast<unsigned>(cb_[0]) << " " << static_cast<unsigned>(cb_[1]));
-		  ROS_INFO_STREAM("header_ " << static_cast<unsigned>(header_[0]) << " " << static_cast<unsigned>(header_[1]));
-		  ROS_INFO_STREAM("found_  " << found_[0] << " " << found_[1]);
-		  ROS_INFO_STREAM("len_    " << len_);
 	  	}
 	    }
 	  else if (sync_)

@@ -1,9 +1,9 @@
 #ifndef DS_CONNECTION_FACTORY_H
 #define DS_CONNECTION_FACTORY_H
 
-#include "ds_base/ds_connection.h"
-#include "ds_base/ds_udp.h"
-#include "ds_base/ds_serial.h"
+#include "ds_asio/ds_connection.h"
+#include "ds_asio/ds_udp.h"
+#include "ds_asio/ds_serial.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/function.hpp>

@@ -1,4 +1,4 @@
-#include "ds_base/ds_serial.h"
+#include "ds_asio/ds_serial.h"
 #include <cstdlib>
 
 DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)

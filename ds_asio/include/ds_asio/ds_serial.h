@@ -1,18 +1,18 @@
 #ifndef DS_SERIAL_H
 #define DS_SERIAL_H
 
-#include "ds_base/ds_connection.h"
-#include <ros/ros.h>
-#include <ctime>
-#include <iostream>
-#include <string>
+#include "ds_asio/ds_connection.h"
+#include "ds_core_msgs/RawData.h"
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/serial_port.hpp>
-#include "ds_core_msgs/RawData.h"
 #include <boost/function.hpp>
+#include <ros/ros.h>
+#include <ctime>
+#include <iostream>
+#include <string>
 
 class DsSerial : public DsConnection
 {

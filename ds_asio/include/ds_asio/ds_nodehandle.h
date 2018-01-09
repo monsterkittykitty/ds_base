@@ -1,7 +1,7 @@
 #ifndef DS_NODEHANDLE_H
 #define DS_NODEHANDLE_H
 
-#include "ds_base/ds_callbackqueue.h"
+#include "ds_asio/ds_callbackqueue.h"
 #include "ros/ros.h"
 
 namespace ros

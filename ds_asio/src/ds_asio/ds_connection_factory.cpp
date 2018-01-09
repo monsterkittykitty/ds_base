@@ -1,4 +1,4 @@
-#include "ds_base/ds_connection_factory.h"
+#include "ds_asio/ds_connection_factory.h"
 
 boost::shared_ptr<DsConnection> DsConnectionFactory::createConnection(std::string name, boost::asio::io_service& io_service, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle& myNh)
 {

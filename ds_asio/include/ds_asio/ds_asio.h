@@ -1,10 +1,10 @@
 #ifndef DS_ASIO_H
 #define DS_ASIO_H
 
-#include "ds_base/ds_udp.h"
-#include "ds_base/ds_serial.h"
-#include "ds_base/ds_connection_factory.h"
-#include "ds_base/ds_nodehandle.h"
+#include "ds_asio/ds_udp.h"
+#include "ds_asio/ds_serial.h"
+#include "ds_asio/ds_connection_factory.h"
+#include "ds_asio/ds_nodehandle.h"
 #include "ds_core_msgs/RawData.h"
 #include <boost/array.hpp>
 #include <boost/bind.hpp>

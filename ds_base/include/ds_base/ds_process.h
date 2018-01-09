@@ -1,10 +1,11 @@
 #ifndef DS_PROCESS_H
 #define DS_PROCESS_H
 
-#include "ds_base/ds_asio.h"
+#include "ds_asio/ds_asio.h"
+#include "ds_asio/ds_nodehandle.h"
+
 #include <ros/ros.h>
 #include <boost/asio.hpp>
-#include "ds_base/ds_nodehandle.h"
 
 class DsProcess
 {

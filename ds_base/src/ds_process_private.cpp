@@ -6,6 +6,11 @@
 namespace ds_base
 {
 
+DsProcess::Impl::Impl()
+  : myAsio(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
+{
+}
+
 void DsProcess::Impl::setup(DsProcess* base)
 {
   setupParameters(base);

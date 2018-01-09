@@ -15,7 +15,7 @@ namespace ds_base
 struct DsProcess::Impl
 {
 
-  Impl() = default;
+  Impl();
   virtual ~Impl() = default;
 
   /// @brief Convenience function for adding a publisher

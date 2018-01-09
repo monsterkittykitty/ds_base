@@ -86,7 +86,32 @@ public:
   /// \param topic   Name of the topic to publish on
   /// \param queue   Size of the publishing queue
   template <class T>
-  void addPublisher(const std::string& topic, uint32_t queue);
+  void addPublisher(const std::string& topic, uint32_t queue)
+  {
+    // do nothing for empty strings...
+    if (topic.empty())
+    {
+      return;
+    }
+
+    if (hasPublisher(topic))
+    {
+      ROS_ERROR_STREAM("Unable to add publisher named: " << topic << ". A publisher on that topic already exists.");
+      return;
+    }
+    // construct our topic name and create the publisher.
+    auto full_topic_name = topic.at(0) == '/' ? topic : ros::this_node::getName() + '/' + topic;
+    auto pub = getNh()->advertise<T>(full_topic_name, queue);
+
+    _addPublisher(topic, std::move(pub));
+    ROS_INFO_STREAM("New topic: " << full_topic_name);
+  }
+
+  /// @brief Check if a publisher has been created with the provided name
+  ///
+  /// \param name
+  /// \return
+  bool hasPublisher(const std::string& name) const noexcept;
 
   /// @brief Get a publisher object created by addPublisher
   ///
@@ -153,6 +178,9 @@ public:
   virtual void checkProcessStatus(const ros::TimerEvent &event) {};
 
  private:
+
+  void _addPublisher(const std::string& name, ros::Publisher pub);
+
   std::shared_ptr<Impl> impl_;
 };
 

@@ -19,11 +19,16 @@ DsProcess::DsProcess(int argc, char** argv, const std::string &name)
 DsProcess::DsProcess(std::unique_ptr<DsProcess::Impl> impl)
   : impl_(std::move(impl))
 {
+  auto d = d_func();
+  d->setup(this);
 }
 
 DsProcess::DsProcess(std::unique_ptr<DsProcess::Impl> impl, int argc, char **argv, const std::string &name)
   : impl_(std::move(impl))
 {
+  ros::init(argc, argv, name);
+  auto d = d_func();
+  d->setup(this);
 }
 
 DsProcess::~DsProcess() = default;
@@ -104,13 +109,6 @@ boost::shared_ptr<ds_asio::DsConnection> DsProcess::connection(const std::string
   return d->myAsio->connection(name);
 }
 
-template<class T>
-void DsProcess::addPublisher(const std::string &topic, uint32_t queue)
-{
-  auto d = d_func();
-  d->addPublisher<T>(this, topic, queue);
-}
-
 ros::Publisher DsProcess::publisher(const std::string& topic, bool *valid) const noexcept
 {
   auto const d = d_func();
@@ -128,6 +126,17 @@ ros::Publisher DsProcess::publisher(const std::string& topic, bool *valid) const
   }
 
   return it->second;
+}
+
+bool DsProcess::hasPublisher(const std::string &name) const noexcept {
+  const auto d = d_func();
+  return (d->publishers_.find(name) != d->publishers_.end());
+}
+
+void DsProcess::_addPublisher(const std::string &name, ros::Publisher pub)
+{
+  auto d = d_func();
+  d->publishers_.insert({name, pub});
 }
 
 }

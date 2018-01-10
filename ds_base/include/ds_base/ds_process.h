@@ -10,6 +10,37 @@
 namespace ds_base
 {
 
+/// @brief The base class for ROS nodes in Deep Submergence ROS
+///
+/// This class serves as the base class for all ROS nodes in the Deep Submergence
+/// ROS ecosystem.
+///
+/// Reminder:  The `~` prefix before parameters and topics denotes "private" parameters
+/// and topics.  That is, they live BELOW the fully resolved node name namespace.  So if
+/// your node is named `node` in namespace `/some/namespace`, then the fully resolved node
+/// namespace is `/some/namespace/node` and the parameter `~param` lives on the parameter
+/// server at `/some/namespace/node/param`
+///
+/// # Parameters
+///
+/// `DsProcess` automatically checks the parameter server for the following:
+///
+///   - `~health_check_period`:  Period (in seconds) between checking internal status.
+///   - `~descriptive_name`: A human-sensible name for the node.  Keep it short.
+///
+/// # Topics
+///
+/// `DsProcess` automatically creates the following topics:
+///
+///   - `~status` (`ds_core_msgs::Status`):  Periodic status message.
+///
+/// # Extending
+///
+/// This class follows the `PIMPL` idiom, and all of the actual implementation details
+/// are pushed into the protected `Impl` structure assocated with the class.  This
+/// provides a stable ABI and a clean public interface for users.  These benifits come
+/// at some extra cost in complexity.  A detailed guide to extending `DsProcess` can
+/// be found in the `EXTENDING.md` document.
 class DsProcess
 {
 
@@ -36,8 +67,9 @@ public:
 
   /// @brief Access the owned DsNodeHandle
   ///
-  /// @return A pointer to the protected DsNodeHandle instance. If the DsNodeHandle does not already exist, it in instantiated here
-  ds_asio::DsNodeHandle* getNh();
+  /// @return A pointer to the protected DsNodeHandle instance. If the DsNodeHandle does not already exist,
+  /// it in instantiated here
+  ds_asio::DsNodeHandle* nodeHandle();
 
   /// @brief Run the owned asio io_service event loop.
   ///
@@ -64,7 +96,6 @@ public:
   /// \return
   std::string descriptiveName() const noexcept;
 
-
   /// @brief Convenience function for adding a publisher
   ///
   /// Relative topic names (names not starting with '/') are appended to the node's name.  **HOWEVER!** The publisher
@@ -74,12 +105,12 @@ public:
   /// node name:  sensor
   /// topic name: data
   ///   --> messages will be published on 'sensor/data'
-  ///   --> publisher can be retrieved by getting publisher_.at('data')
+  ///   --> publisher can be retrieved by calling DsProcess::publisher('data')
   ///
   /// node name: sensor
   /// topic name: /absolute
   ///   --> messages will be published on '/absolute'
-  ///   --> publisher can be retrieved by getting publisher_at('/absolute')
+  ///   --> publisher can be retrieved by calling DsProcess::publisher('/absolute')
   ///
   /// \tparam T      ROS message type
   /// \param base    The owning SensorBase instance.
@@ -101,7 +132,7 @@ public:
     }
     // construct our topic name and create the publisher.
     auto full_topic_name = topic.at(0) == '/' ? topic : ros::this_node::getName() + '/' + topic;
-    auto pub = getNh()->advertise<T>(full_topic_name, queue);
+    auto pub = nodeHandle()->advertise<T>(full_topic_name, queue);
 
     // Store the publisher inside the impl.
     _addPublisher(topic, std::move(pub));
@@ -118,7 +149,7 @@ public:
   /// @brief Get a publisher object created by addPublisher
   ///
   /// Note:  An invalid publisher is returned if no publisher exists for the provided topic.
-  ///        This *shouldn't* crash things, ros::Publisher inclues it's own validity checks
+  ///        This *shouldn't* crash things, ros::Publisher includes it's own validity checks
   ///        before publishing, but they're all private methods and we're unable to access
   ///        them.
   ///

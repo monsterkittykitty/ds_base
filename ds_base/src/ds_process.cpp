@@ -34,13 +34,13 @@ DsProcess::DsProcess(std::unique_ptr<DsProcess::Impl> impl, int argc, char **arg
 DsProcess::~DsProcess() = default;
 
 
-ds_asio::DsNodeHandle* DsProcess::getNh()
+ds_asio::DsNodeHandle* DsProcess::nodeHandle()
 {
   auto d = d_func();
-  if (!d->nh) {
-    d->nh.reset(new ds_asio::DsNodeHandle(&d->myAsio->io_service));
+  if (!d->node_handle_) {
+    d->node_handle_.reset(new ds_asio::DsNodeHandle(&d->asio_->io_service));
   }
-  return d->nh.get();
+  return d->node_handle_.get();
 }
 
 void DsProcess::run()
@@ -49,7 +49,7 @@ void DsProcess::run()
   if (d->status_check_timer_.isValid()){
     d->status_check_timer_.start();
   }
-  d->myAsio->run();
+  d->asio_->run();
   d->status_check_timer_.stop();
 }
 
@@ -81,15 +81,15 @@ void DsProcess::setStatusCheckPeriod(ros::Duration period) noexcept
 
 boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string &name, boost::function<void(ds_core_msgs::RawData)> callback)
 {
-  auto nh = getNh();
+  auto nh = nodeHandle();
   ROS_ASSERT(nh);
   auto d = d_func();
-  return d->myAsio->addConnection(name, callback, *nh);
+  return d->asio_->addConnection(name, callback, *nh);
 }
 
 boost::shared_ptr<ds_asio::DsConnection> DsProcess::connection(const std::string &name) {
   auto d = d_func();
-  return d->myAsio->connection(name);
+  return d->asio_->connection(name);
 }
 
 ros::Publisher DsProcess::publisher(const std::string& topic, bool *valid) const noexcept

@@ -7,7 +7,7 @@ namespace ds_base
 {
 
 DsProcess::Impl::Impl()
-  : myAsio(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
+  : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
 {
 }
 
@@ -56,7 +56,7 @@ void DsProcess::Impl::updateStatusCheckTimer(DsProcess* base, ros::Duration peri
   }
 
   status_check_period_ = period;
-  status_check_timer_ = base->getNh()->createTimer(status_check_period_, &DsProcess::Impl::checkProcessStatus, this);
+  status_check_timer_ = base->nodeHandle()->createTimer(status_check_period_, &DsProcess::Impl::checkProcessStatus, this);
   ROS_INFO_STREAM("Status check timer set to " << status_check_period_);
 }
 

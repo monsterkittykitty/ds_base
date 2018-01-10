@@ -3,11 +3,16 @@
 
 #include "ds_core_msgs/Status.h"
 
+#include <boost/uuid/nil_generator.hpp>
+#include <boost/uuid/string_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 namespace ds_base
 {
 
 DsProcess::Impl::Impl()
   : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
+  , uuid_(boost::uuids::nil_uuid())
 {
 }
 
@@ -32,6 +37,15 @@ void DsProcess::Impl::setupParameters(DsProcess* base)
   base->setStatusCheckPeriod(ros::Duration(health_check_period));
   const auto name_ = ros::param::param<std::string>("~descriptive_name", "NO_NAME_PROVIDED");
   base->setDescriptiveName(name_);
+
+
+  if (ros::param::has("~uuid")) {
+    uuid_ = boost::uuids::string_generator()(ros::param::param<std::string>("~uuid", "0"));
+  }
+  else {
+    ROS_WARN_STREAM("No UUID loaded from parameter node.  Using value: " << uuid_);
+    return;
+  }
 }
 
 void DsProcess::Impl::setupPublishers(DsProcess* base)

@@ -6,6 +6,7 @@
 
 #include <ros/ros.h>
 #include <boost/asio.hpp>
+#include <boost/uuid/uuid.hpp>
 
 namespace ds_base
 {
@@ -27,6 +28,7 @@ namespace ds_base
 ///
 ///   - `~health_check_period`:  Period (in seconds) between checking internal status.
 ///   - `~descriptive_name`: A human-sensible name for the node.  Keep it short.
+///   - `~uuid`: A unique, deterministic ID for the node.
 ///
 /// # Topics
 ///
@@ -170,6 +172,14 @@ public:
   /// \param name
   /// \return
   boost::shared_ptr<ds_asio::DsConnection> connection(const std::string& name);
+
+  /// @brief Get the UUID for the node.
+  ///
+  /// Generated UUID's are deterministic -- they should persist across runs
+  /// with identical parameters.
+  ///
+  /// \return
+  boost::uuids::uuid uuid() const noexcept;
 
  protected:
 

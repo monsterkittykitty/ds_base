@@ -70,6 +70,7 @@ struct DsProcess::Impl
   /// The default implementation looks for the following PRIVATE parameters:
   ///  - health_check_period [double]
   ///  - descriptive_name [string]
+  ///  - uuid [string]
   virtual void setupParameters(DsProcess* base);
 
   /// @brief Create asio connections
@@ -113,6 +114,7 @@ struct DsProcess::Impl
   ros::Duration status_check_period_;   //!< The period for the status health timer (<0 disables)
   ros::Timer status_check_timer_;       //!< The status health timer itself.
   std::string descriptive_node_name_;   //!< A short, descriptive name given to the process.
+  boost::uuids::uuid uuid_;             //!< UUID of node.
 
 };
 

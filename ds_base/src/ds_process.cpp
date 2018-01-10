@@ -122,4 +122,9 @@ void DsProcess::_addPublisher(const std::string &name, ros::Publisher pub)
   d->publishers_.insert({name, pub});
 }
 
+inline boost::uuids::uuid DsProcess::uuid() const noexcept {
+  const auto d = d_func();
+  return d->uuid_;
+}
+
 }

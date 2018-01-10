@@ -35,9 +35,13 @@ include_directories(
 
 add_library(${PROJECT_NAME}
   include/ds_base/ds_process.h
-  include/ds_base/ds_process_private.h
   src/ds_process.cpp
+
+  include/ds_base/ds_process_private.h
   src/ds_process_private.cpp
+
+  include/ds_base/util.h
+  src/util.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

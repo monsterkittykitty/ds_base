@@ -188,7 +188,7 @@ public:
   /// \param name
   /// \param callback
   /// \return
-  boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name, boost::function<void(ds_core_msgs::RawData)> callback);
+  boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name, ds_asio::DsAsio::ReadCallback callback);
 
   /// @brief Get a DsConnection object for a connection added previously by addConnection
   ///

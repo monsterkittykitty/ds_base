@@ -109,13 +109,12 @@ struct DsProcess::Impl
   std::unique_ptr<ds_asio::DsAsio> asio_;  //!< DsAsio instance
   std::unique_ptr<ds_asio::DsNodeHandle> node_handle_; //!< DsNodeHandle instance
 
-  std::unordered_map<std::string, ros::Publisher> publishers_; //!< Topic/Publisher pairings
-
   ros::Duration status_check_period_;   //!< The period for the status health timer (<0 disables)
   ros::Timer status_check_timer_;       //!< The status health timer itself.
   std::string descriptive_node_name_;   //!< A short, descriptive name given to the process.
   boost::uuids::uuid uuid_;             //!< UUID of node.
 
+  ros::Publisher status_publisher_;     //!< The status channel publisher.
 };
 
 }

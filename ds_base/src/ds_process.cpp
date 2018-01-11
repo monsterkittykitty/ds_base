@@ -92,36 +92,6 @@ boost::shared_ptr<ds_asio::DsConnection> DsProcess::connection(const std::string
   return d->asio_->connection(name);
 }
 
-ros::Publisher DsProcess::publisher(const std::string& topic, bool *valid) const noexcept
-{
-  auto const d = d_func();
-  auto it = d->publishers_.find(topic);
-  if(it == d->publishers_.end()) {
-    ROS_ERROR_STREAM("No publisher available for topic name: " << topic);
-    if(valid != nullptr) {
-      *valid = false;
-    }
-    return {};
-  }
-
-  if (valid != nullptr) {
-    *valid = true;
-  }
-
-  return it->second;
-}
-
-bool DsProcess::hasPublisher(const std::string &name) const noexcept {
-  const auto d = d_func();
-  return (d->publishers_.find(name) != d->publishers_.end());
-}
-
-void DsProcess::_addPublisher(const std::string &name, ros::Publisher pub)
-{
-  auto d = d_func();
-  d->publishers_.insert({name, pub});
-}
-
 inline boost::uuids::uuid DsProcess::uuid() const noexcept {
   const auto d = d_func();
   return d->uuid_;

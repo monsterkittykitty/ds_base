@@ -100,65 +100,88 @@ public:
 
   /// @brief Convenience function for adding a publisher
   ///
-  /// Relative topic names (names not starting with '/') are appended to the node's name.  **HOWEVER!** The publisher
-  /// object is STILL stored using the original passed topic.  Let's have a few examples:
+  /// This is just one of many of the overloads for adding a publisher to a ros::NodeHandle object.
+  /// Consult the ros::NodeHandle documentation for a complete list.  The ROS documenation for this
+  /// specific overload is provided below verbatim:
   ///
+  /// This call connects to the master to publicize that the node will be
+  /// publishing messages on the given topic.  This method returns a Publisher that allows you to
+  /// publish a message on this topic.
   ///
-  /// node name:  sensor
-  /// topic name: data
-  ///   --> messages will be published on 'sensor/data'
-  ///   --> publisher can be retrieved by calling DsProcess::publisher('data')
+  /// This version of advertise is a templated convenience function, and can be used like so
   ///
-  /// node name: sensor
-  /// topic name: /absolute
-  ///   --> messages will be published on '/absolute'
-  ///   --> publisher can be retrieved by calling DsProcess::publisher('/absolute')
+  ///   ros::Publisher pub = handle.advertise<std_msgs::Empty>("my_topic", 1);
   ///
-  /// \tparam T      ROS message type
-  /// \param base    The owning SensorBase instance.
-  /// \param topic   Name of the topic to publish on
-  /// \param queue   Size of the publishing queue
+  /// \param topic Topic to advertise on
+  ///
+  /// \param queue_size Maximum number of outgoing messages to be
+  /// queued for delivery to subscribers
+  ///
+  /// \param latch (optional) If true, the last message published on
+  /// this topic will be saved and sent to new subscribers when they
+  /// connect
+  ///
+  /// \return On success, a Publisher that, when it goes out of scope,
+  /// will automatically release a reference on this advertisement.  On
+  /// failure, an empty Publisher.
+  ///
+  /// \throws InvalidNameException If the topic name begins with a
+  /// tilde, or is an otherwise invalid graph resource name, or is an
+  /// otherwise invalid graph resource name
+  ///
   template <class T>
-  void addPublisher(const std::string& topic, uint32_t queue)
+  ros::Publisher advertise(const std::string& topic, uint32_t queue, bool latch=false)
   {
-    // do nothing for empty strings...
-    if (topic.empty())
-    {
-      return;
-    }
-
-    if (hasPublisher(topic))
-    {
-      ROS_ERROR_STREAM("Unable to add publisher named: " << topic << ". A publisher on that topic already exists.");
-      return;
-    }
-    // construct our topic name and create the publisher.
-    auto full_topic_name = topic.at(0) == '/' ? topic : ros::this_node::getName() + '/' + topic;
-    auto pub = nodeHandle()->advertise<T>(full_topic_name, queue);
-
-    // Store the publisher inside the impl.
-    _addPublisher(topic, std::move(pub));
-
-    ROS_INFO_STREAM("New topic: " << full_topic_name);
+    return nodeHandle()->advertise<T>(topic, queue, latch);
   }
 
-  /// @brief Check if a publisher has been created with the provided name
+  /// @brief Convenience function for adding a subscriber
   ///
-  /// \param name
-  /// \return
-  bool hasPublisher(const std::string& name) const noexcept;
-
-  /// @brief Get a publisher object created by addPublisher
+  /// This is just one of many of the overloads for adding a subscriber to a ros::NodeHandle object.
+  /// Consult the ros::NodeHandle documentation for a complete list.  The ROS documenation for this
+  /// specific overload is provided below verbatim:
   ///
-  /// Note:  An invalid publisher is returned if no publisher exists for the provided topic.
-  ///        This *shouldn't* crash things, ros::Publisher includes it's own validity checks
-  ///        before publishing, but they're all private methods and we're unable to access
-  ///        them.
+  /// This method connects to the master to register interest in a given
+  /// topic.  The node will automatically be connected with publishers on
+  /// this topic.  On each message receipt, callback is invoked and passed a shared pointer
+  /// to the message received.  This message should \b not be changed in place, as it
+  /// is shared with any other subscriptions to this topic.
   ///
-  /// \param topic
-  /// \param valid  True if the returned ros::Publisher is valid.
-  /// \return
-  ros::Publisher publisher(const std::string& topic, bool *valid=nullptr) const noexcept;
+  /// This version of subscribe allows anything bindable to a boost::function object
+  ///
+  /// \param T [template] M here is the message type
+  /// \param topic Topic to subscribe to
+  /// \param queue_size Number of incoming messages to queue up for
+  /// processing (messages in excess of this queue capacity will be
+  /// discarded).
+  /// \param callback Callback to call when a message has arrived
+  /// \param tracked_object A shared pointer to an object to track for these callbacks.  If set, the a weak_ptr will be created to this object,
+  /// and if the reference count goes to 0 the subscriber callbacks will not get called.
+  /// Note that setting this will cause a new reference to be added to the object before the
+  /// callback, and for it to go out of scope (and potentially be deleted) in the code path (and therefore
+  /// thread) that the callback is invoked from.
+  /// \param transport_hints a TransportHints structure which defines various transport-related options
+  /// \return On success, a Subscriber that, when all copies of it go out of scope, will unsubscribe from this topic.
+  /// On failure, an empty Subscriber which can be checked with:
+  /// \verbatim
+  ///      void callback(const std_msgs::Empty::ConstPtr& message){...}
+  ///      ros::NodeHandle nodeHandle;
+  ///      ros::Subscriber sub = nodeHandle.subscribe("my_topic", 1, callback);
+  ///      if (sub)  // Enter if subscriber is valid
+  ///      {
+  ///      ...
+  ///      }
+  /// \endverbatim
+  /// \throws InvalidNameException If the topic name begins with a tilde, or is an otherwise invalid graph resource name
+  /// \throws ConflictingSubscriptionException If this node is already subscribed to the same topic with a different datatype
+  template <class T>
+  ros::Subscriber subscribe(const std::string& topic, uint32_t queue_size,
+                     const boost::function< void(const boost::shared_ptr< T const > &)> & callback,
+                     const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(),
+                     const ros::TransportHints& transport_hints = ros::TransportHints())
+  {
+    return nodeHandle()->subscribe<T>(topic, queue_size, callback, tracked_object, transport_hints);
+  }
 
   /// @brief Add an asio-based (serial, udp, etc.) connection.
   ///
@@ -210,9 +233,6 @@ public:
   }
 
  private:
-  // Called from DsProcess::addPublisher to store the created
-  // ros::Publisher object inside the impl object.
-  void _addPublisher(const std::string& name, ros::Publisher pub);
 
   std::shared_ptr<Impl> impl_;
 };

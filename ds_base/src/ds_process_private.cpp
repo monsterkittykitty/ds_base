@@ -50,7 +50,7 @@ void DsProcess::Impl::setupParameters(DsProcess* base)
 
 void DsProcess::Impl::setupPublishers(DsProcess* base)
 {
-  base->addPublisher<ds_core_msgs::Status>("status", 10);
+  status_publisher_ = base->advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
 }
 
 void DsProcess::Impl::updateStatusCheckTimer(DsProcess* base, ros::Duration period)

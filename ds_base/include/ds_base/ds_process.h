@@ -182,6 +182,27 @@ public:
   {
     return nodeHandle()->subscribe<T>(topic, queue_size, callback, tracked_object, transport_hints);
   }
+  /// @brief Convenience method of creating a timer
+  ///
+  /// This is just one of many of the overloads for adding a timer to a ros::NodeHandle object.
+  /// Consult the ros::NodeHandle documentation for a complete list.  The ROS documenation for this
+  /// specific overload is provided below verbatim:
+  ///
+  /// \brief Create a timer which will call a callback at the specified rate.  This variant takes
+  /// anything that can be bound to a Boost.Function, including a bare function
+  ///
+  /// When the Timer (and all copies of it) returned goes out of scope, the timer will automatically
+  /// be stopped, and the callback will no longer be called.
+  ///
+  /// \param period The period at which to call the callback
+  /// \param callback The function to call
+  /// \param oneshot If true, this timer will only fire once
+  /// \param autostart If true (default), return timer that is already started
+  ///
+  ros:: Timer createTimer(ros::Duration period, const ros::TimerCallback& callback, bool oneshot = false, bool autostart = true)
+  {
+    return nodeHandle()->createTimer(period, callback, oneshot, autostart);
+  }
 
   /// @brief Add an asio-based (serial, udp, etc.) connection.
   ///

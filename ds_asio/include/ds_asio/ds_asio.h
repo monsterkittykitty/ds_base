@@ -5,6 +5,7 @@
 #include "ds_asio/ds_serial.h"
 #include "ds_asio/ds_connection_factory.h"
 #include "ds_asio/ds_nodehandle.h"
+#include "ds_asio/ds_iosm.h"
 #include "ds_core_msgs/RawData.h"
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
@@ -46,6 +47,24 @@ public:
   ///
   /// @return A boost::shared_ptr object that is a handle for the created connection
   boost::shared_ptr<DsConnection> addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, DsNodeHandle& myNh);
+
+
+    /// @brief Method to add an IO state machine and its associated connection
+    ///
+    /// This function will also call addConnection to initialize the underlying connection class before
+    /// connecting it to the I/O state machine.
+    ///
+    /// The connection can be accessed with:
+    ///     boost::shared_ptr<IoSM> iosm = dsasio.addIoSM( <parameters> );
+    ///     boost::shared_ptr<DsConnection> conn = iosm->getConnection();
+    ///
+    /// \param iosm_name Io state machine name.  Will be used to index the ros parameter server namespace
+    /// \param conn_name The name for the underlying connection object.
+    /// \param callback A boost::function object that will be called when the connection has received data
+    /// \param myNh A reference to the node handle for accessing the parameter server
+    ///
+    /// \return A boost::shared_ptr object with the Io state machine
+  boost::shared_ptr<ds_asio::IoSM> addIoSM(std::string iosm_name, std::string conn_name, boost::function<void(ds_core_msgs::RawData)> callback, DsNodeHandle& myNh);
 
   /// @brief Get a connection handle previously added with addConnection
   ///

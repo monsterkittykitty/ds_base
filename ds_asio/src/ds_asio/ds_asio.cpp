@@ -17,6 +17,15 @@ boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, boost::f
   return connection;
 }
 
+    boost::shared_ptr<IoSM> DsAsio::addIoSM(std::string iosm_name, std::string conn_name, boost::function<void(ds_core_msgs::RawData)> callback, DsNodeHandle& myNh)
+    {
+        boost::shared_ptr<IoSM> ret(new IoSM(io_service, iosm_name, callback, &myNh));
+        boost::shared_ptr<DsConnection> conn = addConnection(conn_name, boost::bind(&ds_asio::IoSM::_connCallback, ret, _1), myNh);
+        ret->setConnection(conn);
+
+        return ret;
+    }
+
 boost::shared_ptr<DsConnection> DsAsio::connection(const std::string& name)
 {
 

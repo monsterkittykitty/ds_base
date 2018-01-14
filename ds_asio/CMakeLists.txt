@@ -143,7 +143,11 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/ds_nodehandle.h
   src/${PROJECT_NAME}/ds_nodehandle.cpp
-)
+
+        src/${PROJECT_NAME}/ds_iosm.cpp
+        include/${PROJECT_NAME}/ds_iosm.h
+        src/${PROJECT_NAME}/ds_iosm_private.h
+        )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -220,5 +224,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
+catkin_add_gtest(test_dsasio_iosm src/test/test_ds_iosm.cpp)
+target_link_libraries(test_dsasio_iosm ${PROJECT_NAME} ${catkin_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

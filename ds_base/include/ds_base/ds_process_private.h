@@ -62,6 +62,7 @@ struct DsProcess::Impl
   /// - setupConnections()
   /// - setupSubscriptions()
   /// - setupPublishers()
+  /// - setupTimers()
   ///
   virtual void setup(DsProcess* base);
 
@@ -85,6 +86,13 @@ struct DsProcess::Impl
   ///  - status  [ds_core_msgs::Status]
   virtual void setupPublishers(DsProcess* base);
 
+  /// @brief Create ros timers on startup.
+  ///
+  /// The default implementation does nothing.
+  ///
+  /// \param base
+
+  virtual void setupTimers(DsProcess* base) {}
   /// @brief Check the process status.
   ///
   /// This method is triggered by the status check timer.  The default

@@ -79,7 +79,7 @@ void DsProcess::setStatusCheckPeriod(ros::Duration period) noexcept
   d->updateStatusCheckTimer(this, period);
 }
 
-boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string &name, boost::function<void(ds_core_msgs::RawData)> callback)
+boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string &name, ds_asio::DsAsio::ReadCallback callback)
 {
   auto nh = nodeHandle();
   ROS_ASSERT(nh);

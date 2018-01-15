@@ -21,6 +21,9 @@ class DsAsio
 {
 public:
 
+  /// @brief Read callback function signiture for asio connections
+  using ReadCallback = boost::function<void(ds_core_msgs::RawData)>;
+
   /// @brief Default constructor
   DsAsio();
 
@@ -46,7 +49,7 @@ public:
   /// @param[in] myNh A reference to the nodehandle object for accessing the parameter server
   ///
   /// @return A boost::shared_ptr object that is a handle for the created connection
-  boost::shared_ptr<DsConnection> addConnection(std::string name, boost::function<void(ds_core_msgs::RawData)> callback, DsNodeHandle& myNh);
+  boost::shared_ptr<DsConnection> addConnection(std::string name, ReadCallback callback, DsNodeHandle& myNh);
 
 
     /// @brief Method to add an IO state machine and its associated connection
@@ -80,7 +83,7 @@ public:
   /// @param[in] mapping An associative array that associates each connection name to a boost::function object that will be called with the data received when the connection identified by that name receives data
   ///
   /// @return An associative array that associates each connection name to a boost::shared_ptr object that is a handle for the created connection
-  std::map<std::string, boost::shared_ptr<DsConnection> > startConnections(DsNodeHandle& myNh, std::map<std::string, boost::function<void(ds_core_msgs::RawData data)> > mapping);
+  std::map<std::string, boost::shared_ptr<DsConnection> > startConnections(DsNodeHandle& myNh, std::map<std::string, ReadCallback > mapping);
 
   /// @brief Returns a pointer to this DsAsio instance
   ///

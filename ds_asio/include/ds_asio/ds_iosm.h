@@ -174,7 +174,6 @@ namespace ds_asio {
     protected:
         uint64_t id;
         std::string cmd;
-        bool flush;
         bool emitOnMatch;
         bool timeoutWarn;
         bool timeoutLog;   // log

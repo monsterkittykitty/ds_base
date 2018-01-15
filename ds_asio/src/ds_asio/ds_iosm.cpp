@@ -14,11 +14,11 @@ namespace ds_asio {
 
     ds_asio::IoCommand::IoCommand(const std::string &cmdstr) : cmd(cmdstr) {
         checker = ds_asio::IoCommand::alwaysAccept();
-        flush = false;
         emitOnMatch = false;
         timeoutWarn = false;
         timeoutLog = false;
         allowPreempt = true;
+        timeout = -1;
     }
 
     // getter / setters
@@ -48,13 +48,6 @@ namespace ds_asio {
     }
     const ros::Duration& ds_asio::IoCommand::getTimeout() const {
         return timeout;
-    }
-
-    bool ds_asio::IoCommand::flushInput() const {
-        return flush;
-    }
-    void ds_asio::IoCommand::setFlush(bool _f) {
-        flush = _f;
     }
 
     bool ds_asio::IoCommand::emit() const {

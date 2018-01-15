@@ -24,6 +24,7 @@
 
 #include <ds_asio/ds_connection.h>
 #include "ds_core_msgs/RawData.h"
+#include "ds_core_msgs/IoCommand.h"
 #include <ros/duration.h>
 
 
@@ -51,7 +52,11 @@ namespace ds_asio {
 
         IoCommand();
 
+        /// @brief Create a basic IO Command from a string
         IoCommand(const std::string &cmdstr);
+
+        /// @brief Fill in a command string using a IoCommand ROS message
+        IoCommand(const ds_core_msgs::IoCommand& _cmd);
 
         /// @brief Set the command string to send
         void setCommand(const std::string &_cmd);
@@ -201,7 +206,6 @@ namespace ds_asio {
     /// pretty easy to move around, etc.
     class IoSM {
     public:
-
         IoSM(boost::asio::io_service& io_service,
              std::string name,
              boost::function<void(ds_core_msgs::RawData)> callback,

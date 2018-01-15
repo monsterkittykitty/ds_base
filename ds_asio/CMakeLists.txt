@@ -224,7 +224,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
-catkin_add_gtest(test_dsasio_iosm src/test/test_ds_iosm.cpp)
-target_link_libraries(test_dsasio_iosm ${PROJECT_NAME} ${catkin_LIBRARIES})
+#catkin_add_gtest(test_dsasio_iosm src/test/test_ds_iosm.cpp)
+#target_link_libraries(test_dsasio_iosm ${PROJECT_NAME} ${catkin_LIBRARIES})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

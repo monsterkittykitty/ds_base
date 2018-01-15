@@ -42,13 +42,20 @@ add_library(${PROJECT_NAME}
 
   include/ds_base/util.h
   src/util.cpp
-)
+        include/ds_base/ds_bus.h src/ds_bus_private.h src/ds_bus.cpp include/ds_base/ds_bus_device.h include/ds_base/ds_bus_device_private.h src/ds_bus_device.cpp src/ds_bus_device_private.cpp)
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(ds_bus
+        src/ds_bus_node.cpp)
+target_link_libraries(ds_bus ${PROJECT_NAME} ${catkin_LIBRARIES})
+add_dependencies(ds_bus ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
 
 #############
 ## Install ##

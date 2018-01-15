@@ -73,6 +73,11 @@ namespace ds_asio {
             /// I/O Connection before we create the thing.
             void setConnection(const boost::shared_ptr<ds_asio::DsConnection>& conn);
 
+            /// @brief
+            ///
+            /// Runner can't be initialized during constructor time
+            void start();
+
 
             /// @brief Stop all pending ops and start to shutdown the state machine.
             void shutdown();

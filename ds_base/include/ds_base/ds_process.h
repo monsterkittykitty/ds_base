@@ -135,6 +135,29 @@ public:
     return nodeHandle()->advertise<T>(topic, queue, latch);
   }
 
+    /// @brief Convience function for adding a service advertisement
+    ///
+    /// This is a wrapper for just one function overload.  You can also just use the nodehandle
+    /// directly.
+    ///
+    /// \tparam MReq Service Request type
+    /// \tparam MRes Service Response type
+    /// \param service Service name
+    /// \param callback Callback function
+    /// \param tracked_object A shared pointer to an object to track for these callbacks.  If set, the a weak_ptr will be created to this object,
+    /// and if the reference count goes to 0 the subscriber callbacks will not get called.
+    /// Note that setting this will cause a new reference to be added to the object before the
+    /// callback, and for it to go out of scope (and potentially be deleted) in the code path (and therefore
+    /// thread) that the callback is invoked from.
+    /// \return A service server object
+    template <class MReq, class MRes>
+    ros::ServiceServer advertiseService(const std::string& service,
+                                        const boost::function< bool(MReq&, MRes&)> & callback,
+                                        const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr()) {
+      return nodeHandle()->advertiseService<MReq, MRes>(service, callback, tracked_object);
+
+    };
+
   /// @brief Convenience function for adding a subscriber
   ///
   /// This is just one of many of the overloads for adding a subscriber to a ros::NodeHandle object.
@@ -182,6 +205,33 @@ public:
   {
     return nodeHandle()->subscribe<T>(topic, queue_size, callback, tracked_object, transport_hints);
   }
+
+    template<class M, class T>
+    ros::Subscriber subscribe(const std::string& topic, uint32_t queue_size,
+                              void(T::*fp)(M), T *obj,
+                              const ros::TransportHints& transport_hints = ros::TransportHints())
+    {
+      return nodeHandle()->subscribe<M,T>(topic, queue_size, fp, obj, transport_hints);
+    };
+
+    /// @brief Conveinence method for connecting to a ROS service as a client
+    ///
+    /// As with the other wrappers, we only wrap a single overload.  You can DEFINITELY use others
+    /// by grabbing the node handle directly.
+    ///
+    /// Note that this call will return even for services that don't exist yet.  You are
+    /// STRONGLY encouraged to check out ros::ServiceClient::waitForExistence
+    ///
+    /// \tparam Service The srv type for this message.  Basically just the name of the .srv file.
+    /// \param service_name The name of the service to connect to
+    /// \param persistent Make this a persistent connection.  Generally discouraged.
+    /// \param header_values Key/value pairs to send with the connection handshake.
+    /// \return A service client object for this service.  Note that this service may not exist yet!
+    template <class Service>
+    ros::ServiceClient serviceClient(const std::string& service_name, bool persistent=false, const ros::M_string& header_values=ros::M_string()) {
+      return nodeHandle()->serviceClient<Service>(service_name, persistent, header_values);
+    }
+
   /// @brief Convenience method of creating a timer
   ///
   /// This is just one of many of the overloads for adding a timer to a ros::NodeHandle object.
@@ -210,6 +260,14 @@ public:
   /// \param callback
   /// \return
   boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name, ds_asio::DsAsio::ReadCallback callback);
+
+    /// @brief Add an asio-based I/O state machine and its associated connection (serial, UDP, etc)
+    ///
+    /// \param iosm_name The name of the I/O state machine (for parameter stuff)
+    /// \param conn_name The name of the connection (also for parameter stuff)
+    /// \param callback The callback fired when the state machine has data to send
+    /// \return A shared_ptr to the I/O state machine object
+    boost::shared_ptr<ds_asio::IoSM> addIoSM(const std::string& iosm_name, const std::string& conn_name, ds_asio::DsAsio::ReadCallback callback);
 
   /// @brief Get a DsConnection object for a connection added previously by addConnection
   ///

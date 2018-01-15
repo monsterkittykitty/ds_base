@@ -86,6 +86,13 @@ boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::str
   auto d = d_func();
   return d->asio_->addConnection(name, callback, *nh);
 }
+    boost::shared_ptr<ds_asio::IoSM> DsProcess::addIoSM(const std::string& iosm_name, const std::string& conn_name, ds_asio::DsAsio::ReadCallback callback)
+    {
+      auto nh = nodeHandle();
+      ROS_ASSERT(nh);
+      auto d = d_func();
+      return d->asio_->addIoSM(iosm_name, conn_name, callback, *nh);
+    }
 
 boost::shared_ptr<ds_asio::DsConnection> DsProcess::connection(const std::string &name) {
   auto d = d_func();

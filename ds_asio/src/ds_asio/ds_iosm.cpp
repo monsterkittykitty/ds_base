@@ -18,7 +18,21 @@ namespace ds_asio {
         timeoutWarn = false;
         timeoutLog = false;
         allowPreempt = true;
-        timeout = -1;
+        timeout = ros::Duration(-1);
+    }
+
+    ds_asio::IoCommand::IoCommand(const ds_core_msgs::IoCommand& _cmd) {
+        checker = ds_asio::IoCommand::alwaysAccept();
+
+        emitOnMatch = _cmd.emitOnMatch;
+        timeoutWarn = _cmd.timeoutWarn;
+        allowPreempt = !_cmd.forceNext;
+
+        delayBefore = ros::Duration(_cmd.delayBefore_ms/1000.0);
+        delayAfter  = ros::Duration(_cmd.delayAfter_ms /1000.0);
+        timeout     = ros::Duration(_cmd.timeout_ms    /1000.0);
+
+        cmd = _cmd.command;
     }
 
     // getter / setters
@@ -146,6 +160,7 @@ namespace ds_asio {
                                                       ros::NodeHandle* myNh) {
         // _IoSM_impl forces us to use create, because it really has to be a shared_ptr
         impl = ds_asio::iosm_inner::_IoSM_impl::create(io_service, name, callback, myNh);
+        impl->start();
     }
 
     IoSM::~IoSM() {
@@ -201,9 +216,6 @@ namespace ds_asio {
         commandRunning = false;
         isPreemptCommand = false;
         isShutdownCommand = false;
-
-        runner.reset(new Runner(shared_from_this()));
-        runner->start();
     }
 
 
@@ -218,6 +230,11 @@ namespace ds_asio {
                                                    boost::function<void(ds_core_msgs::RawData)> callback,
                                                    ros::NodeHandle* myNh) {
         return std::shared_ptr<_IoSM_impl>(new _IoSM_impl(io_service, name, callback, myNh));
+    }
+
+    void _IoSM_impl::start() {
+        runner.reset(new Runner(shared_from_this()));
+        runner->start();
     }
 
     void _IoSM_impl::shutdown() {

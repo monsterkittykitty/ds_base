@@ -37,10 +37,13 @@ void DsSerial::setup(void)
       //char delimiter;
       std::string hexAscii;
       nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/delimiter", hexAscii, "0A");
-      unsigned int delimiter;
-      sscanf(hexAscii.c_str(), "%X", &delimiter);
-      ROS_INFO_STREAM("Hex ascii" << hexAscii << hexAscii.c_str());
-      set_matcher(match_char((char) delimiter));
+      uint8_t delimiter;
+      if(!sscanf(hexAscii.c_str(), "%hhX", &delimiter)) {
+        ROS_FATAL_STREAM("Unable to create delimiter from string: " << hexAscii);
+        ROS_BREAK();
+      }
+      ROS_INFO("Hex ascii (dec): %d hex: %x", delimiter, delimiter);
+      set_matcher(match_char(static_cast<char>(delimiter)));
     }
   else if (!myMatch.compare("match_header_length"))
     {
@@ -61,27 +64,50 @@ void DsSerial::setup(void)
 
   std::string myParity;
   nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");
+  ROS_INFO_STREAM("Parity: " << myParity);
 
   int myStopbits;
-  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/stopbits", myStopbits, 1);
+  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/stop_bits", myStopbits, 1);
+  ROS_INFO_STREAM("Stop Bits: " << myStopbits);
 
   port_ = new boost::asio::serial_port(io_service_, port_name);
 
+  ROS_DEBUG_STREAM("setting baud rate:  " << baud_rate);
   port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+  ROS_DEBUG_STREAM("setting data bits:  " << data_bits);
   port_->set_option(boost::asio::serial_port_base::character_size(data_bits));
 
-  if (myStopbits == 1)
+  if (myStopbits == 1) {
+    ROS_DEBUG_STREAM("setting stop_bits: 1");
     port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-  else if (myStopbits == 2)
+  }
+  else if (myStopbits == 2) {
+    ROS_DEBUG_STREAM("setting stop_bits: 2");
     port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::two));
+  }
+  else {
+    ROS_FATAL_STREAM("Invalid stop_bits value: " << myStopbits);
+    ROS_BREAK();
+  }
 
-  if (!myParity.compare("none"))
+  if (!myParity.compare("none")) {
+    ROS_DEBUG_STREAM("setting parity: none");
     port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
-  else if (!myParity.compare("odd"))
+  }
+  else if (!myParity.compare("odd")) {
+    ROS_DEBUG_STREAM("setting parity: odd");
     port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::odd));
-  else if (!myParity.compare("even"))
+  }
+  else if (!myParity.compare("even")) {
+    ROS_DEBUG_STREAM("setting parity: even");
     port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::even));
+  }
+  else {
+    ROS_FATAL_STREAM("Invalid parity value: " << myParity);
+    ROS_BREAK();
+  }
   
+  ROS_DEBUG_STREAM("Setting flow control: none");
   port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
   // The /raw channel should be appended to the nodehandle namespace

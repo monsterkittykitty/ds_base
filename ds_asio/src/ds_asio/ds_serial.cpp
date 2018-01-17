@@ -122,14 +122,18 @@ void DsSerial::receive(void)
   // 				      boost::asio::placeholders::error,
   // 				      boost::asio::placeholders::bytes_transferred));
   //boost::asio::streambuf b;
-  // boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
-  // 				boost::bind(&DsSerial::handle_read, this,
-  // 					    boost::asio::placeholders::error,
-  // 					    boost::asio::placeholders::bytes_transferred));
+#if 0
+  boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
+  				boost::bind(&DsSerial::handle_read, this,
+  					    boost::asio::placeholders::error,
+  					    boost::asio::placeholders::bytes_transferred));
+#else
+  ROS_WARN("INSIDE RECEIVE");
   boost::asio::async_read_until(*port_, streambuf_, matchFunction_,
 				boost::bind(&DsSerial::handle_read, this,
 					    boost::asio::placeholders::error,
 					    boost::asio::placeholders::bytes_transferred));
+#endif
   
 }
 

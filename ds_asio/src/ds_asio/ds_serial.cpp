@@ -1,5 +1,6 @@
 #include "ds_asio/ds_serial.h"
 #include <cstdlib>
+#include <termios.h>
 
 namespace ds_asio
 {
@@ -70,7 +71,9 @@ void DsSerial::setup(void)
   nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/stop_bits", myStopbits, 1);
   ROS_INFO_STREAM("Stop Bits: " << myStopbits);
 
+  ROS_INFO_STREAM("Opening serial port in raw mode.");
   port_ = new boost::asio::serial_port(io_service_, port_name);
+  setRawMode(port_->native_handle());
 
   ROS_DEBUG_STREAM("setting baud rate:  " << baud_rate);
   port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
@@ -128,7 +131,6 @@ void DsSerial::receive(void)
   					    boost::asio::placeholders::error,
   					    boost::asio::placeholders::bytes_transferred));
 #else
-  ROS_WARN("INSIDE RECEIVE");
   boost::asio::async_read_until(*port_, streambuf_, matchFunction_,
 				boost::bind(&DsSerial::handle_read, this,
 					    boost::asio::placeholders::error,
@@ -183,6 +185,10 @@ void DsSerial::handle_read(const boost::system::error_code& error,
       // 	}
       // receive(); // This should be out of the if(!error) condition, otherwise we stop receiving if there is an error condition
     }
+  else {
+    ROS_ERROR_STREAM("Read error on port: " << error << " " << error.message());
+    ROS_ERROR_STREAM("Is open: " << port_->is_open());
+  }
   receive();
 }
 
@@ -209,6 +215,27 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message,
   raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
   raw_publisher_.publish(raw_data_);
   raw_data_.data.clear();
+}
+
+void DsSerial::setRawMode(int fd)
+{
+  struct termios settings;
+  if(tcgetattr(fd, &settings)) {
+    ROS_ERROR_STREAM("Unable to get termios settings for fd: " << fd);
+    return;
+  }
+
+  settings.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+  settings.c_oflag &= ~OPOST;
+  settings.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+  settings.c_cflag &= ~(CSIZE | PARENB);
+  settings.c_cflag |= CS8;
+  settings.c_cc[VTIME] = 0;
+  settings.c_cc[VMIN] = 1;
+  
+  if (tcsetattr(fd, TCSADRAIN, &settings)) {
+    ROS_ERROR_STREAM("Unable to set serial port to RAW mode");
+  }
 }
 
 boost::asio::serial_port& DsSerial::get_io_object(void)

@@ -35,6 +35,23 @@ public:
 
 private:
 
+  /// @brief Set the underlying serial port in "raw" mode
+  /// 
+  /// This is called after opening the serial port, but before
+  /// applying settings from the parameter server.
+  /// 
+  /// Raw mode is taken as:
+  /// settings.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+  /// settings.c_oflag &= ~OPOST;
+  /// settings.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+  /// settings.c_cflag &= ~(CSIZE | PARENB);
+  /// settings.c_cflag |= CS8;
+  /// settings.c_cc[VTIME] = 0;
+  /// settings.c_cc[VMIN] = 1;
+  ///
+  /// \param fd   File descriptor of the serial port
+  void setRawMode(int fd);
+
   void handle_read(const boost::system::error_code& error,
 		   std::size_t bytes_transferred);
 

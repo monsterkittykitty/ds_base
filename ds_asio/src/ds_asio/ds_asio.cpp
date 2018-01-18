@@ -20,13 +20,13 @@ boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, ReadCall
 boost::shared_ptr<DsConnection> DsAsio::connection(const std::string& name)
 {
 
-  const auto it = connections.find(name);
-  if(it == connections.end()) {
+  try {
+    return connections.at(name);
+  }
+  catch (std::out_of_range& e) {
     ROS_ERROR_STREAM("No connection named: " << name);
     return {};
   }
-
-  return it->second;
 }
 
 std::map<std::string, boost::shared_ptr<DsConnection> > DsAsio::startConnections(DsNodeHandle& myNh, std::map<std::string, ReadCallback > mapping)

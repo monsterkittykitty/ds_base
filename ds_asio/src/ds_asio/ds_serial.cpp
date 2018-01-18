@@ -10,10 +10,21 @@ DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost:
     DsConnection(),
     callback_(callback),
     nh_(myNh),
-    name_(name)
+    name_(name),
+    num_read_error_(0)
 {
   setup();
   receive();
+
+  // The read error retry timer just calls receive again.
+  auto retry_timer_callback = [] (DsSerial* base, const ros::TimerEvent& event) {
+    base->receive();
+  };
+
+  read_error_retry_timer_ =  nh_->createTimer(
+      ros::Duration(1), boost::bind<void>(retry_timer_callback, this, _1), true, false);
+
+  ROS_ASSERT(read_error_retry_timer_.isValid());
 }
 
 void DsSerial::setup(void)
@@ -74,6 +85,7 @@ void DsSerial::setup(void)
   ROS_INFO_STREAM("Opening serial port in raw mode.");
   port_ = new boost::asio::serial_port(io_service_, port_name);
   setRawMode(port_->native_handle());
+  port_name_ = port_name;
 
   ROS_DEBUG_STREAM("setting baud rate:  " << baud_rate);
   port_->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
@@ -149,6 +161,7 @@ void DsSerial::handle_read(const boost::system::error_code& error,
 {
   if (!error || error == boost::asio::error::message_size)
     {
+      num_read_error_ = 0;
       // Store timestamp as soon as received
       raw_data_.ds_header.io_time = ros::Time::now();
 
@@ -184,12 +197,24 @@ void DsSerial::handle_read(const boost::system::error_code& error,
       // 	    }
       // 	}
       // receive(); // This should be out of the if(!error) condition, otherwise we stop receiving if there is an error condition
+      receive();
+      return;
     }
-  else {
-    ROS_ERROR_STREAM("Read error on port: " << error << " " << error.message());
-    ROS_ERROR_STREAM("Is open: " << port_->is_open());
+  num_read_error_++;
+  ROS_ERROR_STREAM("Read error on port: " << error << " " << error.message());
+  ROS_ERROR("%d consecutive read errors on port %s", num_read_error_, port_name_.c_str());
+  if(num_read_error_ <= 10) {
+    ROS_WARN_STREAM("Retrying read in 0.1s");
+    read_error_retry_timer_.stop();
+    read_error_retry_timer_.start();
+    return;
   }
-  receive();
+
+  ROS_FATAL_STREAM("Too many read errors on " << port_name_);
+  ROS_FATAL_STREAM("Shutting down ros.");
+  ros::shutdown();
+  ros::waitForShutdown();
+  exit(1);
 }
 
 void DsSerial::send(boost::shared_ptr<std::string> message)

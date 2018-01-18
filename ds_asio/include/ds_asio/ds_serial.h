@@ -71,6 +71,9 @@ private:
   std::string name_;
   boost::asio::streambuf streambuf_;
   boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction_;
+  uint8_t num_read_error_;
+  ros::Timer read_error_retry_timer_;
+  std::string port_name_;
 
 };
 

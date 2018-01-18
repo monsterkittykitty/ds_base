@@ -171,7 +171,7 @@ namespace ds_asio {
             /// the danger of someone else calling the _nolock methods is WAY worse.
             friend Runner_front;
 
-            void _dataReady_nolock(const ds_core_msgs::RawData& raw);
+            void _dataReady_nolock(const ds_asio::IoCommand& cmd, const ds_core_msgs::RawData& raw);
             void _sendData_nolock(const std::string& data);
             void _setTimeout_nolock(const ros::Duration& timeout);
             void _cancelTimeout_nolock();
@@ -435,7 +435,7 @@ namespace ds_asio {
                 // Original version had the option to not emit on certain messages.
                 // I guess we'll keep that
                 if (cmd.emit() && sm) {
-                    sm->_dataReady_nolock(d.msg);
+                    sm->_dataReady_nolock(cmd, d.msg);
                 }
                 return true;
             }

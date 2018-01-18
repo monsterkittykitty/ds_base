@@ -10,18 +10,18 @@ namespace ds_asio {
     ////////////////////////////////////////////////////////////////////////////////
     // IoCommand
     ////////////////////////////////////////////////////////////////////////////////
-    ds_asio::IoCommand::IoCommand(const std::string &cmdstr, double timeout_sec, bool _allow_preempt) : cmd(cmdstr) {
-        checker = ds_asio::IoCommand::alwaysAccept();
+    ds_asio::IoCommand::IoCommand(const std::string &cmdstr, double timeout_sec,
+                                  bool _force_next,
+                                  RecvFunc cb) : cmd(cmdstr), callback(cb) {
         emitOnMatch = true;
         timeoutWarn = false;
         timeoutLog = false;
-        allowPreempt = _allow_preempt;
+        forceNext = _force_next;
         timeout = ros::Duration(timeout_sec);
     }
 
     ds_asio::IoCommand::IoCommand(double timeout_sec) {
         cmd = "";
-        checker = ds_asio::IoCommand::alwaysReject();
         emitOnMatch = false;
         timeoutWarn = false;
         timeoutLog = false;
@@ -29,11 +29,10 @@ namespace ds_asio {
     }
 
     ds_asio::IoCommand::IoCommand(const ds_core_msgs::IoCommand& _cmd) {
-        checker = ds_asio::IoCommand::alwaysAccept();
 
         emitOnMatch = _cmd.emitOnMatch;
         timeoutWarn = _cmd.timeoutWarn;
-        allowPreempt = !_cmd.forceNext;
+        forceNext = !_cmd.forceNext;
 
         delayBefore = ros::Duration(_cmd.delayBefore_ms/1000.0);
         delayAfter  = ros::Duration(_cmd.delayAfter_ms /1000.0);
@@ -92,11 +91,11 @@ namespace ds_asio {
         timeoutLog = _l;
     }
 
-    bool ds_asio::IoCommand::getAllowPreempt() const {
-        return allowPreempt;
+    bool ds_asio::IoCommand::getForceNext() const {
+        return forceNext;
     }
-    void ds_asio::IoCommand::setAllowPreempt(bool _a) {
-        allowPreempt = _a;
+    void ds_asio::IoCommand::setForceNext(bool _fn) {
+        forceNext = _fn;
     }
 
     uint64_t ds_asio::IoCommand::getId() const {
@@ -107,55 +106,16 @@ namespace ds_asio {
         id = _i;
     }
 
-    const IoCommand::CheckFunction& ds_asio::IoCommand::getInputCheck() {
-        return checker;
+    /// @brief Check to see if this command has a custom callback
+    bool ds_asio::IoCommand::hasCallback() const {
+        return !callback.empty();
     }
 
-    void ds_asio::IoCommand::setInputCheck(const IoCommand::CheckFunction &_f) {
-        checker = _f;
-    }
-
-    std::pair<int, std::string> ds_asio::IoCommand::checkInput(const std::string& inp) {
-        return checker(inp);
-    }
-
-    // standard Check Functions
-    std::pair<int, std::string> _alwaysAccept(const std::string& msg) {
-        return std::pair<int, std::string>(msg.size(), "");
-    }
-
-    std::pair<int, std::string> _alwaysReject(const std::string& msg) {
-        return std::pair<int, std::string>(-1, "");
-    }
-
-    std::pair<int, std::string> _checkRegex(const boost::regex &regex, const std::string& msg) {
-        boost::smatch match;
-        if (boost::regex_search(msg, match, regex)) {
-            return std::pair<int, std::string>(
-                    static_cast<int>(match.position() + match.length()),
-                    match[0]);
-        }
-        return std::pair<int, std::string>(-1, "");
-    }
-
-    ds_asio::IoCommand::CheckFunction ds_asio::IoCommand::alwaysReject() {
-        return _alwaysReject;
-    }
-
-    ds_asio::IoCommand::CheckFunction ds_asio::IoCommand::alwaysAccept() {
-        return _alwaysAccept;
-    }
-
-    ds_asio::IoCommand::CheckFunction ds_asio::IoCommand::checkRegex(const std::string &regex) {
-        // This will capture the regex and present it to _checkRegex every time
-        // _checkRegex (referenced for this object) is called.  Magic!
-        return std::bind(_checkRegex, boost::regex(regex), std::placeholders::_1);
-    }
-
-    ds_asio::IoCommand::CheckFunction ds_asio::IoCommand::checkRegex(const boost::regex &regex) {
-        // This will capture the regex and present it to _checkRegex every time
-        // _checkRegex (referenced for this object) is called.  Magic!
-        return std::bind(_checkRegex, regex, std::placeholders::_1);
+    /// @brief Get the callback function for this command
+    ///
+    /// \return The function to call on receipt of data for this command
+    const ds_asio::IoCommand:: RecvFunc& ds_asio::IoCommand::getCallback() const {
+        return callback;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -324,9 +284,17 @@ namespace ds_asio {
 
     //--------------------------------------------
     // Command-Runner interface
-    void _IoSM_impl::_dataReady_nolock(const ds_core_msgs::RawData& raw) {
+    void _IoSM_impl::_dataReady_nolock(const ds_asio::IoCommand& cmd,
+                                       const ds_core_msgs::RawData& raw) {
         // TODO: This should post an event, rather than call the callback directly
-        callback_(raw);
+        if (!callback_.empty()) {
+            callback_(raw);
+        }
+
+        if (cmd.hasCallback()) {
+            ROS_ERROR_STREAM("Cmd \"" <<cmd.getCommand() <<"\" has a callback!");
+            cmd.getCallback()(raw);
+        }
     }
 
     void _IoSM_impl::_sendData_nolock(const std::string& data) {
@@ -386,7 +354,7 @@ namespace ds_asio {
         }
 
         // start with preempt commands
-        if (preemptCommands.size() > 0 && (runner->cmd.getAllowPreempt())) {
+        if (preemptCommands.size() > 0 && (isPreemptCommand || ! runner->cmd.getForceNext())) {
             isPreemptCommand = true;
             _startCommand_nolock(preemptCommands.front());
         } else if (regularCommands.size() > 0) {

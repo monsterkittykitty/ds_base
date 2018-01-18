@@ -41,21 +41,21 @@ namespace ds_asio {
     ///  4. Create a new event based on that response
     ///  5. [optional] delay before moving on to the next command
     ///
-    ///  Whether a given response is "acceptable" is determined by the provided "InputCheck"
-    ///  function.  Once a command is sent, the state machine will block
-    ///  until either the InputCheck returns >= 0 or the timeout is reached.
-    ///
     class IoCommand {
     public:
         typedef std::shared_ptr<IoCommand> Ptr;
         typedef std::shared_ptr<const IoCommand> ConstPtr;
 
+        typedef boost::function<void(ds_core_msgs::RawData)> RecvFunc;
+
         /// @brief Shorthand to create a standard command/timeout pair
         ///
         /// \param cmdstr The command string to send
         /// \param timeout_sec  The number of seconds of timeout time for the command (NO other timeouts are applied!)
-        /// \param _allow_preempt Allow a non-regular-command after this one (ON by default)
-        IoCommand(const std::string &cmdstr, double timeout_sec, bool _allow_preempt=true);
+        /// \param _force_next Allow a non-regular-command after this one (OFF by default)
+        /// \param callback A callback fired when the response to this particular command is received
+        IoCommand(const std::string &cmdstr, double timeout_sec, bool _force_next=false,
+                  RecvFunc callback=RecvFunc());
 
         /// @brief Shorthand to create a static wait
         ///
@@ -128,16 +128,16 @@ namespace ds_asio {
         /// @brief Check whether a preempt command is allowed to follow this command
         ///
         /// Some commands require multiple inputs with return checking in between.  One
-        /// key example is setting an address on a bus.  The "Allow Preempt" option
-        /// prevents the preemptive commands from breaking up that chain
-        bool getAllowPreempt() const;
+        /// key example is setting an address on a bus.  The "Force Next" option
+        /// forces the next command to come from the same queue as this one.
+        bool getForceNext() const;
 
         /// @brief Set whether a preempt command is allowed to follow this command
         ///
         /// Some commands require multiple inputs with return checking in between.  One
-        /// key example is setting an address on a bus.  The "Allow Preempt" option
-        /// prevents the preemptive commands from breaking up that chain
-        void setAllowPreempt(bool _a);
+        /// key example is setting an address on a bus.  The "Force Next" option
+        /// forces the next command to come from the same queue as this one.
+        void setForceNext(bool _fn);
 
         /// @brief Get the state machine's ID for this command.  Used to override existing
         /// entries
@@ -146,44 +146,14 @@ namespace ds_asio {
         /// @brief Set the state machine's ID for this command.  Set by the state machine
         void setId(uint64_t);
 
-        /// @brief Typedef for all input check functions
-        /// Define the function to accept input (or not)
-        /// The check function determines if the input should be accept, and how many
-        /// characters from the I/O buffer should be consumed.  Return values are:
-        /// < 0 (generally -1): Input not accepted
-        /// 0: Accept input, but don't consume any characters
-        /// n > 0: Accept input and consume n characters
-        typedef std::function<std::pair<int, std::string>(const std::string&)> CheckFunction;
+        /// @brief Check to see if this command has a custom callback
+        bool hasCallback() const;
 
-        /// @brief Get the current check function for this command
-        const IoCommand::CheckFunction &getInputCheck();
-
-        /// @brief Set the check function used to determine if a specific buffer is
-        /// an accepted input or not
-        void setInputCheck(const IoCommand::CheckFunction &_f);
-
-        /// @brief Check if a given input is valid using the internal check function.
-        std::pair<int, std::string> checkInput(const std::string& inp);
-
-        /// \brief A check function that always rejects the input
-        static CheckFunction alwaysReject();
-
-        /// \brief A check function that always accepts any input
-        static CheckFunction alwaysAccept();
-
-        /// \brief A check function that always runs the supplied regex on the input and
-        /// returns the result.
+        /// @brief Get the callback function for this command
         ///
-        /// \param regex The regex to match against using boost::regex_search.
-        /// \return An std::pair with the index of the last matched position and the matched string
-        static CheckFunction checkRegex(const std::string &regex);
+        /// \return The function to call on receipt of data for this command
+        const RecvFunc& getCallback() const;
 
-        /// \brief A check function that always runs the supplied regex on the input and
-        /// returns the result.
-        ///
-        /// \param regex The regex to match against using boost::regex_search.
-        /// \return An std::pair with the index of the last matched position and the matched string
-        static CheckFunction checkRegex(const boost::regex &regex);
 
     protected:
         uint64_t id;
@@ -191,15 +161,16 @@ namespace ds_asio {
         bool emitOnMatch;
         bool timeoutWarn;
         bool timeoutLog;   // log
-        bool allowPreempt; // allow the next command to be a preempt command
+        bool forceNext; // force the next command to be from the same queue
         // This is useful in some cases where a command
         // sequence should happen atomically, e.g.,
         // we send an address command and then a
         // query or something
-        CheckFunction checker;
         ros::Duration delayBefore;
         ros::Duration delayAfter;
         ros::Duration timeout;
+
+        RecvFunc callback;
     };
 
     // forward declaration

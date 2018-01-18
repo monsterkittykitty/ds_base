@@ -8,8 +8,6 @@
 #include "ds_base/ds_bus_device.h"
 #include "ds_base/ds_process_private.h"
 #include "ds_process.h"
-#include "../../../../../../../../opt/ros/kinetic/include/ros/subscriber.h"
-#include "../../../../../../../../opt/ros/kinetic/include/ros/service_client.h"
 #include <ds_base/util.h>
 
 #include <ds_core_msgs/Status.h>

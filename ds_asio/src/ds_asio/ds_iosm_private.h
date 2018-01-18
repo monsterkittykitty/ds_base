@@ -36,7 +36,7 @@ namespace ds_asio {
             /// for shared_from_this to work correctly, we need to ensure ONLY pointers
             /// to shared objects are created
             _IoSM_impl(boost::asio::io_service& io_service, std::string name,
-                       boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh);
+                       const boost::function<void(ds_core_msgs::RawData)>& callback, ros::NodeHandle* myNh);
 
             // no implementation of these is required
             // (private copy constructor / operators are a special thing)
@@ -61,7 +61,7 @@ namespace ds_asio {
             /// \return A new instance of this class
             static std::shared_ptr<_IoSM_impl> create(boost::asio::io_service& io_service,
                                                       std::string name,
-                                                      boost::function<void(ds_core_msgs::RawData)> callback,
+                                                      const boost::function<void(ds_core_msgs::RawData)>& callback,
                                                       ros::NodeHandle* myNh);
 
             /// @brief Destructor
@@ -171,7 +171,7 @@ namespace ds_asio {
             /// the danger of someone else calling the _nolock methods is WAY worse.
             friend Runner_front;
 
-            void _dataReady_nolock(ds_core_msgs::RawData raw);
+            void _dataReady_nolock(const ds_core_msgs::RawData& raw);
             void _sendData_nolock(const std::string& data);
             void _setTimeout_nolock(const ros::Duration& timeout);
             void _cancelTimeout_nolock();
@@ -252,8 +252,8 @@ namespace ds_asio {
             IoCommand cmd;
             _IoSM_impl::Ptr sm;
 
-            Runner_front(const std::shared_ptr<_IoSM_impl>& _sm) {
-                sm = _sm;
+            Runner_front(const std::shared_ptr<_IoSM_impl>& _sm) : cmd(1.0), sm(_sm) {
+                // do nothing
             }
 
             /// @brief Reset our pointer to the parent StateMachine class.
@@ -276,7 +276,7 @@ namespace ds_asio {
                 template <class Event, class FSM>
                 void on_entry(Event const& evt, FSM& fsm) {
                     // set a simple command
-                    fsm.cmd = ds_asio::IoCommand();
+                    fsm.cmd = ds_asio::IoCommand(1.0);
                     if (fsm.sm) {
                         fsm.sm->_commandDone_nolock();
                     } else {
@@ -402,8 +402,8 @@ namespace ds_asio {
 
                 /*
                 // For now, don't actually run the check
-                std::pair <int, std::string> ret = d.vars->cmd.checkInput(d.msg.);
-                int consumed = ret.first;
+                std::pair <int, std::string> last_message_ = d.vars->cmd.checkInput(d.msg.);
+                int consumed = last_message_.first;
                 if (consumed < 0) {
                     // reject
                     return false;
@@ -414,9 +414,9 @@ namespace ds_asio {
 
                 /*
                 // (possibly) emit an event
-                ROS_DEBUG_STREAM("State machine matched: " <<ret.second);
+                ROS_DEBUG_STREAM("State machine matched: " <<last_message_.second);
                 if (d.vars->cmd.emit()) {
-                    ROS_DEBUG_STREAM("State machine emitting: " <<ret.second);
+                    ROS_DEBUG_STREAM("State machine emitting: " <<last_message_.second);
                     // we don't know what the signal handler will do-- it might try to send a command out
                     // via the state machine which could, in turn, deadlock things.
                     //
@@ -425,7 +425,7 @@ namespace ds_asio {
                     //
                     // Basically, this will return immediately, and the ioservice in the IOHandler in
                     // the IODev will execute it as another handler
-                    std::string message(ret.second);
+                    std::string message(last_message_.second);
                     if (vars->sm) {
                         vars->sm->_dataReady_nolock(message);
                     }

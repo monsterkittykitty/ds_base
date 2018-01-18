@@ -10,15 +10,22 @@ namespace ds_asio {
     ////////////////////////////////////////////////////////////////////////////////
     // IoCommand
     ////////////////////////////////////////////////////////////////////////////////
-    ds_asio::IoCommand::IoCommand() : ds_asio::IoCommand("") {}
-
-    ds_asio::IoCommand::IoCommand(const std::string &cmdstr) : cmd(cmdstr) {
+    ds_asio::IoCommand::IoCommand(const std::string &cmdstr, double timeout_sec, bool _allow_preempt) : cmd(cmdstr) {
         checker = ds_asio::IoCommand::alwaysAccept();
+        emitOnMatch = true;
+        timeoutWarn = false;
+        timeoutLog = false;
+        allowPreempt = _allow_preempt;
+        timeout = ros::Duration(timeout_sec);
+    }
+
+    ds_asio::IoCommand::IoCommand(double timeout_sec) {
+        cmd = "";
+        checker = ds_asio::IoCommand::alwaysReject();
         emitOnMatch = false;
         timeoutWarn = false;
         timeoutLog = false;
-        allowPreempt = true;
-        timeout = ros::Duration(-1);
+        timeout = ros::Duration(timeout_sec);
     }
 
     ds_asio::IoCommand::IoCommand(const ds_core_msgs::IoCommand& _cmd) {
@@ -207,7 +214,7 @@ namespace ds_asio {
     // Overhead
     _IoSM_impl::_IoSM_impl(boost::asio::io_service& io_service,
                            std::string n,
-                           boost::function<void(ds_core_msgs::RawData)> callback,
+                           const boost::function<void(ds_core_msgs::RawData)>& callback ,
                            ros::NodeHandle* myNh) : io_service_(io_service),
                                                     timeoutTimer_(io_service),
                                                     callback_(callback), nh_(myNh), name_(n) {
@@ -227,7 +234,7 @@ namespace ds_asio {
 
     std::shared_ptr<_IoSM_impl> _IoSM_impl::create(boost::asio::io_service& io_service,
                                                    std::string name,
-                                                   boost::function<void(ds_core_msgs::RawData)> callback,
+                                                   const boost::function<void(ds_core_msgs::RawData)>& callback,
                                                    ros::NodeHandle* myNh) {
         return std::shared_ptr<_IoSM_impl>(new _IoSM_impl(io_service, name, callback, myNh));
     }
@@ -317,18 +324,20 @@ namespace ds_asio {
 
     //--------------------------------------------
     // Command-Runner interface
-    void _IoSM_impl::_dataReady_nolock(ds_core_msgs::RawData raw) {
+    void _IoSM_impl::_dataReady_nolock(const ds_core_msgs::RawData& raw) {
         // TODO: This should post an event, rather than call the callback directly
         callback_(raw);
     }
 
     void _IoSM_impl::_sendData_nolock(const std::string& data) {
-        connection_->send(boost::shared_ptr<std::string>(new std::string(data)));
+        if (!data.empty()) {
+            connection_->send(boost::shared_ptr<std::string>(new std::string(data)));
+        }
     }
 
     void _IoSM_impl::_setTimeout_nolock(const ros::Duration& timeout) {
         boost::posix_time::time_duration duration = timeout.toBoost();
-        if (timeout.toNSec() < 0) {
+        if (timeout.toNSec() <= 0) {
             // timeout immediately
             runner->process_event(TimerDone());
             return;
@@ -344,8 +353,6 @@ namespace ds_asio {
     }
 
     void _IoSM_impl::_timeoutCallback(const boost::system::error_code& error) {
-        std::unique_lock<std::mutex> lock(_outer_sm_lock); // auto unlocks
-
         if (error.value() == boost::system::errc::operation_canceled) {
             ROS_DEBUG_STREAM("I/O SM Timer operation cancelled: " << error.message());
             return;
@@ -355,6 +362,7 @@ namespace ds_asio {
             ROS_DEBUG_STREAM("I/O SM ERROR waiting for timer: " << error.message());
         }
 
+        std::unique_lock<std::mutex> lock(_outer_sm_lock); // auto unlocks
         runner->process_event(TimerDone());
     }
      void _IoSM_impl::_dataCallback(const ds_core_msgs::RawData& raw) {

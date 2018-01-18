@@ -50,10 +50,19 @@ namespace ds_asio {
         typedef std::shared_ptr<IoCommand> Ptr;
         typedef std::shared_ptr<const IoCommand> ConstPtr;
 
-        IoCommand();
+        /// @brief Shorthand to create a standard command/timeout pair
+        ///
+        /// \param cmdstr The command string to send
+        /// \param timeout_sec  The number of seconds of timeout time for the command (NO other timeouts are applied!)
+        /// \param _allow_preempt Allow a non-regular-command after this one (ON by default)
+        IoCommand(const std::string &cmdstr, double timeout_sec, bool _allow_preempt=true);
 
-        /// @brief Create a basic IO Command from a string
-        IoCommand(const std::string &cmdstr);
+        /// @brief Shorthand to create a static wait
+        ///
+        /// The primary use of this is to add a delay to slow down interogation loops
+        ///
+        /// \param timeout_sec Number of seconds to wait
+        IoCommand(double timeout_sec);
 
         /// @brief Fill in a command string using a IoCommand ROS message
         IoCommand(const ds_core_msgs::IoCommand& _cmd);

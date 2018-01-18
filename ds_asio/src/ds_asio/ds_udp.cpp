@@ -77,6 +77,8 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
 {
   if (!error || error == boost::asio::error::message_size)
     {
+      num_read_error_ = 0;
+
       // Store timestamp as soon as received
       raw_data_.ds_header.io_time = ros::Time::now();
 
@@ -86,7 +88,24 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
       raw_publisher_.publish(raw_data_);
       callback_(raw_data_);
       receive();
+      return;
     }
+  num_read_error_++;
+  ROS_ERROR_STREAM("Read error on socket: " << error << " " << error.message());
+  ROS_ERROR("%d consecutive read errors on port %d", num_read_error_, socket_->local_endpoint().port());
+  if(num_read_error_ <= 10) {
+    ROS_WARN_STREAM("Retrying read in 0.1s");
+    read_error_retry_timer_.stop();
+    read_error_retry_timer_.start();
+    return;
+  }
+
+  ROS_FATAL("Too many read errors on port %d", socket_->local_endpoint().port());
+  ROS_FATAL_STREAM("Shutting down ros.");
+  ros::shutdown();
+  ros::waitForShutdown();
+  exit(1);
+
 }
 
 void DsUdp::send(boost::shared_ptr<std::string> message)

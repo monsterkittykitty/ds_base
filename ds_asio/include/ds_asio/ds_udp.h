@@ -49,6 +49,8 @@ private:
   ros::Publisher raw_publisher_;
   ds_core_msgs::RawData raw_data_;
   std::string name_;
+  uint8_t num_read_error_;
+  ros::Timer read_error_retry_timer_;
 };
 
 }

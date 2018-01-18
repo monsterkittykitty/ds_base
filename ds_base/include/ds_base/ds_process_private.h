@@ -22,6 +22,8 @@ namespace ds_base
 ///   - `DsProcess::Impl::setupConnections`:  Add `DsAsio` connections here
 ///   - `DsProcess::Impl::setupPublishers`:   Add topic publishers here.
 ///   - `DsProcess::Impl::setupSubscribers`:  Add subscribers here.
+///   - `DsProcess::Impl::setupTimers`:       Add timers here.
+///   - `DsProcess::Impl::setupServices`:     Add services here.
 ///   - `DsProcess::Impl::setup`:             Wraps all of the above
 ///
 /// This allows developers to selectively add extra configuration directives without
@@ -63,6 +65,7 @@ struct DsProcess::Impl
   /// - setupSubscriptions()
   /// - setupPublishers()
   /// - setupTimers()
+  /// - setupServices()
   ///
   virtual void setup(DsProcess* base);
 
@@ -85,6 +88,10 @@ struct DsProcess::Impl
   /// The default implementation creates the following publishers:
   ///  - status  [ds_core_msgs::Status]
   virtual void setupPublishers(DsProcess* base);
+
+  /// @brief Create ros services
+  ///
+  virtual void setupServices(DsProcess* base) {}
 
   /// @brief Create ros timers on startup.
   ///

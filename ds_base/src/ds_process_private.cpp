@@ -23,6 +23,7 @@ void DsProcess::Impl::setup(DsProcess* base)
   setupSubscriptions(base);
   setupPublishers(base);
   setupTimers(base);
+  setupServices(base);
 }
 
 

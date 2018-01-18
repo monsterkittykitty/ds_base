@@ -15,7 +15,7 @@ class DsConnection
 {
 public:
   DsConnection();
-  ~DsConnection();
+  virtual ~DsConnection();
 
   /// @brief An interface to send data through a connection
   ///

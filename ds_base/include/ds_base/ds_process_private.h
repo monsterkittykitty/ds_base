@@ -76,6 +76,24 @@ struct DsProcess::Impl
     publishers_[name] = node_handle_->advertise<T>(ros::this_node::getName() + "/" + name, queue, latch);
   }
 
+  /// @brief Create a topic subscriber
+  ///
+  /// \tparam T     Type of message to publish
+  /// \param name   name of topic.  Will be "private" scope (e.g. beneath the node name)
+  /// \param queue  Size of topic queue
+  /// \param latch  Data topic is latching or not.
+  template <typename T>
+  void addMessageSubscriber(const std::string &name, uint32_t queue, const boost::function< void(const boost::shared_ptr< T const > &)> &callback, const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(), const ros::TransportHints& transport_hints = ros::TransportHints())
+  {
+    // Using the DsProcess public interface
+    subscribers_[name] = node_handle_->subscribe(name, queue, callback, tracked_object, transport_hints);
+  }
+
+  void addTimer(std::string name, ros::Duration interval, boost::function<void(const ros::TimerEvent&)> callback)
+  {
+    timers_[name] = node_handle_->createTimer(interval, callback);
+  }
+
   template<typename T>
   void publishMessage(const std::string &name, T msg) {
     auto ok = false;
@@ -113,6 +131,9 @@ struct DsProcess::Impl
 
   bool is_setup_;                                                     //!< Has setup() been called?
   std::unordered_map<std::string, ros::Publisher> publishers_;        //!< Collection of data message publishers
+  std::unordered_map<std::string, ros::Subscriber> subscribers_;      //!< Collection of data message publishers
+  std::unordered_map<std::string, ros::Timer> timers_;                //!< Collection of timers
+
   std::unordered_map<std::string, ros::Time> last_published_timestamp_; //!< Timestamp of last message sent by publisher
 
   std::unique_ptr<ds_asio::DsAsio> asio_;                             //!< DsAsio instance

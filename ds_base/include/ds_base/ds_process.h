@@ -303,6 +303,23 @@ public:
   /// \return
   boost::uuids::uuid uuid() const noexcept;
 
+  /// @brief Setup node after ros has been initialized.
+  ///
+  /// This method is called in DsProcess' constructors, after the object has
+  /// been instantiated.  It is the main entry point to add run-time configuration
+  /// that requires a rosmaster to be running.
+  ///
+  /// Default implmementation calls, in order:
+  ///
+  /// - setupParameters()
+  /// - setupConnections()
+  /// - setupSubscriptions()
+  /// - setupPublishers()
+  /// - setupTimers()
+  /// - setupServices()
+
+  virtual void setup();
+
  protected:
 
   /// @brief Construct a new DsProcess
@@ -330,24 +347,6 @@ public:
   {
     return impl_.get();
   }
-
-  /// @brief Setup node after ros has been initialized.
-  ///
-  /// This method is called in DsProcess' constructors, after the object has
-  /// been instantiated.  It is the main entry point to add run-time configuration
-  /// that requires a rosmaster to be running.
-  ///
-  /// Default implmementation calls, in order:
-  ///
-  /// - setupParameters()
-  /// - setupConnections()
-  /// - setupSubscriptions()
-  /// - setupPublishers()
-  /// - setupTimers()
-  /// - setupServices()
-  ///
-  virtual void setup();
-
   /// @brief Get parameters from server
   ///
   /// The default implementation looks for the following PRIVATE parameters:

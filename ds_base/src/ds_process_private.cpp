@@ -13,6 +13,7 @@ namespace ds_base
 DsProcess::Impl::Impl()
   : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
   , uuid_(boost::uuids::nil_uuid())
+  , is_setup_(false)
 {
 }
 

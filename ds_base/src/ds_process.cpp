@@ -22,14 +22,12 @@ DsProcess::DsProcess(int argc, char** argv, const std::string &name)
 DsProcess::DsProcess(std::unique_ptr<DsProcess::Impl> impl)
   : impl_(std::move(impl))
 {
-  setup();
 }
 
 DsProcess::DsProcess(std::unique_ptr<DsProcess::Impl> impl, int argc, char **argv, const std::string &name)
   : impl_(std::move(impl))
 {
   ros::init(argc, argv, name);
-  setup();
 }
 
 DsProcess::~DsProcess() = default;
@@ -47,6 +45,11 @@ ds_asio::DsNodeHandle* DsProcess::nodeHandle()
 void DsProcess::run()
 {
   auto d = d_func();
+
+  if (!d->is_setup_) {
+    setup();
+  }
+
   if (d->status_check_timer_.isValid()){
     d->status_check_timer_.start();
   }
@@ -108,12 +111,19 @@ inline boost::uuids::uuid DsProcess::uuid() const noexcept {
 
 void DsProcess::setup()
 {
+  auto d = d_func();
+  if (d->is_setup_) {
+    return;
+  }
+
   setupParameters();
   setupConnections();
   setupSubscriptions();
   setupPublishers();
   setupTimers();
   setupServices();
+
+  d->is_setup_ = true;
 }
 
 

@@ -20,18 +20,17 @@ namespace ds_base {
         explicit DsBusDevice();
         DsBusDevice(int argc, char* argv[], const std::string &name);
 
+        /// @brief Overall setup function.
+        ///
+        /// Default implementation adds the setup I/O state machine stuff
+        /// in the correct place.
+        void setup() override;
+
+
     protected:
         // protected constructors so we can subclass THIS class
         explicit DsBusDevice(std::unique_ptr<Impl> impl);
         DsBusDevice(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name);
-
-      /// @brief Overall setup function.
-      ///
-      /// Default implementation adds the setup I/O state machine stuff
-      /// in the correct place.
-      ///
-      /// \param base
-      void setup() override;
 
       /// @brief setup parameters
       ///

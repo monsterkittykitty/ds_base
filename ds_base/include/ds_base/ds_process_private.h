@@ -61,6 +61,7 @@ struct DsProcess::Impl
   /// \param period
   void updateStatusCheckTimer(DsProcess* base, ros::Duration period);
 
+  bool is_setup_;
   std::unique_ptr<ds_asio::DsAsio> asio_;  //!< DsAsio instance
   std::unique_ptr<ds_asio::DsNodeHandle> node_handle_; //!< DsNodeHandle instance
 

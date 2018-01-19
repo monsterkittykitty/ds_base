@@ -3,6 +3,7 @@
 
 #include "ds_asio/ds_asio.h"
 #include "ds_asio/ds_nodehandle.h"
+#include "ds_core_msgs/Status.h"
 
 #include <ros/ros.h>
 #include <boost/asio.hpp>
@@ -381,13 +382,23 @@ public:
   /// @brief Check the process status.
   ///
   /// This method is triggered by the status check timer.  The default
-  /// implementation does nothing.
+  /// implementation calls checkMessageTimeouts with the timeout duration
+  /// set by setMessageTimeout and publishes the result.
   ///
   /// This is where you can add hooks to check process-specific details
   /// and emit a ds_core_msgs::Status message.
   ///
   /// \param event
-  virtual void checkProcessStatus(const ros::TimerEvent &event) {};
+  virtual void checkProcessStatus(const ros::TimerEvent &event);
+
+  /// @brief Sensor health check
+  ///
+  /// Default implementation checks the last timestamp of all published data
+  /// against the timeout value set by SensorBase::setTimeout.
+  ///
+  /// \param event
+  ds_core_msgs::Status checkMessageTimeouts(const ros::Duration& timeout);
+
  private:
 
   std::shared_ptr<Impl> impl_;

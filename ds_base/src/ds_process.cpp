@@ -157,5 +157,45 @@ void DsProcess::setupPublishers()
   d->status_publisher_ = advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
 }
 
+void DsProcess::checkProcessStatus(const ros::TimerEvent &event)
+{
+  const auto d = d_func();
+  auto status = checkMessageTimeouts(d->message_timeout_);
 
+  d->status_publisher_.publish(status);
+}
+
+ds_core_msgs::Status DsProcess::checkMessageTimeouts(const ros::Duration &timeout)
+{
+
+  const auto now = ros::Time::now();
+
+  auto status = ds_core_msgs::Status{};
+  auto d = d_func();
+  status.descriptive_name = d->descriptive_node_name_;
+
+  status.ds_header.io_time = now;
+  std::copy(std::begin(d->uuid_.data), std::end(d->uuid_.data), std::begin(status.ds_header.source_uuid));
+
+  // Default to GOOD
+  status.status = ds_core_msgs::Status::STATUS_GOOD;
+
+  if (d->message_timeout_ < ros::Duration(0)) {
+    return status;
+  }
+
+  if (d->last_published_timestamp_.empty() && !d->publishers_.empty()) {
+    status.status = ds_core_msgs::Status::STATUS_ERROR;
+  }
+  else {
+    for (auto it = std::begin(d->last_published_timestamp_); it != std::end(d->last_published_timestamp_); ++it) {
+      if ((now - it->second > d->message_timeout_)) {
+        status.status = ds_core_msgs::Status::STATUS_ERROR;
+        break;
+      }
+    }
+  }
+
+  return status;
+}
 }

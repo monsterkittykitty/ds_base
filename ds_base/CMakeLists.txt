@@ -9,11 +9,23 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   ds_asio
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
+## Generate services in the 'srv' folder
+add_service_files(DIRECTORY srv
+        FILES
+        StringCommand.srv
+)
+
+## Generate added messages and services with any dependencies listed here
+generate_messages(
+        DEPENDENCIES
+        std_msgs
+)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -42,7 +54,22 @@ add_library(${PROJECT_NAME}
 
   include/ds_base/util.h
   src/util.cpp
-        include/ds_base/ds_bus.h src/ds_bus_private.h src/ds_bus.cpp include/ds_base/ds_bus_device.h include/ds_base/ds_bus_device_private.h src/ds_bus_device.cpp src/ds_bus_device_private.cpp)
+
+  include/ds_base/ds_bus.h
+  src/ds_bus_private.h
+  src/ds_bus.cpp
+
+  include/ds_base/ds_bus_device.h
+  include/ds_base/ds_bus_device_private.h
+  src/ds_bus_device.cpp
+  src/ds_bus_device_private.cpp
+
+  include/ds_base/sensor_base.h
+  src/sensor_base.cpp
+
+  include/ds_base/sensor_base_private.h
+  src/sensor_base_private.cpp
+)
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}

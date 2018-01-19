@@ -58,3 +58,52 @@ inline auto DsBusDevice::d_func() noexcept -> DsBusDevice::Impl * {
 inline auto DsBusDevice::d_func() const noexcept -> DsBusDevice::Impl const * {
   return static_cast<DsBusDevice::Impl const *>(ds_base::DsProcess::d_func());
 }
+
+void DsBusDevice::setup() {
+  // setup all our connection stuff FIRST
+  ds_base::DsProcess::setup();
+
+  setupIoSM();
+}
+
+void DsBusDevice::setupParameters() {
+  ds_base::DsProcess::setupParameters();
+
+  auto d = d_func();
+  d->message_timeout_ = ros::Duration(ros::param::param<double>("~message_timeout", 5));
+
+  auto serial_num = ros::param::param<std::string>("~serial_number", "0");
+  auto generated_uuid = ds_base::generateUuid(serial_num);
+
+  if(d->uuid_ != generated_uuid) {
+    ROS_ERROR_STREAM("!!!POTENTIAL CONFIGURATION MISMATCH!!!");
+    ROS_ERROR_STREAM("Detected UUID mismatch.");
+    ROS_ERROR_STREAM("UUID (param server): " << d->uuid_);
+    ROS_ERROR_STREAM("UUID (generated): " << generated_uuid);
+  }
+  else {
+    ROS_INFO_STREAM("UUID matches: " << d->uuid_);
+  }
+
+  d->bus_node_name_ = ros::param::param<std::string>("~bus_node", "");
+}
+
+void DsBusDevice::setupConnections() {
+  ds_base::DsProcess::setupConnections();
+
+  auto d = d_func();
+  // Connect to the bus
+  if (d->bus_node_name_.empty()) {
+    ROS_FATAL_STREAM("No bus specified for bus device node " <<ros::this_node::getName());
+    ros::shutdown();
+  }
+  d->bus_ = subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);
+
+  // Connect our service client to control the bus state machine
+  d->iosm_cmd_ = serviceClient<ds_core_msgs::IoSMcommand>(d->bus_node_name_ + "/cmd");
+  d->iosm_cmd_.waitForExistence(ros::Duration(60.0)); // wait up to 1 minute for the service to exist
+  if (!d->iosm_cmd_.exists()) {
+    ROS_FATAL_STREAM(ros::this_node::getName() <<" timed out connecting to the command & control service for the bus managed by " <<d->bus_node_name_);
+    ros::shutdown();
+  }
+}

@@ -43,7 +43,7 @@ public:
 
     /// \brief Get the vector of stuff written (used AFTER) the test
     /// has been run
-    const std::deque<ds_core_msgs::RawData>& Written() const;
+    const std::deque<std::string>& Written() const;
 
     /// \brief Get the vector of stuff to Read (used BEFORE the test!)
     const std::deque<ds_core_msgs::RawData>& ToRead() const;
@@ -54,7 +54,7 @@ protected:
     boost::function<void(ds_core_msgs::RawData)> callback_;
 
     /// \brief A vector of strings written by the thing using this to test
-    std::deque<ds_core_msgs::RawData> written;
+    std::deque<std::string> written;
 
     /// \brief A vector of strings to be ready by the thing under test
     std::deque<ds_core_msgs::RawData> toRead;

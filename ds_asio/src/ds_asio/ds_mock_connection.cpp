@@ -6,7 +6,7 @@
 
 namespace ds_asio
 {
-   DsMockConnection:: DsMockConnection(boost::asio::io_service& io) { /* do nothing */ }
+   DsMockConnection:: DsMockConnection() { /* do nothing */ }
 
     DsMockConnection::~DsMockConnection() { /* do nothing */ }
 
@@ -33,7 +33,7 @@ namespace ds_asio
         callback_ = _cb;
     }
 
-    const std::deque<ds_core_msgs::RawData>&DsMockConnection:: Written() const {
+    const std::deque<std::string>&DsMockConnection:: Written() const {
         return written;
     }
 

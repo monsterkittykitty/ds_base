@@ -28,54 +28,6 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
 
     ~Impl() override = default;
 
-    void setupConnections(ds_base::DsProcess* base) override {
-        ds_base::DsProcess::Impl::setupConnections(base);
-
-        iosm = base->addIoSM("statemachine", "instrument", boost::bind(&DsBus::Impl::_data_recv, this, _1));
-    }
-
-    void setupPublishers(ds_base::DsProcess* base) override {
-        // call the superclass
-        ds_base::DsProcess::Impl::setupPublishers(base);
-
-        // add our additional secret sauce
-        bus_pub_ = base->advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/bus", 10, false);
-
-        // the whole queue is controlled by a service
-        cmd_serv_ = base->advertiseService<ds_core_msgs::IoSMcommand::Request,
-                                           ds_core_msgs::IoSMcommand::Response>(ros::this_node::getName() + "/cmd",
-                                                                      boost::bind(&DsBus::Impl::_service_req, this, _1, _2));
-    }
-
-    void checkProcessStatus(const ros::TimerEvent &event) override {
-        const auto now = ros::Time::now();
-
-        auto status = ds_core_msgs::Status();
-        status.descriptive_name = descriptive_node_name_;
-
-        status.ds_header.io_time = now;
-        std::copy(std::begin(uuid_.data), std::end(uuid_.data), std::begin(status.ds_header.source_uuid));
-
-        if (message_timeout_ < ros::Duration(0)
-            || now - last_message_timestamp_ > message_timeout_) {
-
-            status.status = ds_core_msgs::Status::STATUS_GOOD;
-
-        } else {
-            status.status = ds_core_msgs::Status::STATUS_ERROR;
-        }
-
-        status_publisher_.publish(status);
-    }
-
-    void setupParameters(ds_base::DsProcess *base) override {
-        ds_base::DsProcess::Impl::setupParameters(base);
-
-        message_timeout_ = ros::Duration(ros::param::param<double>("~message_timeout", 5));
-
-        auto generated_uuid = ds_base::generateUuid("bus_node_" + descriptive_node_name_);
-
-    }
 
     void _data_recv(const ds_core_msgs::RawData& bytes) {
         last_message_timestamp_ = bytes.header.stamp;

@@ -331,6 +331,64 @@ public:
     return impl_.get();
   }
 
+  /// @brief Setup node after ros has been initialized.
+  ///
+  /// This method is called in DsProcess' constructors, after the object has
+  /// been instantiated.  It is the main entry point to add run-time configuration
+  /// that requires a rosmaster to be running.
+  ///
+  /// Default implmementation calls, in order:
+  ///
+  /// - setupParameters()
+  /// - setupConnections()
+  /// - setupSubscriptions()
+  /// - setupPublishers()
+  /// - setupTimers()
+  /// - setupServices()
+  ///
+  virtual void setup();
+
+  /// @brief Get parameters from server
+  ///
+  /// The default implementation looks for the following PRIVATE parameters:
+  ///  - health_check_period [double]
+  ///  - descriptive_name [string]
+  ///  - uuid [string]
+  virtual void setupParameters();
+
+  /// @brief Create asio connections
+  virtual void setupConnections() {}
+
+  /// @brief Create ros topic subscriptions.
+  virtual void setupSubscriptions() {}
+
+  /// @brief Create ros topic publishers.
+  ///
+  /// The default implementation creates the following publishers:
+  ///  - status  [ds_core_msgs::Status]
+  virtual void setupPublishers();
+
+  /// @brief Create ros services
+  ///
+  virtual void setupServices() {}
+
+  /// @brief Create ros timers on startup.
+  ///
+  /// The default implementation does nothing.
+  ///
+  /// \param base
+
+  virtual void setupTimers() {}
+  /// @brief Check the process status.
+  ///
+  /// This method is triggered by the status check timer.  The default
+  /// implementation does nothing.
+  ///
+  /// This is where you can add hooks to check process-specific details
+  /// and emit a ds_core_msgs::Status message.
+  ///
+  /// \param event
+  virtual void checkProcessStatus(const ros::TimerEvent &event) {};
  private:
 
   std::shared_ptr<Impl> impl_;

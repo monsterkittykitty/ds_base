@@ -25,6 +25,11 @@ namespace ds_base {
         explicit DsBus(std::unique_ptr<Impl> impl);
         DsBus(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name);
 
+      void setupConnections() override;
+      void setupPublishers() override;
+      void checkProcessStatus(const ros::TimerEvent &event) override;
+      void setupParameters() override;
+
     private:
         // functions to access our implementation structure
         auto d_func() noexcept -> Impl *;

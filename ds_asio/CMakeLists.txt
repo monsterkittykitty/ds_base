@@ -147,7 +147,7 @@ add_library(${PROJECT_NAME}
         src/${PROJECT_NAME}/ds_iosm.cpp
         include/${PROJECT_NAME}/ds_iosm.h
         src/${PROJECT_NAME}/ds_iosm_private.h
-        )
+        include/ds_asio/ds_mock_connection.h src/ds_asio/ds_mock_connection.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -219,7 +219,9 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ds_asio.cpp)
+catkin_add_gtest(test_iosm test/test_ds_iosm.cpp)
+target_link_libraries(test_iosm_test ${PROJECT_NAME})
+
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

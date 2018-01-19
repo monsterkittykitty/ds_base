@@ -287,12 +287,13 @@ namespace ds_asio {
     void _IoSM_impl::_dataReady_nolock(const ds_asio::IoCommand& cmd,
                                        const ds_core_msgs::RawData& raw) {
         // TODO: This should post an event, rather than call the callback directly
+        // call the statemachine-wide callback (if it has one)
         if (!callback_.empty()) {
             callback_(raw);
         }
 
+        // Call the command-specific callback (if it has one)
         if (cmd.hasCallback()) {
-            ROS_ERROR_STREAM("Cmd \"" <<cmd.getCommand() <<"\" has a callback!");
             cmd.getCallback()(raw);
         }
     }

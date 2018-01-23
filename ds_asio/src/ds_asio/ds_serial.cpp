@@ -4,21 +4,18 @@
 
 namespace ds_asio
 {
-
-DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh)
-  : DsConnection(io_service, name, callback, myNh),
-    num_read_error_(0)
+DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback,
+                   ros::NodeHandle* myNh)
+  : DsConnection(io_service, name, callback, myNh), num_read_error_(0)
 {
   setup();
   receive();
 
   // The read error retry timer just calls receive again.
-  auto retry_timer_callback = [] (DsSerial* base, const ros::TimerEvent& event) {
-    base->receive();
-  };
+  auto retry_timer_callback = [](DsSerial* base, const ros::TimerEvent& event) { base->receive(); };
 
-  read_error_retry_timer_ =  nh_->createTimer(
-      ros::Duration(1), boost::bind<void>(retry_timer_callback, this, _1), true, false);
+  read_error_retry_timer_ =
+      nh_->createTimer(ros::Duration(1), boost::bind<void>(retry_timer_callback, this, _1), true, false);
 
   ROS_ASSERT(read_error_retry_timer_.isValid());
 }
@@ -41,34 +38,35 @@ void DsSerial::setup(void)
   nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/matcher", myMatch, "match_char");
   ROS_INFO_STREAM("Matcher: " << myMatch);
   if (!myMatch.compare("match_char"))
+  {
+    // char delimiter;
+    std::string hexAscii;
+    nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/delimiter", hexAscii, "0A");
+    uint8_t delimiter;
+    if (!sscanf(hexAscii.c_str(), "%hhX", &delimiter))
     {
-      //char delimiter;
-      std::string hexAscii;
-      nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/delimiter", hexAscii, "0A");
-      uint8_t delimiter;
-      if(!sscanf(hexAscii.c_str(), "%hhX", &delimiter)) {
-        ROS_FATAL_STREAM("Unable to create delimiter from string: " << hexAscii);
-        ROS_BREAK();
-      }
-      ROS_INFO("Hex ascii (dec): %d hex: %x", delimiter, delimiter);
-      set_matcher(match_char(static_cast<char>(delimiter)));
+      ROS_FATAL_STREAM("Unable to create delimiter from string: " << hexAscii);
+      ROS_BREAK();
     }
+    ROS_INFO("Hex ascii (dec): %d hex: %x", delimiter, delimiter);
+    set_matcher(match_char(static_cast<char>(delimiter)));
+  }
   else if (!myMatch.compare("match_header_length"))
+  {
+    int length;
+    nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/length", length, 833);
+    std::string hexAscii;
+    nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/header", hexAscii, "7F7F");
+    std::vector<unsigned char> myHeader;
+    for (int i = 0; i < hexAscii.length(); i += 2)
     {
-      int length;
-      nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/length", length, 833);
-      std::string hexAscii;
-      nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/header", hexAscii, "7F7F");
-      std::vector<unsigned char> myHeader;
-      for (int i = 0; i < hexAscii.length(); i += 2)
-	{
-	  std::string byteString = hexAscii.substr(i, 2);
-	  unsigned int myByte;
-	  sscanf(byteString.c_str(), "%X", &myByte);
-	  myHeader.push_back((unsigned char) myByte);
-	}
-      set_matcher(match_header_length(myHeader, length));
+      std::string byteString = hexAscii.substr(i, 2);
+      unsigned int myByte;
+      sscanf(byteString.c_str(), "%X", &myByte);
+      myHeader.push_back((unsigned char)myByte);
     }
+    set_matcher(match_header_length(myHeader, length));
+  }
 
   std::string myParity;
   nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");
@@ -88,51 +86,58 @@ void DsSerial::setup(void)
   ROS_DEBUG_STREAM("setting data bits:  " << data_bits);
   port_->set_option(boost::asio::serial_port_base::character_size(data_bits));
 
-  if (myStopbits == 1) {
+  if (myStopbits == 1)
+  {
     ROS_DEBUG_STREAM("setting stop_bits: 1");
     port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
   }
-  else if (myStopbits == 2) {
+  else if (myStopbits == 2)
+  {
     ROS_DEBUG_STREAM("setting stop_bits: 2");
     port_->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::two));
   }
-  else {
+  else
+  {
     ROS_FATAL_STREAM("Invalid stop_bits value: " << myStopbits);
     ROS_BREAK();
   }
 
-  if (!myParity.compare("none")) {
+  if (!myParity.compare("none"))
+  {
     ROS_DEBUG_STREAM("setting parity: none");
     port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
   }
-  else if (!myParity.compare("odd")) {
+  else if (!myParity.compare("odd"))
+  {
     ROS_DEBUG_STREAM("setting parity: odd");
     port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::odd));
   }
-  else if (!myParity.compare("even")) {
+  else if (!myParity.compare("even"))
+  {
     ROS_DEBUG_STREAM("setting parity: even");
     port_->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::even));
   }
-  else {
+  else
+  {
     ROS_FATAL_STREAM("Invalid parity value: " << myParity);
     ROS_BREAK();
   }
-  
+
   ROS_DEBUG_STREAM("Setting flow control: none");
   port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
   // The /raw channel should be appended to the nodehandle namespace
-  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw",1);
+  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
 }
 
 void DsSerial::receive(void)
 {
-  //recv_buffer_.assign(0);
-  // boost::asio::async_read(*port_, boost::asio::buffer(recv_buffer_),
-  // 			  boost::bind(&DsSerial::handle_read, this,
-  // 				      boost::asio::placeholders::error,
-  // 				      boost::asio::placeholders::bytes_transferred));
-  //boost::asio::streambuf b;
+// recv_buffer_.assign(0);
+// boost::asio::async_read(*port_, boost::asio::buffer(recv_buffer_),
+// 			  boost::bind(&DsSerial::handle_read, this,
+// 				      boost::asio::placeholders::error,
+// 				      boost::asio::placeholders::bytes_transferred));
+// boost::asio::streambuf b;
 #if 0
   boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
   				boost::bind(&DsSerial::handle_read, this,
@@ -140,11 +145,9 @@ void DsSerial::receive(void)
   					    boost::asio::placeholders::bytes_transferred));
 #else
   boost::asio::async_read_until(*port_, streambuf_, matchFunction_,
-				boost::bind(&DsSerial::handle_read, this,
-					    boost::asio::placeholders::error,
-					    boost::asio::placeholders::bytes_transferred));
+                                boost::bind(&DsSerial::handle_read, this, boost::asio::placeholders::error,
+                                            boost::asio::placeholders::bytes_transferred));
 #endif
-  
 }
 
 void DsSerial::set_matcher(boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction)
@@ -152,56 +155,60 @@ void DsSerial::set_matcher(boost::function<std::pair<iterator, bool>(iterator, i
   matchFunction_ = matchFunction;
 }
 
-void DsSerial::handle_read(const boost::system::error_code& error,
-			std::size_t bytes_transferred)
+void DsSerial::handle_read(const boost::system::error_code& error, std::size_t bytes_transferred)
 {
   if (!error || error == boost::asio::error::message_size)
-    {
-      num_read_error_ = 0;
-      // Store timestamp as soon as received
-      raw_data_.ds_header.io_time = ros::Time::now();
+  {
+    num_read_error_ = 0;
+    // Store timestamp as soon as received
+    raw_data_.ds_header.io_time = ros::Time::now();
 
-      boost::asio::streambuf::const_buffers_type bufs = streambuf_.data();
-      ROS_INFO_STREAM("Streambuf data size: " << bytes_transferred);
-      raw_data_.data = std::vector<unsigned char>(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + bytes_transferred);
-      ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
-      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
-      raw_publisher_.publish(raw_data_);
-      if (!callback_.empty()) {
-        callback_(raw_data_);
-      }
-      raw_data_.data.clear();
-      // The consume method of the strembuffer marks as used the bytes that we last processed, so the next call to async_read_until does not re-analyze them
-      streambuf_.consume(bytes_transferred);
-      // for (unsigned int i = 0; i < bytes_transferred; ++i)
-      // 	{
-      // 	  char c = recv_buffer_[i];
-      // 	  ROS_INFO_STREAM("rxd: " << c);
-      // 	  if (c == eol_.at(0))
-      // 	    {	  
-      // 	      // Store timestamp as soon as received
-      // 	      raw_data_.ds_header.io_time = ros::Time::now();
-	      
-      // 	      ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
-      // 	      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
-      // 	      raw_publisher_.publish(raw_data_);
-      // 	      callback_(raw_data_);
-      // 	      raw_data_.data.clear();
-      // 	    }
-      // 	  else
-      // 	    {
-      // 	      ROS_INFO_STREAM("append: " << c);
-      // 	      raw_data_.data.push_back(c);
-      // 	    }
-      // 	}
-      // receive(); // This should be out of the if(!error) condition, otherwise we stop receiving if there is an error condition
-      receive();
-      return;
+    boost::asio::streambuf::const_buffers_type bufs = streambuf_.data();
+    ROS_INFO_STREAM("Streambuf data size: " << bytes_transferred);
+    raw_data_.data = std::vector<unsigned char>(boost::asio::buffers_begin(bufs),
+                                                boost::asio::buffers_begin(bufs) + bytes_transferred);
+    ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
+    raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
+    raw_publisher_.publish(raw_data_);
+    if (!callback_.empty())
+    {
+      callback_(raw_data_);
     }
+    raw_data_.data.clear();
+    // The consume method of the strembuffer marks as used the bytes that we last processed, so the next call to
+    // async_read_until does not re-analyze them
+    streambuf_.consume(bytes_transferred);
+    // for (unsigned int i = 0; i < bytes_transferred; ++i)
+    // 	{
+    // 	  char c = recv_buffer_[i];
+    // 	  ROS_INFO_STREAM("rxd: " << c);
+    // 	  if (c == eol_.at(0))
+    // 	    {
+    // 	      // Store timestamp as soon as received
+    // 	      raw_data_.ds_header.io_time = ros::Time::now();
+
+    // 	      ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
+    // 	      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
+    // 	      raw_publisher_.publish(raw_data_);
+    // 	      callback_(raw_data_);
+    // 	      raw_data_.data.clear();
+    // 	    }
+    // 	  else
+    // 	    {
+    // 	      ROS_INFO_STREAM("append: " << c);
+    // 	      raw_data_.data.push_back(c);
+    // 	    }
+    // 	}
+    // receive(); // This should be out of the if(!error) condition, otherwise we stop receiving if there is an error
+    // condition
+    receive();
+    return;
+  }
   num_read_error_++;
   ROS_ERROR_STREAM("Read error on port: " << error << " " << error.message());
   ROS_ERROR("%d consecutive read errors on port %s", num_read_error_, port_name_.c_str());
-  if(num_read_error_ <= 10) {
+  if (num_read_error_ <= 10)
+  {
     ROS_WARN_STREAM("Retrying read in 0.1s");
     read_error_retry_timer_.stop();
     read_error_retry_timer_.start();
@@ -219,16 +226,14 @@ void DsSerial::send(boost::shared_ptr<std::string> message)
 {
   ROS_INFO_STREAM("Scheduling serial send");
   boost::asio::async_write(*port_, boost::asio::buffer(*message),
-			   boost::bind(&DsSerial::handle_write, this, message,
-				       boost::asio::placeholders::error,
-				       boost::asio::placeholders::bytes_transferred));
+                           boost::bind(&DsSerial::handle_write, this, message, boost::asio::placeholders::error,
+                                       boost::asio::placeholders::bytes_transferred));
 
   ROS_INFO_STREAM("Serial send scheduled");
 }
 
-void DsSerial::handle_write(boost::shared_ptr<std::string> message,
-			    const boost::system::error_code& error,
-			    std::size_t bytes_transferred)
+void DsSerial::handle_write(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
+                            std::size_t bytes_transferred)
 {
   // Store timestamp as soon as received
   raw_data_.ds_header.io_time = ros::Time::now();
@@ -243,7 +248,8 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message,
 void DsSerial::setRawMode(int fd)
 {
   struct termios settings;
-  if(tcgetattr(fd, &settings)) {
+  if (tcgetattr(fd, &settings))
+  {
     ROS_ERROR_STREAM("Unable to get termios settings for fd: " << fd);
     return;
   }
@@ -255,8 +261,9 @@ void DsSerial::setRawMode(int fd)
   settings.c_cflag |= CS8;
   settings.c_cc[VTIME] = 0;
   settings.c_cc[VMIN] = 1;
-  
-  if (tcsetattr(fd, TCSADRAIN, &settings)) {
+
+  if (tcsetattr(fd, TCSADRAIN, &settings))
+  {
     ROS_ERROR_STREAM("Unable to set serial port to RAW mode");
   }
 }
@@ -265,5 +272,4 @@ boost::asio::serial_port& DsSerial::get_io_object(void)
 {
   return *port_;
 }
-
 }

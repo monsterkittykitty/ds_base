@@ -20,51 +20,47 @@
 
 namespace ds_asio
 {
-
-    /// \brief This is a mock class intended to let test code set up
+/// \brief This is a mock class intended to let test code set up
 class DsMockConnection : public DsConnection
 {
 public:
   DsMockConnection(boost::asio::io_service& io_service);
-    virtual ~DsMockConnection();
+  virtual ~DsMockConnection();
 
-
-    // public interface
+  // public interface
   virtual void receive(void);
   virtual void send(boost::shared_ptr<std::string> message);
 
-    /// \brief run the test.  Will return when the test is complete.
-    void run();
+  /// \brief run the test.  Will return when the test is complete.
+  void run();
 
+  /// \brief Get the vector of stuff written (used AFTER) the test
+  /// has been run
+  const std::deque<std::string>& Written() const;
 
-    /// \brief Get the vector of stuff written (used AFTER) the test
-    /// has been run
-    const std::deque<std::string>& Written() const;
+  /// \brief Get the vector of stuff to Read (used BEFORE the test!)
+  const std::deque<ds_core_msgs::RawData>& ToRead() const;
+  std::deque<ds_core_msgs::RawData>& ToRead();
 
-    /// \brief Get the vector of stuff to Read (used BEFORE the test!)
-    const std::deque<ds_core_msgs::RawData>& ToRead() const;
-    std::deque<ds_core_msgs::RawData>& ToRead();
-
-    boost::asio::io_service& getIoService();
+  boost::asio::io_service& getIoService();
 
 protected:
-    /// \brief A vector of strings written by the thing using this to test
-    std::deque<std::string> written;
+  /// \brief A vector of strings written by the thing using this to test
+  std::deque<std::string> written;
 
-    /// \brief A vector of strings to be ready by the thing under test
-    std::deque<ds_core_msgs::RawData> toRead;
+  /// \brief A vector of strings to be ready by the thing under test
+  std::deque<ds_core_msgs::RawData> toRead;
 
-    void sendNextMessage();
+  void sendNextMessage();
 
-    bool initializing;
-    bool writeDuringStartup;
+  bool initializing;
+  bool writeDuringStartup;
 
 private:
-    // make noncopyable
-    DsMockConnection(const DsMockConnection& other) = delete;
-    DsMockConnection& operator=(const DsMockConnection& other) = delete;
+  // make noncopyable
+  DsMockConnection(const DsMockConnection& other) = delete;
+  DsMockConnection& operator=(const DsMockConnection& other) = delete;
 };
-
 }
 
-#endif //PROJECT_DS_MOCK_CONNECTION_H
+#endif  // PROJECT_DS_MOCK_CONNECTION_H

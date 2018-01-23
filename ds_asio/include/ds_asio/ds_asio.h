@@ -17,12 +17,12 @@
 namespace ds_asio
 {
 
+
 class DsAsio
 {
 public:
 
-  /// @brief Read callback function signiture for asio connections
-  using ReadCallback = boost::function<void(ds_core_msgs::RawData)>;
+    // See ds_connection.h for the ReadCallback typedef
 
   /// @brief Default constructor
   DsAsio();
@@ -49,7 +49,7 @@ public:
   /// @param[in] myNh A reference to the nodehandle object for accessing the parameter server
   ///
   /// @return A boost::shared_ptr object that is a handle for the created connection
-  boost::shared_ptr<DsConnection> addConnection(std::string name, ReadCallback callback, DsNodeHandle& myNh);
+  boost::shared_ptr<DsConnection> addConnection(std::string name, const ReadCallback& callback, DsNodeHandle& myNh);
 
 
     /// @brief Method to add an IO state machine and its associated connection
@@ -67,7 +67,7 @@ public:
     /// \param myNh A reference to the node handle for accessing the parameter server
     ///
     /// \return A boost::shared_ptr object with the Io state machine
-  boost::shared_ptr<ds_asio::IoSM> addIoSM(std::string iosm_name, std::string conn_name, boost::function<void(ds_core_msgs::RawData)> callback, DsNodeHandle& myNh);
+  boost::shared_ptr<ds_asio::IoSM> addIoSM(std::string iosm_name, std::string conn_name, const ReadCallback& callback, DsNodeHandle& myNh);
 
   /// @brief Get a connection handle previously added with addConnection
   ///

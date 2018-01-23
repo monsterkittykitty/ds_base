@@ -280,15 +280,16 @@ public:
   /// \param name
   /// \param callback
   /// \return
-  boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name, ds_asio::DsAsio::ReadCallback callback);
+  boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name, const ds_asio::ReadCallback& callback);
 
     /// @brief Add an asio-based I/O state machine and its associated connection (serial, UDP, etc)
     ///
     /// \param iosm_name The name of the I/O state machine (for parameter stuff)
     /// \param conn_name The name of the connection (also for parameter stuff)
-    /// \param callback The callback fired when the state machine has data to send
+    /// \param callback The callback fired when the state machine has data to send.  By default, no callback is used.
     /// \return A shared_ptr to the I/O state machine object
-    boost::shared_ptr<ds_asio::IoSM> addIoSM(const std::string& iosm_name, const std::string& conn_name, ds_asio::DsAsio::ReadCallback callback);
+    boost::shared_ptr<ds_asio::IoSM> addIoSM(const std::string& iosm_name, const std::string& conn_name,
+                                             const ds_asio::ReadCallback& callback = ds_asio::ReadCallback());
 
   /// @brief Get a DsConnection object for a connection added previously by addConnection
   ///

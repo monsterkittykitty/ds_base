@@ -83,7 +83,7 @@ void DsProcess::setStatusCheckPeriod(ros::Duration period) noexcept
   d->updateStatusCheckTimer(this, period);
 }
 
-boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string &name, ds_asio::DsAsio::ReadCallback callback)
+boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string &name, const ds_asio::ReadCallback& callback)
 {
   auto nh = nodeHandle();
   ROS_ASSERT(nh);
@@ -91,7 +91,7 @@ boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::str
   return d->asio_->addConnection(name, callback, *nh);
 }
 
-boost::shared_ptr<ds_asio::IoSM> DsProcess::addIoSM(const std::string& iosm_name, const std::string& conn_name, ds_asio::DsAsio::ReadCallback callback)
+boost::shared_ptr<ds_asio::IoSM> DsProcess::addIoSM(const std::string& iosm_name, const std::string& conn_name, const ds_asio::ReadCallback& callback)
 {
   auto nh = nodeHandle();
   ROS_ASSERT(nh);

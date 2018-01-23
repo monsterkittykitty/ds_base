@@ -5,12 +5,8 @@
 namespace ds_asio
 {
 
-DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
-  : io_service_(io_service),
-    DsConnection(),
-    callback_(callback),
-    nh_(myNh),
-    name_(name),
+DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh)
+  : DsConnection(io_service, name, callback, myNh),
     num_read_error_(0)
 {
   setup();
@@ -171,7 +167,9 @@ void DsSerial::handle_read(const boost::system::error_code& error,
       ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
       raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
       raw_publisher_.publish(raw_data_);
-      callback_(raw_data_);
+      if (!callback_.empty()) {
+        callback_(raw_data_);
+      }
       raw_data_.data.clear();
       // The consume method of the strembuffer marks as used the bytes that we last processed, so the next call to async_read_until does not re-analyze them
       streambuf_.consume(bytes_transferred);

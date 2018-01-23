@@ -12,7 +12,7 @@ namespace ds_asio {
     ////////////////////////////////////////////////////////////////////////////////
     ds_asio::IoCommand::IoCommand(const std::string &cmdstr, double timeout_sec,
                                   bool _force_next,
-                                  RecvFunc cb) : cmd(cmdstr), callback(cb) {
+                                  const ds_asio::ReadCallback& cb) : cmd(cmdstr), callback(cb) {
         emitOnMatch = true;
         timeoutWarn = false;
         timeoutLog = false;
@@ -106,30 +106,31 @@ namespace ds_asio {
         id = _i;
     }
 
-    /// @brief Check to see if this command has a custom callback
     bool ds_asio::IoCommand::hasCallback() const {
         return !callback.empty();
     }
 
-    /// @brief Get the callback function for this command
-    ///
-    /// \return The function to call on receipt of data for this command
-    const ds_asio::IoCommand:: RecvFunc& ds_asio::IoCommand::getCallback() const {
+    const ds_asio::ReadCallback& ds_asio::IoCommand::getCallback() const {
         return callback;
+    }
+
+    void ds_asio::IoCommand::setCallback(const ds_asio::ReadCallback& _cb) {
+        callback = _cb;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     // _IoSM_impl (see ds_iosm_private.h)
     ////////////////////////////////////////////////////////////////////////////////
-    IoSM::IoSM(boost::asio::io_service& io_service,
-                                                      std::string name,
-                                                      boost::function<void(ds_core_msgs::RawData)> callback,
-                                                      ros::NodeHandle* myNh) {
+    IoSM::IoSM(boost::asio::io_service& io_service, std::string name, const ds_asio::ReadCallback& callback) {
         // _IoSM_impl forces us to use create, because it really has to be a shared_ptr
-        impl = ds_asio::iosm_inner::_IoSM_impl::create(io_service, name, callback, myNh);
+        impl = ds_asio::iosm_inner::_IoSM_impl::create(io_service, name, callback);
         impl->start();
     }
 
+    IoSM::IoSM(boost::asio::io_service& io_service, std::string name) {
+        impl = ds_asio::iosm_inner::_IoSM_impl::create(io_service, name, ds_asio::ReadCallback());
+        impl->start();
+    }
     IoSM::~IoSM() {
         // This will stop stuff from running, but if there are any
         // pending events or whatever that still have a pointer to the
@@ -158,13 +159,17 @@ namespace ds_asio {
         impl->addPreemptCommand(cmd);
     }
 
-    void IoSM::_connCallback(const ds_core_msgs::RawData& raw) {
-        impl->_dataCallback(raw);
-    }
-
     const boost::shared_ptr<DsConnection>& IoSM::getConnection() const {
         return impl->getConnection();
     }
+
+   void IoSM::setCallback(const ds_asio::ReadCallback& cb) {
+       impl->setCallback(cb);
+   }
+
+   const ds_asio::ReadCallback& IoSM::getCallback() const {
+       return impl->getCallback();
+   }
 
     ////////////////////////////////////////////////////////////////////////////////
     // _IoSM_impl (see ds_iosm_private.h)
@@ -174,12 +179,11 @@ namespace ds_asio {
     // Overhead
     _IoSM_impl::_IoSM_impl(boost::asio::io_service& io_service,
                            std::string n,
-                           const boost::function<void(ds_core_msgs::RawData)>& callback ,
-                           ros::NodeHandle* myNh) : io_service_(io_service),
+                           const boost::function<void(ds_core_msgs::RawData)>& callback) : io_service_(io_service),
                                                     timeoutTimer_(io_service),
-                                                    callback_(callback), nh_(myNh), name_(n) {
+                                                    callback_(callback), name_(n) {
         nextCmdId = 1;
-        nextCommand = regularCommands.end();
+        currCommand = regularCommands.end();
         commandRunning = false;
         isPreemptCommand = false;
         isShutdownCommand = false;
@@ -194,9 +198,8 @@ namespace ds_asio {
 
     std::shared_ptr<_IoSM_impl> _IoSM_impl::create(boost::asio::io_service& io_service,
                                                    std::string name,
-                                                   const boost::function<void(ds_core_msgs::RawData)>& callback,
-                                                   ros::NodeHandle* myNh) {
-        return std::shared_ptr<_IoSM_impl>(new _IoSM_impl(io_service, name, callback, myNh));
+                                                   const boost::function<void(ds_core_msgs::RawData)>& callback) {
+        return std::shared_ptr<_IoSM_impl>(new _IoSM_impl(io_service, name, callback));
     }
 
     void _IoSM_impl::start() {
@@ -205,16 +208,32 @@ namespace ds_asio {
     }
 
     void _IoSM_impl::shutdown() {
+        // cancel any possibly-pending timer events
         timeoutTimer_.cancel();
+
+        // disconnect from the connection
+        connection_->setCallback(ds_asio::ReadCallback());
+
+        // Clear out the I/O state machine
         runner->invalidateSm();
     }
 
     void _IoSM_impl::setConnection(const boost::shared_ptr <ds_asio::DsConnection> &conn) {
         connection_ = conn;
+        connection_->setCallback(boost::bind(&_IoSM_impl::_dataCallback, this, _1));
+
     }
 
     const boost::shared_ptr<DsConnection>& _IoSM_impl::getConnection() const {
         return connection_;
+    }
+
+    void _IoSM_impl::setCallback(const ds_asio::ReadCallback& cb) {
+        callback_ = cb;
+    }
+
+    const ds_asio::ReadCallback& _IoSM_impl::getCallback() const {
+        return callback_;
     }
 
     //--------------------------------------------
@@ -225,9 +244,6 @@ namespace ds_asio {
         uint64_t id = nextCmdId++;
         regularCommands.push_back(cmd);
         regularCommands.back().setId(id); // do this AFTER adding-- can't modify cmd directly
-        if (regularCommands.size() == 1) {
-            nextCommand = regularCommands.begin();
-        }
 
         // (Possibly) run the next command
         _runNextCommand_nolock();
@@ -243,13 +259,13 @@ namespace ds_asio {
         for (iter=regularCommands.begin(); iter!=regularCommands.end(); iter++) {
             if (iter->getId() == id) {
                 // ok, we found it.  Now the all-important check!
-                if (iter == nextCommand) {
-                    nextCommand++;
-                    if (nextCommand == regularCommands.end() && regularCommands.begin() != iter) {
+                if (iter == currCommand) {
+                    currCommand--;
+                    if (currCommand == regularCommands.end() && regularCommands.begin() != iter) {
                         // the first check wraps the commands around as expected.
                         // the second check prevents a dangling iterator when
                         // the command queue has length 1
-                        nextCommand = regularCommands.begin();
+                        currCommand = regularCommands.end();
                     }
                 }
 
@@ -360,11 +376,13 @@ namespace ds_asio {
             _startCommand_nolock(preemptCommands.front());
         } else if (regularCommands.size() > 0) {
             isPreemptCommand = false;
-            if (nextCommand == regularCommands.end()) {
-                nextCommand = regularCommands.begin();
+            if (currCommand != regularCommands.end()) {
+                currCommand++;
             }
-            _startCommand_nolock(*nextCommand);
-            nextCommand++;
+            if (currCommand == regularCommands.end()) {
+                currCommand = regularCommands.begin();
+            }
+            _startCommand_nolock(*currCommand);
         }
     }
 

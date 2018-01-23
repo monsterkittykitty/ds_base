@@ -3,12 +3,8 @@
 namespace ds_asio
 {
 
-DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle* myNh)
-  : io_service_(io_service),
-    DsConnection(),
-    callback_(callback),
-    nh_(myNh),
-    name_(name)
+DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh)
+  : DsConnection(io_service, name, callback, myNh)
 {
   setup();
   receive();
@@ -86,7 +82,9 @@ void DsUdp::handle_receive(const boost::system::error_code& error,
       raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
       raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
       raw_publisher_.publish(raw_data_);
-      callback_(raw_data_);
+      if (!callback_.empty()) {
+        callback_(raw_data_);
+      }
       receive();
       return;
     }

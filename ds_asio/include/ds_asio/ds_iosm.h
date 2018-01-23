@@ -46,8 +46,6 @@ namespace ds_asio {
         typedef std::shared_ptr<IoCommand> Ptr;
         typedef std::shared_ptr<const IoCommand> ConstPtr;
 
-        typedef boost::function<void(ds_core_msgs::RawData)> RecvFunc;
-
         /// @brief Shorthand to create a standard command/timeout pair
         ///
         /// \param cmdstr The command string to send
@@ -55,7 +53,7 @@ namespace ds_asio {
         /// \param _force_next Allow a non-regular-command after this one (OFF by default)
         /// \param callback A callback fired when the response to this particular command is received
         IoCommand(const std::string &cmdstr, double timeout_sec, bool _force_next=false,
-                  RecvFunc callback=RecvFunc());
+                  const ds_asio::ReadCallback& callback=ds_asio::ReadCallback());
 
         /// @brief Shorthand to create a static wait
         ///
@@ -152,8 +150,12 @@ namespace ds_asio {
         /// @brief Get the callback function for this command
         ///
         /// \return The function to call on receipt of data for this command
-        const RecvFunc& getCallback() const;
+        const ds_asio::ReadCallback& getCallback() const;
 
+        /// @brief Set the callback for this command
+        ///
+        /// \return The function to call on receipt of data for this command
+        void setCallback(const ds_asio::ReadCallback& _cb);
 
     protected:
         uint64_t id;
@@ -170,7 +172,7 @@ namespace ds_asio {
         ros::Duration delayAfter;
         ros::Duration timeout;
 
-        RecvFunc callback;
+        ds_asio::ReadCallback callback;
     };
 
     // forward declaration
@@ -186,10 +188,9 @@ namespace ds_asio {
     /// pretty easy to move around, etc.
     class IoSM {
     public:
-        IoSM(boost::asio::io_service& io_service,
-             std::string name,
-             boost::function<void(ds_core_msgs::RawData)> callback,
-             ros::NodeHandle* myNh);
+        IoSM(boost::asio::io_service& io_service, std::string name, const ds_asio::ReadCallback& callback);
+
+        IoSM(boost::asio::io_service& io_service, std::string name);
 
         /// @brief Destructor.
         ///
@@ -205,6 +206,13 @@ namespace ds_asio {
 
         /// @brief Get the I/O Connection
         const boost::shared_ptr<DsConnection>& getConnection() const;
+
+        /// @brief Set the IoSM-wide callback
+        void setCallback(const ds_asio::ReadCallback& cb);
+
+        /// @brief Get a copy of the IoSM-wide callback that fires every time this
+        /// object is called
+        const ds_asio::ReadCallback& getCallback() const;
 
         /// @brief Add a regular command to the regular command queue
         ///
@@ -228,13 +236,6 @@ namespace ds_asio {
         ///
         /// \param cmd The new command to run ASAP.
         void addPreemptCommand(const IoCommand& cmd);
-
-        /// @brief A callback fired when data is provided by the connection.
-        ///
-        /// Do not use unless you REALLY know what you're doing
-        ///
-        /// \param raw The raw data coming in
-        void _connCallback(const ds_core_msgs::RawData& raw);
 
     protected:
         /// \brief Shared pointer to our implementation

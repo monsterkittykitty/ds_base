@@ -36,7 +36,7 @@ namespace ds_asio {
             /// for shared_from_this to work correctly, we need to ensure ONLY pointers
             /// to shared objects are created
             _IoSM_impl(boost::asio::io_service& io_service, std::string name,
-                       const boost::function<void(ds_core_msgs::RawData)>& callback, ros::NodeHandle* myNh);
+                       const boost::function<void(ds_core_msgs::RawData)>& callback);
 
             // no implementation of these is required
             // (private copy constructor / operators are a special thing)
@@ -61,8 +61,7 @@ namespace ds_asio {
             /// \return A new instance of this class
             static std::shared_ptr<_IoSM_impl> create(boost::asio::io_service& io_service,
                                                       std::string name,
-                                                      const boost::function<void(ds_core_msgs::RawData)>& callback,
-                                                      ros::NodeHandle* myNh);
+                                                      const boost::function<void(ds_core_msgs::RawData)>& callback);
 
             /// @brief Destructor
             virtual ~_IoSM_impl();
@@ -72,6 +71,13 @@ namespace ds_asio {
             /// Necessary because we have to have our IoSM to setup the callback for the
             /// I/O Connection before we create the thing.
             void setConnection(const boost::shared_ptr<ds_asio::DsConnection>& conn);
+
+            /// @brief Set the IoSM-wide callback
+            void setCallback(const ds_asio::ReadCallback& cb);
+
+            /// @brief Get a copy of the IoSM-wide callback that fires every time this
+            /// object is called
+            const ds_asio::ReadCallback& getCallback() const;
 
             /// @brief
             ///
@@ -127,7 +133,7 @@ namespace ds_asio {
             /// \brief The next command to run.
             ///
             /// An std::list iterator is pretty much just a pointer, so we use that.
-            std::list<ds_asio::IoCommand>::iterator nextCommand;
+            std::list<ds_asio::IoCommand>::iterator currCommand;
 
             /// \brief The Preempt Queue. Commands executed in the order they are received
             ///
@@ -146,13 +152,8 @@ namespace ds_asio {
             /// \brief IoSM name
             std::string name_;
 
-            /// \brief ROS Node handle
-            ///
-            /// Used to interact with the parameter server
-            ros::NodeHandle* nh_;
-
             /// \brief Callback fired when a message is ready to go out
-            boost::function<void(ds_core_msgs::RawData)> callback_;
+            ds_asio::ReadCallback callback_;
 
             /// \brief The MSM state machine that runs a single command
             std::shared_ptr<Runner> runner;

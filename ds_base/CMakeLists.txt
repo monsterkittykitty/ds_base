@@ -4,6 +4,8 @@ project(ds_base)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
+list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -14,6 +16,22 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+
+find_package(ClangFormat)
+if(CLANG_FORMAT_FOUND)
+    add_custom_target(clang-format-ds-base
+            COMMENT
+            "Run clang-format on all project C++ sources"
+            WORKING_DIRECTORY
+            ${PROJECT_SOURCE_DIR}
+            COMMAND
+            find src
+            include/ds_base
+            -iname '*.h' -o -iname '*.cpp'
+            | xargs ${CLANG_FORMAT_EXECUTABLE} -i
+            )
+
+endif(CLANG_FORMAT_FOUND)
 
 ## Generate services in the 'srv' folder
 add_service_files(DIRECTORY srv

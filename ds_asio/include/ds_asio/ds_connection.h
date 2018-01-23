@@ -40,8 +40,8 @@ public:
   virtual void send(const std::string& message);
 
   /// @brief Start async read loop
+  virtual void receive(void) = 0;
 
-  virtual void start_async_read(void) = 0;
   /// @brief Get this connection's name
   const std::string& getName() const;
 

@@ -7,10 +7,8 @@
 
 namespace ds_base
 {
-
-boost::uuids::uuid generateUuid(const std::string &id, const boost::uuids::uuid &namespace_)
+boost::uuids::uuid generateUuid(const std::string& id, const boost::uuids::uuid& namespace_)
 {
   return boost::uuids::name_generator(namespace_)(id);
 }
-
 }

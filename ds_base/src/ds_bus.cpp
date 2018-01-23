@@ -24,8 +24,7 @@ DsBus::DsBus() : DsBus(std::unique_ptr<Impl>(new Impl))
 }
 
 // Another public->protected forwarding.
-DsBus::DsBus(int argc, char* argv[], const std::string& name)
-    :DsBus(std::unique_ptr<Impl>(new Impl), argc, argv, name)
+DsBus::DsBus(int argc, char* argv[], const std::string& name) : DsBus(std::unique_ptr<Impl>(new Impl), argc, argv, name)
 {
   // do nothing
 }
@@ -38,7 +37,7 @@ DsBus::DsBus(std::unique_ptr<Impl> impl) : ds_base::DsProcess(std::move(impl))
 
 // Protected constructor with arguments for ros::init
 DsBus::DsBus(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name)
-    : ds_base::DsProcess(std::move(impl), argc, argv, name)
+  : ds_base::DsProcess(std::move(impl), argc, argv, name)
 {
   // do nothing
 }
@@ -51,22 +50,26 @@ DsBus::DsBus(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::stri
 // To get the Impl class back *in the propper type* we need to downcast it again before
 // working on it, which is why we have the static_cast<>'s here.
 //
-inline auto DsBus::d_func() noexcept -> DsBus::Impl * {
-  return static_cast<DsBus::Impl *>(ds_base::DsProcess::d_func());
+inline auto DsBus::d_func() noexcept -> DsBus::Impl*
+{
+  return static_cast<DsBus::Impl*>(ds_base::DsProcess::d_func());
 }
 
-inline auto DsBus::d_func() const noexcept -> DsBus::Impl const * {
-  return static_cast<DsBus::Impl const *>(ds_base::DsProcess::d_func());
+inline auto DsBus::d_func() const noexcept -> DsBus::Impl const*
+{
+  return static_cast<DsBus::Impl const*>(ds_base::DsProcess::d_func());
 }
 
-void DsBus::setupConnections() {
+void DsBus::setupConnections()
+{
   ds_base::DsProcess::setupConnections();
 
   auto d = d_func();
   d->iosm = addIoSM("statemachine", "instrument", boost::bind(&DsBus::Impl::_data_recv, d, _1));
 }
 
-void DsBus::setupPublishers() {
+void DsBus::setupPublishers()
+{
   // call the superclass
   ds_base::DsProcess::setupPublishers();
 
@@ -75,13 +78,12 @@ void DsBus::setupPublishers() {
   d->bus_pub_ = advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/bus", 10, false);
 
   // the whole queue is controlled by a service
-  d->cmd_serv_ = advertiseService<ds_core_msgs::IoSMcommand::Request,
-                                     ds_core_msgs::IoSMcommand::Response>(ros::this_node::getName() + "/cmd",
-                                     boost::bind(&DsBus::Impl::_service_req, d, _1, _2));
+  d->cmd_serv_ = advertiseService<ds_core_msgs::IoSMcommand::Request, ds_core_msgs::IoSMcommand::Response>(
+      ros::this_node::getName() + "/cmd", boost::bind(&DsBus::Impl::_service_req, d, _1, _2));
 }
 
-void DsBus::checkProcessStatus(const ros::TimerEvent &event) {
-
+void DsBus::checkProcessStatus(const ros::TimerEvent& event)
+{
   const auto now = ros::Time::now();
 
   auto status = ds_core_msgs::Status();
@@ -91,24 +93,24 @@ void DsBus::checkProcessStatus(const ros::TimerEvent &event) {
   status.ds_header.io_time = now;
   std::copy(std::begin(d->uuid_.data), std::end(d->uuid_.data), std::begin(status.ds_header.source_uuid));
 
-  if (d->message_timeout_ < ros::Duration(0)
-      || now - d->last_message_timestamp_ > d->message_timeout_) {
-
+  if (d->message_timeout_ < ros::Duration(0) || now - d->last_message_timestamp_ > d->message_timeout_)
+  {
     status.status = ds_core_msgs::Status::STATUS_GOOD;
-
-  } else {
+  }
+  else
+  {
     status.status = ds_core_msgs::Status::STATUS_ERROR;
   }
 
   d->status_publisher_.publish(status);
 }
 
-void DsBus::setupParameters() {
+void DsBus::setupParameters()
+{
   ds_base::DsProcess::setupParameters();
 
   auto d = d_func();
   d->message_timeout_ = ros::Duration(ros::param::param<double>("~message_timeout", 5));
 
   auto generated_uuid = ds_base::generateUuid("bus_node_" + d->descriptive_node_name_);
-
 }

@@ -11,7 +11,6 @@
 
 namespace ds_base
 {
-
 /// @brief The base class for ROS nodes in Deep Submergence ROS
 ///
 /// This class serves as the base class for all ROS nodes in the Deep Submergence
@@ -46,8 +45,7 @@ namespace ds_base
 /// be found in the `EXTENDING.md` document.
 class DsProcess
 {
-
- protected:
+protected:
   struct Impl;
 
 public:
@@ -63,7 +61,7 @@ public:
   /// @param[in] argc
   /// @param[in] argv
   /// @param[in] name The name of the process type
-  DsProcess(int argc, char** argv, const std::string &name);
+  DsProcess(int argc, char** argv, const std::string& name);
 
   /// @brief Destroys a DsProcess
   virtual ~DsProcess();
@@ -131,7 +129,7 @@ public:
   /// otherwise invalid graph resource name
   ///
   template <class T>
-  ros::Publisher advertise(const std::string& topic, uint32_t queue, bool latch=false)
+  ros::Publisher advertise(const std::string& topic, uint32_t queue, bool latch = false)
   {
     return nodeHandle()->advertise<T>(topic, queue, latch);
   }
@@ -156,7 +154,8 @@ public:
   /// processing (messages in excess of this queue capacity will be
   /// discarded).
   /// \param callback Callback to call when a message has arrived
-  /// \param tracked_object A shared pointer to an object to track for these callbacks.  If set, the a weak_ptr will be created to this object,
+  /// \param tracked_object A shared pointer to an object to track for these callbacks.  If set, the a weak_ptr will be
+  /// created to this object,
   /// and if the reference count goes to 0 the subscriber callbacks will not get called.
   /// Note that setting this will cause a new reference to be added to the object before the
   /// callback, and for it to go out of scope (and potentially be deleted) in the code path (and therefore
@@ -174,22 +173,22 @@ public:
   ///      }
   /// \endverbatim
   /// \throws InvalidNameException If the topic name begins with a tilde, or is an otherwise invalid graph resource name
-  /// \throws ConflictingSubscriptionException If this node is already subscribed to the same topic with a different datatype
+  /// \throws ConflictingSubscriptionException If this node is already subscribed to the same topic with a different
+  /// datatype
   template <class T>
   ros::Subscriber subscribe(const std::string& topic, uint32_t queue_size,
-                     const boost::function< void(const boost::shared_ptr< T const > &)> & callback,
-                     const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(),
-                     const ros::TransportHints& transport_hints = ros::TransportHints())
+                            const boost::function<void(const boost::shared_ptr<T const>&)>& callback,
+                            const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(),
+                            const ros::TransportHints& transport_hints = ros::TransportHints())
   {
     return nodeHandle()->subscribe<T>(topic, queue_size, callback, tracked_object, transport_hints);
   }
 
-  template<class M, class T>
-  ros::Subscriber subscribe(const std::string& topic, uint32_t queue_size,
-                            void(T::*fp)(M), T *obj,
+  template <class M, class T>
+  ros::Subscriber subscribe(const std::string& topic, uint32_t queue_size, void (T::*fp)(M), T* obj,
                             const ros::TransportHints& transport_hints = ros::TransportHints())
   {
-    return nodeHandle()->subscribe<M,T>(topic, queue_size, fp, obj, transport_hints);
+    return nodeHandle()->subscribe<M, T>(topic, queue_size, fp, obj, transport_hints);
   };
 
   /// @brief Conveinence method for connecting to a ROS service as a client
@@ -206,7 +205,9 @@ public:
   /// \param header_values Key/value pairs to send with the connection handshake.
   /// \return A service client object for this service.  Note that this service may not exist yet!
   template <class Service>
-  ros::ServiceClient serviceClient(const std::string& service_name, bool persistent=false, const ros::M_string& header_values=ros::M_string()) {
+  ros::ServiceClient serviceClient(const std::string& service_name, bool persistent = false,
+                                   const ros::M_string& header_values = ros::M_string())
+  {
     return nodeHandle()->serviceClient<Service>(service_name, persistent, header_values);
   }
 
@@ -219,12 +220,14 @@ public:
   /// This call connects to the master to publicize that the node will be
   /// offering an RPC service with the given name.
   ///
-  /// This version of advertiseService allows non-class functions, as well as functor objects and boost::bind (along with anything
+  /// This version of advertiseService allows non-class functions, as well as functor objects and boost::bind (along
+  /// with anything
   /// else boost::function supports).
   ///
   /// \param service Service name to advertise on
   /// \param callback Callback to call when the service is called
-  /// \param tracked_object A shared pointer to an object to track for these callbacks.  If set, the a weak_ptr will be created to this object,
+  /// \param tracked_object A shared pointer to an object to track for these callbacks.  If set, the a weak_ptr will be
+  /// created to this object,
   /// and if the reference count goes to 0 the subscriber callbacks will not get called.
   /// Note that setting this will cause a new reference to be added to the object before the
   /// callback, and for it to go out of scope (and potentially be deleted) in the code path (and therefore
@@ -244,12 +247,12 @@ public:
   /// ...
   /// }
   /// \endverbatim
-  /// \throws InvalidNameException If the service name begins with a tilde, or is an otherwise invalid graph resource name
+  /// \throws InvalidNameException If the service name begins with a tilde, or is an otherwise invalid graph resource
+  /// name
   ///
   template <class MReq, class MRes>
-  ros::ServiceServer advertiseService(const std::string &  	service,
-		const boost::function< bool(MReq &, MRes &)> &  	callback,
-		const ros::VoidConstPtr &  	tracked_object = ros::VoidConstPtr())
+  ros::ServiceServer advertiseService(const std::string& service, const boost::function<bool(MReq&, MRes&)>& callback,
+                                      const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr())
   {
     return nodeHandle()->advertiseService<MReq, MRes>(service, callback, tracked_object);
   }
@@ -270,7 +273,8 @@ public:
   /// \param oneshot If true, this timer will only fire once
   /// \param autostart If true (default), return timer that is already started
   ///
-  ros:: Timer createTimer(ros::Duration period, const ros::TimerCallback& callback, bool oneshot = false, bool autostart = true)
+  ros::Timer createTimer(ros::Duration period, const ros::TimerCallback& callback, bool oneshot = false,
+                         bool autostart = true)
   {
     return nodeHandle()->createTimer(period, callback, oneshot, autostart);
   }
@@ -280,16 +284,17 @@ public:
   /// \param name
   /// \param callback
   /// \return
-  boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name, const ds_asio::ReadCallback& callback);
+  boost::shared_ptr<ds_asio::DsConnection> addConnection(const std::string& name,
+                                                         const ds_asio::ReadCallback& callback);
 
-    /// @brief Add an asio-based I/O state machine and its associated connection (serial, UDP, etc)
-    ///
-    /// \param iosm_name The name of the I/O state machine (for parameter stuff)
-    /// \param conn_name The name of the connection (also for parameter stuff)
-    /// \param callback The callback fired when the state machine has data to send.  By default, no callback is used.
-    /// \return A shared_ptr to the I/O state machine object
-    boost::shared_ptr<ds_asio::IoSM> addIoSM(const std::string& iosm_name, const std::string& conn_name,
-                                             const ds_asio::ReadCallback& callback = ds_asio::ReadCallback());
+  /// @brief Add an asio-based I/O state machine and its associated connection (serial, UDP, etc)
+  ///
+  /// \param iosm_name The name of the I/O state machine (for parameter stuff)
+  /// \param conn_name The name of the connection (also for parameter stuff)
+  /// \param callback The callback fired when the state machine has data to send.  By default, no callback is used.
+  /// \return A shared_ptr to the I/O state machine object
+  boost::shared_ptr<ds_asio::IoSM> addIoSM(const std::string& iosm_name, const std::string& conn_name,
+                                           const ds_asio::ReadCallback& callback = ds_asio::ReadCallback());
 
   /// @brief Get a DsConnection object for a connection added previously by addConnection
   ///
@@ -322,8 +327,7 @@ public:
 
   virtual void setup();
 
- protected:
-
+protected:
   /// @brief Construct a new DsProcess
   ///
   /// When using this constructor you must call ros::init elsewhere in your code
@@ -336,7 +340,7 @@ public:
   /// @param[in] argc
   /// @param[in] argv
   /// @param[in] name The name of the process type
-  DsProcess(std::unique_ptr<Impl> impl, int argc, char** argv, const std::string &name);
+  DsProcess(std::unique_ptr<Impl> impl, int argc, char** argv, const std::string& name);
 
   /// @brief Access the underlying pimpl pointer.
   auto d_func() noexcept -> Impl*
@@ -358,10 +362,14 @@ public:
   virtual void setupParameters();
 
   /// @brief Create asio connections
-  virtual void setupConnections() {}
+  virtual void setupConnections()
+  {
+  }
 
   /// @brief Create ros topic subscriptions.
-  virtual void setupSubscriptions() {}
+  virtual void setupSubscriptions()
+  {
+  }
 
   /// @brief Create ros topic publishers.
   ///
@@ -371,7 +379,9 @@ public:
 
   /// @brief Create ros services
   ///
-  virtual void setupServices() {}
+  virtual void setupServices()
+  {
+  }
 
   /// @brief Create ros timers on startup.
   ///
@@ -379,7 +389,9 @@ public:
   ///
   /// \param base
 
-  virtual void setupTimers() {}
+  virtual void setupTimers()
+  {
+  }
   /// @brief Check the process status.
   ///
   /// This method is triggered by the status check timer.  The default
@@ -390,7 +402,7 @@ public:
   /// and emit a ds_core_msgs::Status message.
   ///
   /// \param event
-  virtual void checkProcessStatus(const ros::TimerEvent &event);
+  virtual void checkProcessStatus(const ros::TimerEvent& event);
 
   /// @brief Sensor health check
   ///
@@ -400,10 +412,8 @@ public:
   /// \param event
   ds_core_msgs::Status checkMessageTimeouts(const ros::Duration& timeout);
 
- private:
-
+private:
   std::shared_ptr<Impl> impl_;
 };
-
 }
 #endif

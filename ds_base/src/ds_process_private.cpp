@@ -9,7 +9,6 @@
 
 namespace ds_base
 {
-
 DsProcess::Impl::Impl()
   : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
   , uuid_(boost::uuids::nil_uuid())
@@ -20,7 +19,8 @@ DsProcess::Impl::Impl()
 
 void DsProcess::Impl::updateStatusCheckTimer(DsProcess* base, ros::Duration period)
 {
-  if(period == status_check_period_) {
+  if (period == status_check_period_)
+  {
     return;
   }
 
@@ -28,7 +28,8 @@ void DsProcess::Impl::updateStatusCheckTimer(DsProcess* base, ros::Duration peri
   status_check_timer_.stop();
 
   // Negative durations disable the timer
-  if(period < ros::Duration(0)) {
+  if (period < ros::Duration(0))
+  {
     ROS_INFO_STREAM("Disabling status check timer");
     status_check_period_ = ros::Duration(-1);
     return;
@@ -38,5 +39,4 @@ void DsProcess::Impl::updateStatusCheckTimer(DsProcess* base, ros::Duration peri
   status_check_timer_ = base->nodeHandle()->createTimer(status_check_period_, &DsProcess::checkProcessStatus, base);
   ROS_INFO_STREAM("Status check timer set to " << status_check_period_);
 }
-
 }

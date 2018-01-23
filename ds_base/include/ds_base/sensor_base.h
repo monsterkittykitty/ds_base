@@ -30,7 +30,6 @@ namespace ds_base
 ///
 class SensorBase : public ds_base::DsProcess
 {
-
 protected:
   /// Protected implementation struct
   struct Impl;
@@ -121,9 +120,11 @@ protected:
   /// Overload this method to parse raw bytes into data messages.
   ///
   /// \param bytes
-  virtual void parseReceivedBytes(const ds_core_msgs::RawData& bytes) {}
+  virtual void parseReceivedBytes(const ds_core_msgs::RawData& bytes)
+  {
+  }
 
- private:
+private:
   /// @brief Access the underlying pimpl pointer.
   auto d_func() noexcept -> Impl*;
 

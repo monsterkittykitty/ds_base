@@ -23,8 +23,7 @@ SensorBase::SensorBase(int argc, char* argv[], const std::string& name)
 {
 }
 
-SensorBase::SensorBase(std::unique_ptr<SensorBase::Impl> impl)
-    : DsProcess(std::move(impl))
+SensorBase::SensorBase(std::unique_ptr<SensorBase::Impl> impl) : DsProcess(std::move(impl))
 {
 }
 
@@ -53,26 +52,29 @@ SensorBase::SensorBase(const SensorBase& rhs)
 void SensorBase::setTimeout(ros::Duration timeout) noexcept
 {
   auto d = d_func();
-  if (timeout < ros::Duration(0)) {
+  if (timeout < ros::Duration(0))
+  {
     ROS_INFO("Disabling message reception timeout check.");
     d->message_timeout_ = ros::Duration(-1);
   }
-  else {
+  else
+  {
     d->message_timeout_ = timeout;
     ROS_INFO_STREAM("Message reception timeout: " << timeout);
   }
 }
 
-ros::Duration SensorBase::timeout() const noexcept {
+ros::Duration SensorBase::timeout() const noexcept
+{
   const auto d = d_func();
   return d->message_timeout_;
 }
 
 void SensorBase::sendCommand(std::string command, std::string connection_)
 {
-
   auto con = connection(connection_);
-  if(!con) {
+  if (!con)
+  {
     ROS_WARN_STREAM("No connection named '" << connection_ << "'");
     return;
   }
@@ -84,24 +86,27 @@ void SensorBase::sendCommand(std::string command, std::string connection_)
 
 void SensorBase::sendCommand(std::string command, std::string connection, std::string suffix)
 {
-  if (!suffix.empty() && (!boost::algorithm::ends_with(command, suffix))) {
+  if (!suffix.empty() && (!boost::algorithm::ends_with(command, suffix)))
+  {
     command.append(suffix);
   }
   sendCommand(std::move(command), std::move(connection));
 }
 
-void SensorBase::setupConnections() {
+void SensorBase::setupConnections()
+{
   ds_base::DsProcess::setupConnections();
   addConnection("instrument", boost::bind(&SensorBase::parseReceivedBytes, this, _1));
 }
 
-void SensorBase::setupServices() {
+void SensorBase::setupServices()
+{
   DsProcess::setupServices();
-
 
   // Need to implement the service callback as a non-capturing lambda (can't cast capturing lambdas
   // to boost::function types).  We'll provide the base pointer with boost::bind next
-  auto callback = [] (SensorBase* sensor_base, StringCommand::Request& request, StringCommand::Response& response) -> bool {
+  auto callback = [](SensorBase* sensor_base, StringCommand::Request& request,
+                     StringCommand::Response& response) -> bool {
     sensor_base->sendCommand(request.command, "instrument", "\r\n");
     return true;
   };
@@ -110,12 +115,11 @@ void SensorBase::setupServices() {
 
   auto d = d_func();
   d->send_command_service_ = nh->advertiseService<StringCommand::Request, StringCommand::Response>(
-      ros::this_node::getName() + "/send_command",
-      boost::bind<bool>(callback, this, _1, _2));
-
+      ros::this_node::getName() + "/send_command", boost::bind<bool>(callback, this, _1, _2));
 }
 
-void SensorBase::setupParameters() {
+void SensorBase::setupParameters()
+{
   ds_base::DsProcess::setupParameters();
   auto d = d_func();
   d->message_timeout_ = ros::Duration(ros::param::param<double>("~message_timeout", 5));
@@ -123,17 +127,16 @@ void SensorBase::setupParameters() {
   auto serial_num = ros::param::param<std::string>("~serial_number", "0");
   auto generated_uuid = ds_base::generateUuid(serial_num);
 
-  if(d->uuid_ != generated_uuid) {
+  if (d->uuid_ != generated_uuid)
+  {
     ROS_ERROR_STREAM("!!!POTENTIAL CONFIGURATION MISMATCH!!!");
     ROS_ERROR_STREAM("Detected UUID mismatch.");
     ROS_ERROR_STREAM("UUID (param server): " << d->uuid_);
     ROS_ERROR_STREAM("UUID (generated): " << generated_uuid);
   }
-  else {
+  else
+  {
     ROS_INFO_STREAM("UUID matches: " << d->uuid_);
   }
-
-
 }
-
 }

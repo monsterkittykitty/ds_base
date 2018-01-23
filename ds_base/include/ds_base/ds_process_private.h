@@ -11,7 +11,6 @@
 
 namespace ds_base
 {
-
 /// @brief The base implementation class for ROS nodes in Deep Submergence ROS.
 ///
 /// This class provides the core implementation details for all `DsProcess-based`
@@ -48,7 +47,6 @@ namespace ds_base
 /// ABI promises.
 struct DsProcess::Impl
 {
-
   Impl();
   virtual ~Impl() = default;
 
@@ -71,7 +69,7 @@ struct DsProcess::Impl
   /// \param queue  Size of topic queue
   /// \param latch  Data topic is latching or not.
   template <typename T>
-  void addMessagePublisher(const std::string& name, uint32_t queue, bool latch=false)
+  void addMessagePublisher(const std::string& name, uint32_t queue, bool latch = false)
   {
     publishers_[name] = node_handle_->advertise<T>(ros::this_node::getName() + "/" + name, queue, latch);
   }
@@ -83,7 +81,10 @@ struct DsProcess::Impl
   /// \param queue  Size of topic queue
   /// \param latch  Data topic is latching or not.
   template <typename T>
-  void addMessageSubscriber(const std::string &name, uint32_t queue, const boost::function< void(const boost::shared_ptr< T const > &)> &callback, const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(), const ros::TransportHints& transport_hints = ros::TransportHints())
+  void addMessageSubscriber(const std::string& name, uint32_t queue,
+                            const boost::function<void(const boost::shared_ptr<T const>&)>& callback,
+                            const ros::VoidConstPtr& tracked_object = ros::VoidConstPtr(),
+                            const ros::TransportHints& transport_hints = ros::TransportHints())
   {
     // Using the DsProcess public interface
     subscribers_[name] = node_handle_->subscribe(name, queue, callback, tracked_object, transport_hints);
@@ -94,18 +95,22 @@ struct DsProcess::Impl
     timers_[name] = node_handle_->createTimer(interval, callback);
   }
 
-  template<typename T>
-  void publishMessage(const std::string &name, T msg) {
+  template <typename T>
+  void publishMessage(const std::string& name, T msg)
+  {
     auto ok = false;
-    try {
+    try
+    {
       auto& pub = publishers_.at(name);
-      if(!pub) {
+      if (!pub)
+      {
         ROS_WARN_STREAM("Unable to publish on topic: " << name << ".  ros::Publisher is invalid");
         return;
       }
       pub.publish(msg);
     }
-    catch (std::out_of_range& e) {
+    catch (std::out_of_range& e)
+    {
       ROS_WARN_STREAM("Unable to publish on topic: " << name << ".  No publisher found for topic");
       return;
     }
@@ -129,25 +134,25 @@ struct DsProcess::Impl
     output.header.stamp = output.ds_header.io_time;
   }
 
-  bool is_setup_;                                                     //!< Has setup() been called?
-  std::unordered_map<std::string, ros::Publisher> publishers_;        //!< Collection of data message publishers
-  std::unordered_map<std::string, ros::Subscriber> subscribers_;      //!< Collection of data message publishers
-  std::unordered_map<std::string, ros::Timer> timers_;                //!< Collection of timers
+  bool is_setup_;                                                 //!< Has setup() been called?
+  std::unordered_map<std::string, ros::Publisher> publishers_;    //!< Collection of data message publishers
+  std::unordered_map<std::string, ros::Subscriber> subscribers_;  //!< Collection of data message publishers
+  std::unordered_map<std::string, ros::Timer> timers_;            //!< Collection of timers
 
-  std::unordered_map<std::string, ros::Time> last_published_timestamp_; //!< Timestamp of last message sent by publisher
+  std::unordered_map<std::string, ros::Time> last_published_timestamp_;  //!< Timestamp of last message sent by
+                                                                         //!publisher
 
-  std::unique_ptr<ds_asio::DsAsio> asio_;                             //!< DsAsio instance
-  std::unique_ptr<ds_asio::DsNodeHandle> node_handle_;                //!< DsNodeHandle instance
+  std::unique_ptr<ds_asio::DsAsio> asio_;               //!< DsAsio instance
+  std::unique_ptr<ds_asio::DsNodeHandle> node_handle_;  //!< DsNodeHandle instance
 
-  ros::Duration status_check_period_;   //!< The period for the status health timer (<0 disables)
-  ros::Timer status_check_timer_;       //!< The status health timer itself.
-  std::string descriptive_node_name_;   //!< A short, descriptive name given to the process.
-  boost::uuids::uuid uuid_;             //!< UUID of node.
+  ros::Duration status_check_period_;  //!< The period for the status health timer (<0 disables)
+  ros::Timer status_check_timer_;      //!< The status health timer itself.
+  std::string descriptive_node_name_;  //!< A short, descriptive name given to the process.
+  boost::uuids::uuid uuid_;            //!< UUID of node.
 
-  ros::Duration message_timeout_;       //!< Time between valid messages to consider bad.
+  ros::Duration message_timeout_;  //!< Time between valid messages to consider bad.
 
-  ros::Publisher status_publisher_;     //!< The status channel publisher.
+  ros::Publisher status_publisher_;  //!< The status channel publisher.
 };
-
 }
-#endif //DS_BASE_DS_PROCESS_PRIVATE_H
+#endif  // DS_BASE_DS_PROCESS_PRIVATE_H

@@ -6,7 +6,6 @@
 #include <string>
 namespace ds_base
 {
-
 /// @brief Generate a deterministic UUID for this sensor
 ///
 /// The generated UUID should be determanistic.  That is,
@@ -15,8 +14,7 @@ namespace ds_base
 ///
 /// Namespace UUID's are good for this, using a string as the unique
 /// hash.
-boost::uuids::uuid generateUuid(const std::string& id, const boost::uuids::uuid& namespace_=boost::uuids::nil_uuid());
-
+boost::uuids::uuid generateUuid(const std::string& id, const boost::uuids::uuid& namespace_ = boost::uuids::nil_uuid());
 }
 
-#endif //DS_BASE_UTIL_H
+#endif  // DS_BASE_UTIL_H

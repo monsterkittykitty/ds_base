@@ -21,7 +21,6 @@ namespace ds_base
 /// This structure hides the actual implementation details for classes based on SensorBase.
 struct SensorBase::Impl : public ds_base::DsProcess::Impl
 {
-
   Impl();
   virtual ~Impl() = default;
 

@@ -79,21 +79,7 @@ void DsBusDevice::setupParameters()
   auto serial_num = ros::param::param<std::string>("~serial_number", "0");
   d->uuid_ = ds_base::generateUuid(serial_num);
 
-<<<<<<< HEAD
   ROS_INFO_STREAM("Setting device UUID to: " << d->uuid_);
-=======
-  if (d->uuid_ != generated_uuid)
-  {
-    ROS_ERROR_STREAM("!!!POTENTIAL CONFIGURATION MISMATCH!!!");
-    ROS_ERROR_STREAM("Detected UUID mismatch.");
-    ROS_ERROR_STREAM("UUID (param server): " << d->uuid_);
-    ROS_ERROR_STREAM("UUID (generated): " << generated_uuid);
-  }
-  else
-  {
-    ROS_INFO_STREAM("UUID matches: " << d->uuid_);
-  }
->>>>>>> 537a06e6a8d8feb290041c632083101483aae1f6
 
   d->bus_node_name_ = ros::param::param<std::string>("~bus_node", "");
 }
@@ -104,14 +90,8 @@ void DsBusDevice::setupConnections()
 
   auto d = d_func();
   // Connect to the bus
-<<<<<<< HEAD
   if (d->bus_node_name_.empty()) {
     ROS_FATAL_STREAM("No bus_node specified for bus device node " <<ros::this_node::getName());
-=======
-  if (d->bus_node_name_.empty())
-  {
-    ROS_FATAL_STREAM("No bus specified for bus device node " << ros::this_node::getName());
->>>>>>> 537a06e6a8d8feb290041c632083101483aae1f6
     ros::shutdown();
   }
   d->bus_ = subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);

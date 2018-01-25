@@ -71,7 +71,7 @@ protected:
   /// \param bytes The raw data from the bus
   virtual void parseReceivedBytes(const ds_core_msgs::RawData& bytes){};
 
-private:
+protected:
   // functions to access our implementation structure
   auto d_func() noexcept -> Impl*;
   auto d_func() const noexcept -> Impl const*;
@@ -79,15 +79,4 @@ private:
 
 }  // namespace ds_base
 
-<<<<<<< HEAD
-        // functions to access our implementation structure
-        auto d_func() noexcept -> Impl *;
-        auto d_func() const noexcept -> Impl const *;
-    };
-
-} // namespace ds_base
-
-#endif //PROJECT_DS_BUS_DEVICE_H
-=======
 #endif  // PROJECT_DS_BUS_DEVICE_H
->>>>>>> 537a06e6a8d8feb290041c632083101483aae1f6

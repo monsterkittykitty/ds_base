@@ -105,18 +105,12 @@ void DsBus::checkProcessStatus(const ros::TimerEvent& event)
   d->status_publisher_.publish(status);
 }
 
-void DsBus::setupParameters()
-{
+void DsBus::setupParameters() {
   ds_base::DsProcess::setupParameters();
 
   auto d = d_func();
   d->message_timeout_ = ros::Duration(ros::param::param<double>("~message_timeout", 5));
 
   auto generated_uuid = ds_base::generateUuid("bus_node_" + d->descriptive_node_name_);
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 537a06e6a8d8feb290041c632083101483aae1f6
 }
+

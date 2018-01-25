@@ -7,34 +7,32 @@
 
 #include <string>
 #include <memory>
-#include "ds_process.h"
+#include "ds_base/ds_process.h"
 
 namespace ds_base
 {
+
+struct DsBusPrivate;
+
 class DsBus : public ds_base::DsProcess
 {
-protected:
   // Forward declaration of implementation details class
-  struct Impl;
+  DS_DECLARE_PRIVATE(DsBus)
 
 public:
   explicit DsBus();
   DsBus(int argc, char* argv[], const std::string& name);
+  ~DsBus() override;
+  DS_DISABLE_COPY(DsBus)
 
 protected:
-  // protected constructors so we can subclass THIS class
-  explicit DsBus(std::unique_ptr<Impl> impl);
-  DsBus(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name);
-
   void setupConnections() override;
   void setupPublishers() override;
   void checkProcessStatus(const ros::TimerEvent& event) override;
   void setupParameters() override;
 
-private:
-  // functions to access our implementation structure
-  auto d_func() noexcept -> Impl*;
-  auto d_func() const noexcept -> Impl const*;
+ private:
+  std::unique_ptr<DsBusPrivate> d_ptr_;
 };
 
 }  // namespace ds_base

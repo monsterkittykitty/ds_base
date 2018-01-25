@@ -11,15 +11,19 @@
 
 namespace ds_base
 {
+// Forward declaration of implementation details class
+struct DsBusDevicePrivate;
+
 class DsBusDevice : public ds_base::DsProcess
 {
-protected:
-  // Forward declaration of implementation details class
-  struct Impl;
+
+  DS_DECLARE_PRIVATE(DsBusDevice)
 
 public:
   explicit DsBusDevice();
   DsBusDevice(int argc, char* argv[], const std::string& name);
+  ~DsBusDevice() override;
+  DS_DISABLE_COPY(DsBusDevice)
 
   /// @brief Overall setup function.
   ///
@@ -28,10 +32,6 @@ public:
   void setup() override;
 
 protected:
-  // protected constructors so we can subclass THIS class
-  explicit DsBusDevice(std::unique_ptr<Impl> impl);
-  DsBusDevice(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name);
-
   /// @brief setup parameters
   ///
   /// The default override checks for the following additional
@@ -71,10 +71,21 @@ protected:
   /// \param bytes The raw data from the bus
   virtual void parseReceivedBytes(const ds_core_msgs::RawData& bytes){};
 
-protected:
-  // functions to access our implementation structure
-  auto d_func() noexcept -> Impl*;
-  auto d_func() const noexcept -> Impl const*;
+private:
+  /// @brief Access the underlying pimpl pointer.
+  auto ds_bus_device_func() noexcept -> DsBusDevicePrivate*
+  {
+    return reinterpret_cast<DsBusDevicePrivate *>(d_ptr_.get());
+  }
+
+  /// @brief Access the underlying pimpl pointer.
+  auto ds_bus_device_func() const noexcept -> DsBusDevicePrivate const*
+  {
+    return reinterpret_cast<DsBusDevicePrivate const*>(d_ptr_.get());
+  }
+
+  std::unique_ptr<DsBusDevicePrivate> d_ptr_;
+
 };
 
 }  // namespace ds_base

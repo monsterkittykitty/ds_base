@@ -1,4 +1,4 @@
-#include "ds_base/ds_process_private.h"
+#include "ds_process_private.h"
 #include "ds_base/ds_process.h"
 
 #include "ds_core_msgs/Status.h"
@@ -9,15 +9,14 @@
 
 namespace ds_base
 {
-DsProcess::Impl::Impl()
+DsProcessPrivate::DsProcessPrivate()
   : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
   , uuid_(boost::uuids::nil_uuid())
   , is_setup_(false)
-  , message_timeout_(ros::Duration(-1))
 {
 }
 
-void DsProcess::Impl::updateStatusCheckTimer(DsProcess* base, ros::Duration period)
+void DsProcessPrivate::updateStatusCheckTimer(DsProcess* base, ros::Duration period)
 {
   if (period == status_check_period_)
   {

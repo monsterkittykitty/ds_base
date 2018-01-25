@@ -4,7 +4,7 @@
 
 #include <ds_core_msgs/IoCommandList.h>
 #include "ds_base/ds_bus_device.h"
-#include "ds_base/ds_bus_device_private.h"
+#include "ds_bus_device_private.h"
 
 using namespace ds_base;
 
@@ -12,55 +12,29 @@ using namespace ds_base;
 // Our constructors use the protected constructor from `DsProcess`, providing our
 // own version of the private implementation class.
 //
-// This newly constructed DsBus::Impl gets implicitly upcast to DsProcess::Impl
+// This newly constructed DsBus::Private gets implicitly upcast to DsProcess::Private
 // when passed to DsProcess's constructor.
 //
 // NOTE:  Our public constructors just forward on to our protected versions.  If
 // we end up needing to add logic inside the constructors we'll only have to add
 // it in two places now (the protected versions) instead of all four.
 // Public default constructor:  use our own protected anolog
-DsBusDevice::DsBusDevice() : DsBusDevice(std::unique_ptr<Impl>(new Impl))
+DsBusDevice::DsBusDevice()
+    : DsProcess()
+    , d_ptr_(std::unique_ptr<DsBusDevicePrivate>(new DsBusDevicePrivate))
 {
   // do nothing
 }
 
 // Another public->protected forwarding.
 DsBusDevice::DsBusDevice(int argc, char* argv[], const std::string& name)
-  : DsBusDevice(std::unique_ptr<Impl>(new Impl), argc, argv, name)
+  : DsProcess(argc, argv, name)
+  , d_ptr_(std::unique_ptr<DsBusDevicePrivate>(new DsBusDevicePrivate))
 {
   // do nothing
 }
 
-// Protected 'default' constructor
-DsBusDevice::DsBusDevice(std::unique_ptr<Impl> impl) : ds_base::DsProcess(std::move(impl))
-{
-  // do nothing
-}
-
-// Protected constructor with arguments for ros::init
-DsBusDevice::DsBusDevice(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name)
-  : ds_base::DsProcess(std::move(impl), argc, argv, name)
-{
-  // do nothing
-}
-
-//
-// This is how we get access to our new private DsBus::Impl.
-// See, in the constructors above, we upcast DsBus::Impl into SensorBase::Impl, where
-// it's stored in the SensorBase::impl_ member.
-//
-// To get the Impl class back *in the propper type* we need to downcast it again before
-// working on it, which is why we have the static_cast<>'s here.
-//
-inline auto DsBusDevice::d_func() noexcept -> DsBusDevice::Impl*
-{
-  return static_cast<DsBusDevice::Impl*>(ds_base::DsProcess::d_func());
-}
-
-inline auto DsBusDevice::d_func() const noexcept -> DsBusDevice::Impl const*
-{
-  return static_cast<DsBusDevice::Impl const*>(ds_base::DsProcess::d_func());
-}
+DsBusDevice::~DsBusDevice() = default;
 
 void DsBusDevice::setup()
 {
@@ -74,7 +48,7 @@ void DsBusDevice::setupParameters()
 {
   ds_base::DsProcess::setupParameters();
 
-  auto d = d_func();
+  DS_D(DsBusDevice);
   d->message_timeout_ = ros::Duration(ros::param::param<double>("~message_timeout", 5));
 
   auto serial_num = ros::param::param<std::string>("~serial_number", "0");
@@ -89,16 +63,16 @@ void DsBusDevice::setupConnections()
 {
   ds_base::DsProcess::setupConnections();
 
-  auto d = d_func();
+  DS_D(DsBusDevice);
   // Connect to the bus
   if (d->bus_node_name_.empty()) {
     ROS_FATAL_STREAM("No bus_node specified for bus device node " <<ros::this_node::getName());
     ros::shutdown();
   }
-  d->bus_ = subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);
+  d->bus_ = nodeHandle()->subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);
 
   // Connect our service client to control the bus state machine
-  d->iosm_cmd_ = serviceClient<ds_core_msgs::IoSMcommand>(d->bus_node_name_ + "/cmd");
+  d->iosm_cmd_ = nodeHandle()->serviceClient<ds_core_msgs::IoSMcommand>(d->bus_node_name_ + "/cmd");
   d->iosm_cmd_.waitForExistence(ros::Duration(60.0));  // wait up to 1 minute for the service to exist
   if (!d->iosm_cmd_.exists())
   {
@@ -108,6 +82,6 @@ void DsBusDevice::setupConnections()
     ros::shutdown();
   }
 
-  d->preempt_cmd_ = advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/preempt_cmd", 10, false);
-  d->update_cmd_ = advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/update_cmd", 10, false);
+  d->preempt_cmd_ = nodeHandle()->advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/preempt_cmd", 10, false);
+  d->update_cmd_ = nodeHandle()->advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/update_cmd", 10, false);
 }

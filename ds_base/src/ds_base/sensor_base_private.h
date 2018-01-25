@@ -1,11 +1,6 @@
-//
-// Created by zac on 12/5/17.
-//
-
 #ifndef DS_SENSOR_SENSOR_BASE_PRIVATE_H
 #define DS_SENSOR_SENSOR_BASE_PRIVATE_H
 
-#include "ds_base/ds_process_private.h"
 #include "ds_base/sensor_base.h"
 #include "ds_core_msgs/Status.h"
 
@@ -19,15 +14,20 @@ namespace ds_base
 /// @brief Private implmentation for SensorBase class
 ///
 /// This structure hides the actual implementation details for classes based on SensorBase.
-struct SensorBase::Impl : public ds_base::DsProcess::Impl
+struct SensorBasePrivate
 {
-  Impl();
-  virtual ~Impl() = default;
+  SensorBasePrivate() = default;
+  virtual ~SensorBasePrivate() = default;
 
-  // Disable copy operations.
-  Impl(const Impl&) = delete;
-  void operator=(const Impl&) = delete;
+  DS_DISABLE_COPY(SensorBasePrivate)
 
+  ros::Duration message_timeout_;  //!< Acceptable duration between sensor messages.
+
+  ///@brief last timestamps, checked by SensorBase::checkTimestamps
+  SensorBase::TimestampMap last_timestamps_;
+
+  ///@brief Connections available to the SensorBase::sendCommand method
+  SensorBase::ConnectionMap connections_;
   ros::ServiceServer send_command_service_;  //!< ros::Service for sending commands
 };
 }

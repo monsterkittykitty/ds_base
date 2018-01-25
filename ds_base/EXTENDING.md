@@ -7,26 +7,30 @@ handles setting up the parameters, topics, etc. that all nodes are expected to p
 This document explains how to subclass `ds_base::DsProcess` to create a new node that place nicely
 with the rest of the `ds` ros ecosystem.
 
+
 ## Quick Rules for New ds_base::DsProcess-based Nodes
 
 1. The new sensor must subclass `ds_base::DsProcess`
-2. *Ideally* the new sensor should hide all implementation details within a subclass of
-  `ds_sensors::SensorBase::Impl`
+2. *Ideally* the new sensor should hide all implementation details within a subclass named
+   with a `Private` suffix.  (e.g. for `DerivedClass`, another class named `DerivedClassPrivate`)
  
 `ds_base::DsProcess` uses the PIMPL idom to hide implementation-specific details from the user.
 "Implementation-specific" in this context refers to anything you might consider holding `protected`
-or `private` in your class.  It isn't strictly necessary to follow this pattern in your own
+or `private` that is *non-virtual* in your class.  It isn't strictly necessary to follow this pattern in your own
 classes, but doing so has some benefits that include:
 
 - Setting up ros-related things (parameters, topics, subscriptions) is done for you IF you
-  override the respective methods in `DsProcess::Impl`
+  override the respective methods in `DsProcess`
 - Maintaining a stable ABI for your library is much, much easier.  This is less of an issue if
   you're just creating executables.
+  
+We use a set of macros based on those available in Qt.  Qt also provides a very nice wiki page for using
+their macros with PIMPL:  [D-Pointer](http://wiki.qt.io/D-Pointer)
   
 ## Step 0:  Read the Source Files!
 
 - `include/ds_process/ds_process.h`
-- `include/ds_process/ds_process_private.h`
+- `src/ds_process/ds_process_private.h`
 
 Seriously, read the header files.  There will be a *lot* more detail in those two files than this one.
 And while this document will strive to keep up to date with changes to `DsProcess` it may fall out
@@ -61,31 +65,40 @@ Here's the public header file.
 
 #include "ds_base/ds_process.h"
 
+// Forward-declare our private implementation
+struct ExamplePrivate;
+
 class Example : public ds_base::DsProcess {
 
- protected:
-  // This will hold our implementation details.
-  struct Impl;
-
+ // Use a helper macro to set up accessor functions for our private implementation
+ DS_DECLARE_PRIVATE(Example)
+ 
  public:
   // Constructor overrides.  Match the same signatures as DsProcess
   explicit Example();
   Example(int argc, char* argv[], const std::string& name);
-
- protected:
-  // Protected constructors so we can create subclasses of THIS class if desired.
-  explicit Example(std::unique_ptr<Impl> impl);
-  Example(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name);
-
+  // Need to specify the destructor in the source file so that EamplePrivate will be
+  // fully-defined before-hand (needed because we're using unique_ptr's)
+  ~Example() override;
+  
+  // Helper to disable copies.
+  DS_DISABLE_COPY(Example)
+  
  private:
-  // Functions for accessing our implementation structure.  It is very important
-  // to use these instead of direct access.
-  auto d_func() noexcept -> Impl *;
-  auto d_func() const noexcept -> Impl const *;
+ // This will hold our PIMPL  object.
+ std::unique_ptr<ExamplePrivate> d_ptr_;
 };
 
 }
 ```
+
+Those `DS_*` macros are defined in `include/ds_base/ds_global.h` and are heavily influenced (copied) from
+the similarly named `Q_` macros in Qt's `qglobal.h` (see [D-Pointer](http://wiki.qt.io/D-Pointer)) 
+They help us set up and use the PIMPL structure but require some buy-in from you:
+
+- The private class must be the same name as the public class with `Private` added to the end
+- The private unique pointer should be named `d_ptr_`
+- The public destructor must be defined in the source code (not the header).
 
 Here's the private implementation header.  NOTE: that this header file lives in `src`.  This is on purpose,
 the whole point is to not export the details of the implementation in a public header.  You could make it public
@@ -94,15 +107,9 @@ by placing it in `include` if you want other people to be able to derive subclas
 ```C++
 // file: src/example/example_private.h
 
-#include "ds_base/ds_process_private.h"
-
 // Not much to do here yet..
-struct Example::Impl: public ds_base::DsProcess::Impl
+struct ExamplePrivate:
 {
-  Impl(): ds_base::DsProcess::Impl() 
-  {
-  }
-  ~Impl() override = default;
 }
 ```
 
@@ -114,53 +121,18 @@ And finally here's the source file:
 #include "example/example.h"
 #include "example_private.h"
 
-//
-// Our constructors use the protected constructor from `DsProcess`, providing our
-// own version of the private implementation class.
-//
-// This newly constructed Example::Impl gets implicitly upcast to DsProcess::Impl 
-// when passed to DsProcess's constructor.
-//
-// NOTE:  Our public constructors just forward on to our protected versions.  If
-// we end up needing to add logic inside the constructors we'll only have to add
-// it in two places now (the protected versions) instead of all four.
-
 // Public default constructor:  use our own protected anolog
-Example::Example() : Example(std::unique_ptr<Impl>(new Impl))
+Example::Example() 
+  : DsProcess()
+  , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
 {
 }
 
 // Another public->protected forwarding.
 Example::Example(int argc, char* argv[], const std::string& name)
-    :Example(std::unique_ptr<Impl>(new Impl), argc, argv, name)
+    :DsProcess(argc, argv, name)
+    , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
 {
-}
-
-// Protected 'default' constructor
-Example::Example(std::unique_ptr<Impl> impl) : ds_base::DsProcess(std::move(impl))
-{
-}
-
-// Protected constructor with arguments for ros::init
-Example::Example(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name)
-    : ds_base::DsProcess(std::move(impl), argc, argv, name)
-{
-}
-
-//
-// This is how we get access to our new private Example::Impl.
-// See, in the constructors above, we upcast Example::Impl into SensorBase::Impl, where
-// it's stored in the SensorBase::impl_ member.
-//
-// To get the Impl class back *in the propper type* we need to downcast it again before
-// working on it, which is why we have the static_cast<>'s here.
-//
-inline auto Aps1540::d_func() noexcept -> Example::Impl * {
-  return static_cast<Example::Impl *>(ds_base::DsProcess::d_func());
-}
-
-inline auto Aps1540::d_func() const noexcept -> Example::Impl const * {
-  return static_cast<Example::Impl const *>(ds_base::DsProcess::d_func());
 }
 ```
 
@@ -169,15 +141,14 @@ but doesn't actually do anything new.
 
 ## Rule 2:  Handling ROS interaction during setup.
 
-If you look at `include/ds_process/ds_process_private.h` you'll see a `DsProcess::Impl::setup` method, 
-and lots of setup-helpers, like `DsProcess::Impl::setupConnections`.  As the header describes, 
-`DsProcess::Impl::setup` is just a wrapper around all of the smaller setup functions.  This gives us
+If you look at `include/ds_process/ds_process.h` you'll see a `DsProcess::setup` method, 
+and lots of setup-helpers, like `DsProcess::setupConnections`.  As the header describes, 
+`DsProcess::setup` is just a wrapper around all of the smaller setup functions.  This gives us
 a good deal of modularity.  If we only care about adding a new parameter lookup we just need to override the 
 paramter setup function.  If we need to add setup directives that don't fit nicely into one of the helper
 functions then we can always override `setup` itself and add what we need.
 
-**IMPORTANT:** the `Impl::setup` function is called for you in `DsProcess`'s constructors (take a look).
-You shouldn't add hooks to this setup function in your own constructors!
+**IMPORTANT:** the `DsProcess::setup` can be called manually, or left until `DsProcess::run` (take a look).
 
 So let's go back to our "design spec":
 
@@ -196,80 +167,170 @@ We need to add:
 
 Let's add the publishers first:
 
+First, we put the publisher objects that will be created in the private structure.
 ```C++
 // file: src/example/example_private.h
 
-#include "ds_base/ds_process_private.h"
-
 // Not much to do here yet..
-struct Example::Impl: public ds_base::DsProcess::Impl
+struct ExamplePrivate:
 {
-  Impl(): ds_base::DsProcess::Impl() 
-  {
-  }
+  // Our actual publisher objects.
+  ros::Publisher out_pub_;
+  ros::Publisher time_pub_;
+}
+```
+
+Then override the `setupPublishers` method in our public class.
+```C++
+// file:  include/example/example.h
+#ifndef EXAMPLE_H
+#define EXAMPLE_H
+
+#include "ds_base/ds_process.h"
+
+// Forward-declare our private implementation
+struct ExamplePrivate;
+
+class Example : public ds_base::DsProcess {
+
+ // Use a helper macro to set up accessor functions for our private implementation
+ DS_DECLARE_PRIVATE(Example)
+ 
+ public:
+  // Constructor overrides.  Match the same signatures as DsProcess
+  explicit Example();
+  Example(int argc, char* argv[], const std::string& name);
+  // Need to specify the destructor in the source file so that EamplePrivate will be
+  // fully-defined before-hand (needed because we're using unique_ptr's)
+  ~Example() override;
   
-  // our extra steps.
-  void setupPublishers(ds_base::DsProcess* base) override
-  {
-    // Standard method overload chaining.  Call the base class somewhere, we'll do it first
-    // here
-    ds_base::DsProcess::Impl::setupPublishers(base); 
-    
-    // Now add our additional steps.
-    out_pub_ = base->advertise<DataMessageType>("output", 10, false);
-    time_pub_ = base->advertise<TimerMessageType>("time", 10, false);
-  }  
-    
-  ~Impl() override = default;
+  // Helper to disable copies.
+  DS_DISABLE_COPY(Example)
   
-  ros::Publisher out_pub_;  //!< Our publisher for outgoing data
-  ros::Publisher time_pub_; //!< Our publisher for the timer callback.
+ protected:
+  // Overriding the publisher setup.
+  void setupPublishers() override;
+  
+ private:
+ // This will hold our PIMPL  object.
+ std::unique_ptr<ExamplePrivate> d_ptr_;
+};
+
+}
+```
+
+And finally do the work of setting up our publishers
+```C++
+// file: src/example/example.cpp
+
+#include "example/example.h"
+#include "example_private.h"
+
+// Public default constructor:  use our own protected anolog
+Example::Example() 
+  : DsProcess()
+  , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
+{
 }
 
+// Another public->protected forwarding.
+Example::Example(int argc, char* argv[], const std::string& name)
+    :DsProcess(argc, argv, name)
+    , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
+{
+}
+
+void Example::setupPublishers()
+{
+  // Do any setup required by the base class first.
+  DsProcess::setupPublishers();
+  
+  // Another helper macro gets us a pointer to the ExamplePrivate struct named `d`
+  DS_D(Example);
+  
+  // Setup our publishers
+  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+}
 ```
+
+Where did that variable `d` come from?   It's produced by the `DS_D` macro.
 
 ### Adding the callbacks
 
-Now, timers and connections require callbacks.  Lets define those first:
+Now, timers and connections require callbacks.  Typically these callbacks are *not* something
+you want to expose to the public, but where to put them?
 
+- If `Example` may be further derived and the derived class may want to override the
+  default callback behavior:  *make the callback virtual protected on `Example`*
+- If `Example` is not indended to be a base class, or the callback is intended to be the same
+  for all classes based on `Example`: *make the callback on `ExamplePrivate`*
+  
+We'll do both:
+
+- The timer callback will be the same for all `Example`-based classes
+- The connection callback will be virtual and able to be overriden.
+
+Here's the new public header
+
+```C++
+// file:  include/example/example.h
+#ifndef EXAMPLE_H
+#define EXAMPLE_H
+
+#include "ds_base/ds_process.h"
+
+// Forward-declare our private implementation
+struct ExamplePrivate;
+
+class Example : public ds_base::DsProcess {
+
+ // Use a helper macro to set up accessor functions for our private implementation
+ DS_DECLARE_PRIVATE(Example)
+ 
+ public:
+  // Constructor overrides.  Match the same signatures as DsProcess
+  explicit Example();
+  Example(int argc, char* argv[], const std::string& name);
+  // Need to specify the destructor in the source file so that EamplePrivate will be
+  // fully-defined before-hand (needed because we're using unique_ptr's)
+  ~Example() override;
+  
+  // Helper to disable copies.
+  DS_DISABLE_COPY(Example)
+  
+ protected:
+  // Overriding the publisher setup.
+  void setupPublishers() override;
+  
+  // new connection callback - defined inline just for brevity.
+  virtual void connectionCallback(ds_core_msgs::RawData& bytes) 
+  {
+    ROS_INFO_STREAM("Received " << bytes.data.size() << " bytes of data!");
+  }
+  
+ private:
+ // This will hold our PIMPL  object.
+ std::unique_ptr<ExamplePrivate> d_ptr_;
+};
+
+}
+```
+
+And the private header.
 ```C++
 // file: src/example/example_private.h
 
-#include "ds_base/ds_process_private.h"
-
-struct Example::Impl: public ds_base::DsProcess::Impl
+struct ExamplePrivate
 {
-  Impl(): ds_base::DsProcess::Impl() 
-  {
-  }
-  
-  // our extra steps.
-  void setupPublishers(ds_base::DsProcess* base) override
-  {
-    // Standard method overload chaining.  Call the base class somewhere, we'll do it first
-    // here
-    ds_base::DsProcess::Impl::setupPublishers(base);
-    
-    // Now add our additional steps.
-    out_pub_ = base->advertise<DataMessageType>("output", 10, false);
-    time_pub_ = base->advertise<TimerMessageType>("time", 10, false);
-  }  
-  
-  // Called when we get some data on our connection.
-  void connectionCallback(ds_core_msgs::RawData& bytes)
-  {
-    ROS_INFO("I received some data!!"); 
-  }
-  
-  // Called form the timer
+
+  // Called form the timer - same for all `Example` classes
   void timerCallback(const ros::TimerEvent& event)
   {
     ROS_INFO("Timmer happened!");
   }
   
-    
-  ~Impl() override = default;
-  
+  ros::Timer timer_;        //!< Need to save our timer object now too.
   ros::Publisher out_pub_;  //!< Our publisher for outgoing data
   ros::Publisher time_pub_; //!< Our publisher for the timer callback.
 }
@@ -278,146 +339,258 @@ struct Example::Impl: public ds_base::DsProcess::Impl
 
 ### Adding the connection and timer
 
-And now let's add the timer and connection to our setup.
+Override the `setupConnections` and `setupTimers` methods:
 
 ```C++
-// file: src/example/example_private.h
+// file:  include/example/example.h
+#ifndef EXAMPLE_H
+#define EXAMPLE_H
 
-#include "ds_base/ds_process_private.h"
+#include "ds_base/ds_process.h"
 
-struct Example::Impl: public ds_base::DsProcess::Impl
+// Forward-declare our private implementation
+struct ExamplePrivate;
+
+class Example : public ds_base::DsProcess {
+
+ // Use a helper macro to set up accessor functions for our private implementation
+ DS_DECLARE_PRIVATE(Example)
+ 
+ public:
+  // Constructor overrides.  Match the same signatures as DsProcess
+  explicit Example();
+  Example(int argc, char* argv[], const std::string& name);
+  // Need to specify the destructor in the source file so that EamplePrivate will be
+  // fully-defined before-hand (needed because we're using unique_ptr's)
+  ~Example() override;
+  
+  // Helper to disable copies.
+  DS_DISABLE_COPY(Example)
+  
+ protected:
+  // Overriding the publisher setup.
+  void setupPublishers() override;
+  void setupConnections() override;
+  void setupTimers() override;
+  
+ private:
+ // This will hold our PIMPL  object.
+ std::unique_ptr<ExamplePrivate> d_ptr_;
+};
+
+}
+```
+
+And now the actual setup logic.
+
+```C++
+// file: src/example/example.cpp
+
+#include "example/example.h"
+#include "example_private.h"
+
+// Public default constructor:  use our own protected anolog
+Example::Example() 
+  : DsProcess()
+  , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
 {
-  Impl(): ds_base::DsProcess::Impl() 
-  {
-  }
-  
-  // add our connections
-  void setupConnections(ds_base::DsProcess*base) override
-  {
-    ds_base::DsProcess::Impl::setupConnections(base);
-    base->addConnection("connection_name", boost::bind(&Example::Impl::connectionCallback, this, _1));
-  }
-  
-  // and our timers
-  void setupTimers(ds_base::DsProcess*base) override
-  {
-    ds_base::DsProcess::Impl::setupTimers(base);
-    timer_ = base->createTimer(ros::Duration(1), boost::bind(&Example::Impl::timerCallback, this, _1));
-  }
-  
-  // our extra steps.
-  void setupPublishers(ds_base::DsProcess* base) override
-  {
-    // Standard method overload chaining.  Call the base class somewhere, we'll do it first
-    // here
-    ds_base::DsProcess::Impl::setupPublishers(base);
-    
-    // Now add our additional steps.
-    out_pub_ = base->advertise<DataMessageType>("output", 10, false);
-    time_pub_ = base->advertise<TimerMessageType>("time", 10, false);
-  }  
-  
-  // Called when we get some data on our connection.
-  void connectionCallback(ds_core_msgs::RawData& bytes)
-  {
-    ROS_INFO("I received some data!!"); 
-  }
-  
-  // Called form the timer
-  void timerCallback(const ros::TimerEvent& event)
-  {
-    ROS_INFO("Timmer happened!");
-  }
-  
-    
-  ~Impl() override = default;
-  
-  ros::Publisher out_pub_;  //!< Our publisher for outgoing data
-  ros::Publisher time_pub_; //!< Our publisher for the timer callback.
-  ros::Timer timer_;        //!< Our timer object.
 }
 
+// Another public->protected forwarding.
+Example::Example(int argc, char* argv[], const std::string& name)
+    :DsProcess(argc, argv, name)
+    , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
+{
+}
+
+void Example::setupPublishers()
+{
+  // Do any setup required by the base class first.
+  DsProcess::setupPublishers();
+  
+  // Another helper macro gets us a pointer to the ExamplePrivate struct named `d`
+  DS_D(Example);
+  
+  // Setup our publishers
+  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+}
+
+void Example::setupConnections()
+{
+
+  // Do any setup required by the base class first.
+  DsProcess::setupConnections();
+  
+  // Return a reference to the internal connection map structure of DsProcess
+  auto connections_ = connections();
+  
+  // Boost-bind is used in the 'standard' ros way of providing a callback using a class method.
+  connections_["connection_name"] = 
+    addConnection("connection_name", boost::bind(&Example::connectionCallback, this, _1))
+}
+
+void Example::setupTimers()
+{
+
+  // Do any setup required by the base class first.
+  DsProcess::setupTimers();
+  
+  DS_D(Example);
+  
+  // Just like the connection callback, we now use 'd' instead of 'this' in the boost::bind
+  d->timer_ = nodeHandle()->createTimer(ros::Duration(1), boost::bind(&ExamplePrivate::timerCallback, d, _1));
+}
 ```
 
 ### Adding the parameter lookups
 
-This is all good.  But let's say we want to parameterize some settings:
+This is all good.  But let's say we want to parameterized some settings:
 
 - The connection name should be read from the parameter server
 - The timer period duration should be read form the parameter server
 
-Let's enable that ability.
+Let's enable that ability.  First we need a place to store these values we
+retrieve from the parameter server:
 
 ```C++
 // file: src/example/example_private.h
 
-#include "ds_base/ds_process_private.h"
-
-struct Example::Impl: public ds_base::DsProcess::Impl
+struct ExamplePrivate
 {
-  Impl(): ds_base::DsProcess::Impl() 
-  {
-  }
-  
-  void setupParameters(ds_base::DsProcess* base) override
-  {
-    // look for a private param named "connection_name", default to "instrument"
-    connection_name_ = ros::param::param<std::string>("~connection_name", "instrument"); 
-    
-    // Similar for the timer period, default to 1 second.
-    timer_period_ = ros::param::param<double>("~timer_period", 1);
-  }
-  
-  // add our connections - now parameterized
-  void setupConnections(ds_base::DsProcess* base)
-  {
-    ds_base::DsProcess::Impl::setupConnections(base) override;
-    // The name of the connection is now read from the parameter server
-    base->addConnection(connection_name_, boost::bind(&Example::Impl::connectionCallback, this, _1));
-  }
-  
-  // and our timers
-  void setupTimers(ds_base::DsProcess*base) override
-  {
-    ds_base::DsProcess::Impl::setupTimers(base);
-    // And same for the timer_
-    timer_ = base->createTimer(ros::Duration(timer_period_), boost::bind(&Example::Impl::timerCallback, this, _1));
-  }
-  
-  // our extra steps.
-  void setupPublishers(ds_base::DsProcess* base) override
-  {
-    // Standard method overload chaining.  Call the base class somewhere, we'll do it first
-    // here
-    ds_base::DsProcess::Impl::setupPublishers(base);
-    
-    // Now add our additional steps.
-    out_pub_ = base->advertise<DataMessageType>("output", 10, false);
-    time_pub_ = base->advertise<TimerMessageType>("time", 10, false);
-  }  
-  
-  // Called when we get some data on our connection.
-  void connectionCallback(ds_core_msgs::RawData& bytes)
-  {
-    ROS_INFO("I received some data!!"); 
-  }
-  
-  // Called form the timer
+
+  // Called form the timer - same for all `Example` classes
   void timerCallback(const ros::TimerEvent& event)
   {
     ROS_INFO("Timmer happened!");
   }
   
-    
-  ~Impl() override = default;
-  
   std::string connection_name_ //!< Our connection name
   double timer_period_         //!< The timer period.
+  ros::Timer timer_;           //!< Need to save our timer object now too.
   ros::Publisher out_pub_;     //!< Our publisher for outgoing data
   ros::Publisher time_pub_;    //!< Our publisher for the timer callback.
-  ros::Timer timer_;           //!< Our timer object.
 }
 
+```
+
+Override the `setupParameters` method:
+
+```C++
+// file:  include/example/example.h
+#ifndef EXAMPLE_H
+#define EXAMPLE_H
+
+#include "ds_base/ds_process.h"
+
+// Forward-declare our private implementation
+struct ExamplePrivate;
+
+class Example : public ds_base::DsProcess {
+
+ // Use a helper macro to set up accessor functions for our private implementation
+ DS_DECLARE_PRIVATE(Example)
+ 
+ public:
+  // Constructor overrides.  Match the same signatures as DsProcess
+  explicit Example();
+  Example(int argc, char* argv[], const std::string& name);
+  // Need to specify the destructor in the source file so that EamplePrivate will be
+  // fully-defined before-hand (needed because we're using unique_ptr's)
+  ~Example() override;
+  
+  // Helper to disable copies.
+  DS_DISABLE_COPY(Example)
+  
+ protected:
+  // Overriding the publisher setup.
+  void setupPublishers() override;
+  void setupConnections() override;
+  void setupTimers() override;
+  void setupParameters() override;
+  
+ private:
+ // This will hold our PIMPL  object.
+ std::unique_ptr<ExamplePrivate> d_ptr_;
+};
+
+}
+```
+
+Now, modify the class source file to retrieve those parameters and use them in further
+setup directives:
+
+```C++
+// file: src/example/example.cpp
+
+#include "example/example.h"
+#include "example_private.h"
+
+// Public default constructor:  use our own protected anolog
+Example::Example() 
+  : DsProcess()
+  , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
+{
+}
+
+// Another public->protected forwarding.
+Example::Example(int argc, char* argv[], const std::string& name)
+    :DsProcess(argc, argv, name)
+    , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
+{
+}
+
+void Example::setupParameters()
+{
+  DsProcess::setupParameters();
+  
+  DS_D(Example);
+  // look for a private param named "connection_name", default to "instrument"
+  d->connection_name_ = ros::param::param<std::string>("~connection_name", "instrument"); 
+  
+  // Similar for the timer period, default to 1 second.
+  d->timer_period_ = ros::param::param<double>("~timer_period", 1);
+}
+  
+void Example::setupPublishers()
+{
+  // Do any setup required by the base class first.
+  DsProcess::setupPublishers();
+  
+  // Another helper macro gets us a pointer to the ExamplePrivate struct named `d`
+  DS_D(Example);
+  
+  // Setup our publishers
+  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+}
+
+void Example::setupConnections()
+{
+
+  // Do any setup required by the base class first.
+  DsProcess::setupConnections();
+  
+  // Return a reference to the internal connection map structure of DsProcess
+  auto connections_ = connections();
+  
+  DS_D(Example);
+  // Boost-bind is used in the 'standard' ros way of providing a callback using a class method.
+  connections_[d->connection_name_] = 
+    addConnection(d->connection_name_, boost::bind(&Example::connectionCallback, this, _1))
+}
+
+void Example::setupTimers()
+{
+
+  // Do any setup required by the base class first.
+  DsProcess::setupTimers();
+  
+  DS_D(Example);
+  
+  // Just like the connection callback, we now use 'd' instead of 'this' in the boost::bind
+  d->timer_ = nodeHandle()->createTimer(d->timer_period_, boost::bind(&ExamplePrivate::timerCallback, d, _1));
+}
 ```
 
 ### Adding directives that don't quite fit...
@@ -426,82 +599,133 @@ As mentioned, you're not limited to the `setup`* methods.  You can override `set
 that to start the timer after everything else is done:
 
 ```C++
-// file: src/example/example_private.h
+// file:  include/example/example.h
+#ifndef EXAMPLE_H
+#define EXAMPLE_H
 
-#include "ds_base/ds_process_private.h"
+#include "ds_base/ds_process.h"
 
-struct Example::Impl: public ds_base::DsProcess::Impl
+// Forward-declare our private implementation
+struct ExamplePrivate;
+
+class Example : public ds_base::DsProcess {
+
+ // Use a helper macro to set up accessor functions for our private implementation
+ DS_DECLARE_PRIVATE(Example)
+ 
+ public:
+  // Constructor overrides.  Match the same signatures as DsProcess
+  explicit Example();
+  Example(int argc, char* argv[], const std::string& name);
+  // Need to specify the destructor in the source file so that EamplePrivate will be
+  // fully-defined before-hand (needed because we're using unique_ptr's)
+  ~Example() override;
+  
+  // Helper to disable copies.
+  DS_DISABLE_COPY(Example)
+  
+  // Setup is a *public* function!
+  void setup() override;
+  
+ protected:
+  // Overriding the publisher setup.
+  void setupPublishers() override;
+  void setupConnections() override;
+  void setupTimers() override;
+  void setupParameters() override;
+  
+ private:
+ // This will hold our PIMPL  object.
+ std::unique_ptr<ExamplePrivate> d_ptr_;
+};
+
+}
+```
+
+Now, modify the class source file to retrieve those parameters and use them in further
+setup directives:
+
+```C++
+// file: src/example/example.cpp
+
+#include "example/example.h"
+#include "example_private.h"
+
+// Public default constructor:  use our own protected anolog
+Example::Example() 
+  : DsProcess()
+  , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
 {
-  Impl(): ds_base::DsProcess::Impl() 
-  {
-  }
-  
-  // Start our timer after setup completes. 
-  void setup(ds_base::DsProcess* base) override
-  {
-    ds_base::DsProcess::Impl::setup(base);
-    timer_.start();
-  }
-  void setupParameters(ds_base::DsProcess* base) override
-  {
-    // look for a private param named "connection_name", default to "instrument"
-    connection_name_ = ros::param::param<std::string>("~connection_name", "instrument"); 
-    
-    // Similar for the timer period, default to 1 second.
-    timer_period_ = ros::param::param<double>("~timer_period", 1);
-  }
-  
-  // add our connections - now parameterized
-  void setupConnections(ds_base::DsProcess* base) override
-  {
-    ds_base::DsProcess::Impl::setupConnections(base);
-    // The name of the connection is now read from the parameter server
-    base->addConnection(connection_name_, boost::bind(&Example::Impl::connectionCallback, this, _1));
-  }
-  
-  // and our timers
-  void setupTimers(ds_base::DsProcess*base) override
-  {
-    ds_base::DsProcess::Impl::setupTimers(base);
-    // And same for the timer_
-    timer_ = base->createTimer(ros::Duration(timer_period_), boost::bind(&Example::Impl::timerCallback, this, _1));
-  }
-  
-  // our extra steps.
-  void setupPublishers(ds_base::DsProcess* base) override
-  {
-    // Standard method overload chaining.  Call the base class somewhere, we'll do it first
-    // here
-    ds_base::DsProcess::Impl::setupPublishers(base);
-    
-    // Now add our additional steps.
-    out_pub_ = base->advertise<DataMessageType>("output", 10, false);
-    time_pub_ = base->advertise<TimerMessageType>("time", 10, false);
-  }  
-  
-  // Called when we get some data on our connection.
-  void connectionCallback(ds_core_msgs::RawData& bytes)
-  {
-    ROS_INFO("I received some data!!"); 
-  }
-  
-  // Called form the timer
-  void timerCallback(const ros::TimerEvent& event)
-  {
-    ROS_INFO("Timmer happened!");
-  }
-  
-    
-  ~Impl() override = default;
-  
-  std::string connection_name_ //!< Our connection name
-  double timer_period_         //!< The timer period.
-  ros::Publisher out_pub_;     //!< Our publisher for outgoing data
-  ros::Publisher time_pub_;    //!< Our publisher for the timer callback.
-  ros::Timer timer_;           //!< Our timer object.
 }
 
+// Another public->protected forwarding.
+Example::Example(int argc, char* argv[], const std::string& name)
+    :DsProcess(argc, argv, name)
+    , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
+{
+}
+
+void Example::setupParameters()
+{
+  DsProcess::setupParameters();
+  
+  DS_D(Example);
+  // look for a private param named "connection_name", default to "instrument"
+  d->connection_name_ = ros::param::param<std::string>("~connection_name", "instrument"); 
+  
+  // Similar for the timer period, default to 1 second.
+  d->timer_period_ = ros::param::param<double>("~timer_period", 1);
+}
+  
+void Example::setupPublishers()
+{
+  // Do any setup required by the base class first.
+  DsProcess::setupPublishers();
+  
+  // Another helper macro gets us a pointer to the ExamplePrivate struct named `d`
+  DS_D(Example);
+  
+  // Setup our publishers
+  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+}
+
+void Example::setupConnections()
+{
+
+  // Do any setup required by the base class first.
+  DsProcess::setupConnections();
+  
+  // Return a reference to the internal connection map structure of DsProcess
+  auto connections_ = connections();
+  
+  DS_D(Example);
+  // Boost-bind is used in the 'standard' ros way of providing a callback using a class method.
+  connections_[d->connection_name_] = 
+    addConnection(d->connection_name_, boost::bind(&Example::connectionCallback, this, _1))
+}
+
+void Example::setupTimers()
+{
+
+  // Do any setup required by the base class first.
+  DsProcess::setupTimers();
+  
+  DS_D(Example);
+  
+  // Just like the connection callback, we now use 'd' instead of 'this' in the boost::bind
+  d->timer_ = nodeHandle()->createTimer(d->timer_period_, boost::bind(&ExamplePrivate::timerCallback, d, _1));
+}
+
+void Example::setup()
+{
+  DsProcess::setup();
+  
+  DS_D(Example);
+  d->timer_.start();
+}
 ```
+
 
 ## Interacting With the Public Class
 
@@ -512,7 +736,7 @@ In the PIMPL:
 
 ```C++
 
-void Example::Impl::someMethod(Example* base, double data)
+void ExamplePrivate::someMethod(Example* base, double data)
 {
     // need to pass data to some public member
     base->methodThatTakesDouble(data);
@@ -526,7 +750,7 @@ Your public class:
 void Example::methodThatCallsPrivate(double data)
 {
     // Get a poitner to the impl
-    auto d = d_func();
+    DS_D(Example);
     
     // Call the private member, which in turn will call the next
     // method defined below.
@@ -545,3 +769,82 @@ So calling `Example::methodThatCallsPrivate(data)` executes the following in ord
 - `Example::methodThatCallsPrivate(data)`
 - `Example::Impl::someMethod(data)`
 - `Example::methodThatTakesDouble(double data)`
+
+
+Another method is to place a bare-pointer to the public class in `ExamplePrivate`.  This works
+if you're class is *non-copyable* (you never have to worry about `Example` and `ExamplePrivate`)
+getting out of sync.  Then you could do stuff like:
+
+
+```C++
+// file: src/example/example_private.h
+
+#include "include/example/example.h"
+
+struct ExamplePrivate:
+{
+
+  DS_DECLARE_PUBLIC(Example)
+  
+  ExamplePrivate(Example* public)
+    : q_ptr_(public)
+  {
+  }
+  
+  // Don't need to clean up q_ptr_, it outlasts us.
+  ~ExamplePrivate() = default;
+  
+  Example* q_ptr_;
+}
+```
+
+Then modify the constructors in `example.cpp`:
+
+```C++
+// file: src/example/example.cpp
+
+#include "example/example.h"
+#include "example_private.h"
+
+// Public default constructor:  use our own protected anolog
+Example::Example() 
+  : DsProcess()
+  , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate(this)))
+{
+}
+
+// Another public->protected forwarding.
+Example::Example(int argc, char* argv[], const std::string& name)
+    :DsProcess(argc, argv, name)
+    , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate(this)))
+{
+}
+```
+
+Then you can access the public class pointer using the `DS_Q` macro (which will create a `q` variable):
+
+```C++
+struct ExamplePrivate:
+{
+
+  DS_DECLARE_PUBLIC(Example)
+  
+  ExamplePrivate(Example* public)
+    : q_ptr_(public)
+  {
+  }
+  
+  void callPublic()
+  {
+    DS_Q(Example);
+    q->somePublicMethod(); 
+  }
+  
+  // Don't need to clean up q_ptr_, it outlasts us.
+  ~ExamplePrivate() = default;
+  
+  Example* q_ptr_;
+}
+```
+
+

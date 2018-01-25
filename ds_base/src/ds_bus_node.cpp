@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   ros::init(argc, argv, "bus");
 
   // Create our node
-  auto node = std::unique_ptr<ds_base::DsBus>(new ds_base::DsBus());
+  auto node = std::unique_ptr<ds_base::DsBus>(new ds_base::DsBus);
 
   // Run the node.  Blocks until exit
   node->run();

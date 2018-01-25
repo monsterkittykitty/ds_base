@@ -1,5 +1,5 @@
 #include "ds_base/ds_process.h"
-#include "ds_base/ds_process_private.h"
+#include "ds_process_private.h"
 #include "ds_core_msgs/Status.h"
 
 #include <boost/uuid/string_generator.hpp>
@@ -7,21 +7,13 @@
 
 namespace ds_base
 {
-DsProcess::DsProcess() : DsProcess(std::unique_ptr<Impl>(new DsProcess::Impl))
+DsProcess::DsProcess()
+    : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
 {
 }
 
 DsProcess::DsProcess(int argc, char** argv, const std::string& name)
-  : DsProcess(std::unique_ptr<Impl>(new DsProcess::Impl), argc, argv, name)
-{
-}
-
-DsProcess::DsProcess(std::unique_ptr<DsProcess::Impl> impl) : impl_(std::move(impl))
-{
-}
-
-DsProcess::DsProcess(std::unique_ptr<DsProcess::Impl> impl, int argc, char** argv, const std::string& name)
-  : impl_(std::move(impl))
+    : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
 {
   ros::init(argc, argv, name);
 }
@@ -30,7 +22,7 @@ DsProcess::~DsProcess() = default;
 
 ds_asio::DsNodeHandle* DsProcess::nodeHandle()
 {
-  auto d = d_func();
+  DS_D(DsProcess);
   if (!d->node_handle_)
   {
     d->node_handle_.reset(new ds_asio::DsNodeHandle(&d->asio_->io_service));
@@ -40,8 +32,7 @@ ds_asio::DsNodeHandle* DsProcess::nodeHandle()
 
 void DsProcess::run()
 {
-  auto d = d_func();
-
+  DS_D(DsProcess);
   if (!d->is_setup_)
   {
     setup();
@@ -58,25 +49,25 @@ void DsProcess::run()
 void DsProcess::setDescriptiveName(const std::string& name) noexcept
 {
   ROS_INFO_STREAM("Setting descriptive name to: " << name);
-  auto d = d_func();
+  DS_D(DsProcess);
   d->descriptive_node_name_ = name;
 }
 
-inline std::string DsProcess::descriptiveName() const noexcept
+std::string DsProcess::descriptiveName() const noexcept
 {
-  const auto d = d_func();
+  const DS_D(DsProcess);
   return d->descriptive_node_name_;
 }
 
 ros::Duration DsProcess::statusCheckPeriod() const noexcept
 {
-  const auto d = d_func();
+  const DS_D(DsProcess);
   return d->status_check_period_;
 }
 
 void DsProcess::setStatusCheckPeriod(ros::Duration period) noexcept
 {
-  auto d = d_func();
+  DS_D(DsProcess);
   d->updateStatusCheckTimer(this, period);
 }
 
@@ -85,7 +76,7 @@ boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::str
 {
   auto nh = nodeHandle();
   ROS_ASSERT(nh);
-  auto d = d_func();
+  DS_D(DsProcess);
   return d->asio_->addConnection(name, callback, *nh);
 }
 
@@ -94,25 +85,19 @@ boost::shared_ptr<ds_asio::IoSM> DsProcess::addIoSM(const std::string& iosm_name
 {
   auto nh = nodeHandle();
   ROS_ASSERT(nh);
-  auto d = d_func();
+  DS_D(DsProcess);
   return d->asio_->addIoSM(iosm_name, conn_name, callback, *nh);
 }
 
-boost::shared_ptr<ds_asio::DsConnection> DsProcess::connection(const std::string& name)
+boost::uuids::uuid DsProcess::uuid() noexcept
 {
-  auto d = d_func();
-  return d->asio_->connection(name);
-}
-
-inline boost::uuids::uuid DsProcess::uuid() const noexcept
-{
-  const auto d = d_func();
+  const DS_D(DsProcess);
   return d->uuid_;
 }
 
 void DsProcess::setup()
 {
-  auto d = d_func();
+  DS_D(DsProcess);
   if (d->is_setup_)
   {
     return;
@@ -143,7 +128,7 @@ void DsProcess::setupParameters()
   const auto name_ = ros::param::param<std::string>("~descriptive_name", "NO_NAME_PROVIDED");
   setDescriptiveName(name_);
 
-  auto d = d_func();
+  DS_D(DsProcess);
   if (ros::param::has("~uuid"))
   {
     d->uuid_ = boost::uuids::string_generator()(ros::param::param<std::string>("~uuid", "0"));
@@ -157,24 +142,22 @@ void DsProcess::setupParameters()
 
 void DsProcess::setupPublishers()
 {
-  auto d = d_func();
-  d->status_publisher_ = advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
+  DS_D(DsProcess);
+  d->status_publisher_ = nodeHandle()->advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
 }
 
 void DsProcess::checkProcessStatus(const ros::TimerEvent& event)
 {
-  const auto d = d_func();
-  auto status = checkMessageTimeouts(d->message_timeout_);
-
-  d->status_publisher_.publish(status);
+  const auto status = statusMessage();
+  publishStatus(status);
 }
 
-ds_core_msgs::Status DsProcess::checkMessageTimeouts(const ros::Duration& timeout)
+ds_core_msgs::Status DsProcess::statusMessage()
 {
   const auto now = ros::Time::now();
 
   auto status = ds_core_msgs::Status{};
-  auto d = d_func();
+  DS_D(DsProcess);
   status.descriptive_name = d->descriptive_node_name_;
 
   status.ds_header.io_time = now;
@@ -183,27 +166,19 @@ ds_core_msgs::Status DsProcess::checkMessageTimeouts(const ros::Duration& timeou
   // Default to GOOD
   status.status = ds_core_msgs::Status::STATUS_GOOD;
 
-  if (d->message_timeout_ < ros::Duration(0))
-  {
-    return status;
-  }
-
-  if (d->last_published_timestamp_.empty() && !d->publishers_.empty())
-  {
-    status.status = ds_core_msgs::Status::STATUS_ERROR;
-  }
-  else
-  {
-    for (auto it = std::begin(d->last_published_timestamp_); it != std::end(d->last_published_timestamp_); ++it)
-    {
-      if ((now - it->second > d->message_timeout_))
-      {
-        status.status = ds_core_msgs::Status::STATUS_ERROR;
-        break;
-      }
-    }
-  }
-
   return status;
 }
+
+void DsProcess::publishStatus(const ds_core_msgs::Status &msg)
+{
+  DS_D(DsProcess);
+  d->status_publisher_.publish(msg);
+}
+
+void DsProcess::setUuid(const boost::uuids::uuid &uuid) noexcept
+{
+  DS_D(DsProcess);
+  d->uuid_ = uuid;
+}
+
 }

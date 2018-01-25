@@ -71,7 +71,6 @@ namespace ds_base {
       /// \param bytes The raw data from the bus
       virtual void parseReceivedBytes(const ds_core_msgs::RawData& bytes) {};
 
-    private:
         // functions to access our implementation structure
         auto d_func() noexcept -> Impl *;
         auto d_func() const noexcept -> Impl const *;

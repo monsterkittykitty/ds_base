@@ -73,17 +73,9 @@ void DsBusDevice::setupParameters() {
   d->message_timeout_ = ros::Duration(ros::param::param<double>("~message_timeout", 5));
 
   auto serial_num = ros::param::param<std::string>("~serial_number", "0");
-  auto generated_uuid = ds_base::generateUuid(serial_num);
+  d->uuid_ = ds_base::generateUuid(serial_num);
 
-  if(d->uuid_ != generated_uuid) {
-    ROS_ERROR_STREAM("!!!POTENTIAL CONFIGURATION MISMATCH!!!");
-    ROS_ERROR_STREAM("Detected UUID mismatch.");
-    ROS_ERROR_STREAM("UUID (param server): " << d->uuid_);
-    ROS_ERROR_STREAM("UUID (generated): " << generated_uuid);
-  }
-  else {
-    ROS_INFO_STREAM("UUID matches: " << d->uuid_);
-  }
+  ROS_INFO_STREAM("Setting device UUID to: " << d->uuid_);
 
   d->bus_node_name_ = ros::param::param<std::string>("~bus_node", "");
 }
@@ -94,7 +86,7 @@ void DsBusDevice::setupConnections() {
   auto d = d_func();
   // Connect to the bus
   if (d->bus_node_name_.empty()) {
-    ROS_FATAL_STREAM("No bus specified for bus device node " <<ros::this_node::getName());
+    ROS_FATAL_STREAM("No bus_node specified for bus device node " <<ros::this_node::getName());
     ros::shutdown();
   }
   d->bus_ = subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);

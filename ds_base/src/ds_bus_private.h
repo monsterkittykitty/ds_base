@@ -68,6 +68,8 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
                     break;
             }
         }
+
+        return true;
     }
 
     /// @brief Publisher for all incoming bus traffic

@@ -17,40 +17,35 @@ using boost::asio::ip::udp;
 
 namespace ds_asio
 {
+class DsUdp : public DsConnection
+{
+public:
+  DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh);
 
-	class DsUdp : public DsConnection
-	{
-	public:
-		DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh);
+  virtual void receive(void);
 
-		virtual void receive(void);
+  virtual void send(boost::shared_ptr<std::string> message);
 
-		virtual void send(boost::shared_ptr<std::string> message);
+  void setup(void);
 
-		void setup(void);
+  udp::socket& get_io_object(void);
 
-		udp::socket& get_io_object(void);
+private:
+  // make noncopyable
+  DsUdp(const DsUdp& other) = delete;
+  DsUdp& operator=(const DsUdp& other) = delete;
 
-	private:
-		// make noncopyable
-		DsUdp(const DsUdp& other) = delete;
-		DsUdp& operator=(const DsUdp& other) = delete;
+private:
+  void handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred);
 
-	private:
+  void handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
+                   std::size_t bytes_transferred);
 
-		void handle_receive(const boost::system::error_code& error,
-							std::size_t bytes_transferred);
-
-		void handle_send(boost::shared_ptr<std::string> message,
-						 const boost::system::error_code& error,
-						 std::size_t bytes_transferred);
-
-		udp::socket* socket_;
-		udp::endpoint* remote_endpoint_;
-		boost::array<char, 128> recv_buffer_;
-		uint8_t num_read_error_;
-		ros::Timer read_error_retry_timer_;
-	};
-
+  udp::socket* socket_;
+  udp::endpoint* remote_endpoint_;
+  boost::array<char, 128> recv_buffer_;
+  uint8_t num_read_error_;
+  ros::Timer read_error_retry_timer_;
+};
 }
 #endif

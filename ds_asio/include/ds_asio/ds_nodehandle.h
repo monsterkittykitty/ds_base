@@ -6,26 +6,24 @@
 
 namespace ds_asio
 {
-
 class ROSCPP_DECL DsNodeHandle : public ros::NodeHandle
 {
 public:
-  DsNodeHandle(boost::asio::io_service *io_service, const std::string &ns=std::string(), const ros::M_string &remappings=ros::M_string());
+  DsNodeHandle(boost::asio::io_service* io_service, const std::string& ns = std::string(),
+               const ros::M_string& remappings = ros::M_string());
 
-  DsNodeHandle(const DsNodeHandle &rhs);
+  DsNodeHandle(const DsNodeHandle& rhs);
 
-  DsNodeHandle(const DsNodeHandle &parent, const std::string &ns);
+  DsNodeHandle(const DsNodeHandle& parent, const std::string& ns);
 
-  DsNodeHandle(const DsNodeHandle &parent, const std::string &ns, const ros::M_string &remappings);
+  DsNodeHandle(const DsNodeHandle& parent, const std::string& ns, const ros::M_string& remappings);
 
   virtual ~DsNodeHandle();
 
 private:
-  boost::asio::io_service *myIoService;
-  DsCallbackQueue    *queue;
+  boost::asio::io_service* myIoService;
+  DsCallbackQueue* queue;
 };
-
 }
-
 
 #endif

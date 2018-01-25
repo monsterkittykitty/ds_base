@@ -7,11 +7,7 @@
 
 namespace ds_base
 {
-
-SensorBase::Impl::Impl()
-  : ds_base::DsProcess::Impl()
+SensorBase::Impl::Impl() : ds_base::DsProcess::Impl()
 {
 }
-
-
 }

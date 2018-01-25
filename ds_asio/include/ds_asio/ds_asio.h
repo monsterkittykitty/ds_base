@@ -16,13 +16,10 @@
 
 namespace ds_asio
 {
-
-
 class DsAsio
 {
 public:
-
-    // See ds_connection.h for the ReadCallback typedef
+  // See ds_connection.h for the ReadCallback typedef
 
   /// @brief Default constructor
   DsAsio();
@@ -32,7 +29,7 @@ public:
   /// @param[in] argc Number of input command line arguments
   /// @param[in] argv Command line arguments
   /// @param[in] name Name of the ros process. may be remapped by ros::init if using roslaunch
-  DsAsio(int argc, char** argv, const std::string &name);
+  DsAsio(int argc, char** argv, const std::string& name);
 
   /// @brief Destructor
   ~DsAsio();
@@ -45,29 +42,30 @@ public:
   /// @brief Method to add a single connection. Calls factory class to generate connections
   ///
   /// @param[in] name Name of the connection. Will be used to index the ros parameter server namespace
-  /// @param[in] callback A boost::function object that will be called with the data received when the connection receives data
+  /// @param[in] callback A boost::function object that will be called with the data received when the connection
+  /// receives data
   /// @param[in] myNh A reference to the nodehandle object for accessing the parameter server
   ///
   /// @return A boost::shared_ptr object that is a handle for the created connection
   boost::shared_ptr<DsConnection> addConnection(std::string name, const ReadCallback& callback, DsNodeHandle& myNh);
 
-
-    /// @brief Method to add an IO state machine and its associated connection
-    ///
-    /// This function will also call addConnection to initialize the underlying connection class before
-    /// connecting it to the I/O state machine.
-    ///
-    /// The connection can be accessed with:
-    ///     boost::shared_ptr<IoSM> iosm = dsasio.addIoSM( <parameters> );
-    ///     boost::shared_ptr<DsConnection> conn = iosm->getConnection();
-    ///
-    /// \param iosm_name Io state machine name.  Will be used to index the ros parameter server namespace
-    /// \param conn_name The name for the underlying connection object.
-    /// \param callback A boost::function object that will be called when the connection has received data
-    /// \param myNh A reference to the node handle for accessing the parameter server
-    ///
-    /// \return A boost::shared_ptr object with the Io state machine
-  boost::shared_ptr<ds_asio::IoSM> addIoSM(std::string iosm_name, std::string conn_name, const ReadCallback& callback, DsNodeHandle& myNh);
+  /// @brief Method to add an IO state machine and its associated connection
+  ///
+  /// This function will also call addConnection to initialize the underlying connection class before
+  /// connecting it to the I/O state machine.
+  ///
+  /// The connection can be accessed with:
+  ///     boost::shared_ptr<IoSM> iosm = dsasio.addIoSM( <parameters> );
+  ///     boost::shared_ptr<DsConnection> conn = iosm->getConnection();
+  ///
+  /// \param iosm_name Io state machine name.  Will be used to index the ros parameter server namespace
+  /// \param conn_name The name for the underlying connection object.
+  /// \param callback A boost::function object that will be called when the connection has received data
+  /// \param myNh A reference to the node handle for accessing the parameter server
+  ///
+  /// \return A boost::shared_ptr object with the Io state machine
+  boost::shared_ptr<ds_asio::IoSM> addIoSM(std::string iosm_name, std::string conn_name, const ReadCallback& callback,
+                                           DsNodeHandle& myNh);
 
   /// @brief Get a connection handle previously added with addConnection
   ///
@@ -80,10 +78,13 @@ public:
   /// @brief Method to start all connections specified in the application
   ///
   /// @param[in] myNh A reference to the nodehandle object for accessing the parameter server
-  /// @param[in] mapping An associative array that associates each connection name to a boost::function object that will be called with the data received when the connection identified by that name receives data
+  /// @param[in] mapping An associative array that associates each connection name to a boost::function object that will
+  /// be called with the data received when the connection identified by that name receives data
   ///
-  /// @return An associative array that associates each connection name to a boost::shared_ptr object that is a handle for the created connection
-  std::map<std::string, boost::shared_ptr<DsConnection> > startConnections(DsNodeHandle& myNh, std::map<std::string, ReadCallback > mapping);
+  /// @return An associative array that associates each connection name to a boost::shared_ptr object that is a handle
+  /// for the created connection
+  std::map<std::string, boost::shared_ptr<DsConnection> > startConnections(DsNodeHandle& myNh,
+                                                                           std::map<std::string, ReadCallback> mapping);
 
   /// @brief Returns a pointer to this DsAsio instance
   ///
@@ -92,19 +93,17 @@ public:
 
   /// @brief A custom signal handler that gracefully shuts down ROS before exiting the process
   void signalHandler(const boost::system::error_code& error, int signal_number);
-  
-  boost::asio::io_service                        io_service;
 
- protected:
-  std::map<std::string, ros::Subscriber>         subs;
-  std::map<std::string, ros::Timer>              tmrs;
-  std::map<std::string, ros::Publisher>          pubs;
- 
- private:
-  std::unordered_map<std::string, boost::shared_ptr<DsConnection> >  connections; //!< Map of active connections.
-  
+  boost::asio::io_service io_service;
+
+protected:
+  std::map<std::string, ros::Subscriber> subs;
+  std::map<std::string, ros::Timer> tmrs;
+  std::map<std::string, ros::Publisher> pubs;
+
+private:
+  std::unordered_map<std::string, boost::shared_ptr<DsConnection> > connections;  //!< Map of active connections.
 };
-
 }
 
 #endif

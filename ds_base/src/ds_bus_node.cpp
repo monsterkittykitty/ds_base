@@ -8,18 +8,17 @@
 #include <boost/program_options.hpp>
 #include <memory>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
+  // startup ROS.  You almost-definitely want to remap the name
+  ros::init(argc, argv, "bus");
 
-    // startup ROS.  You almost-definitely want to remap the name
-    ros::init(argc, argv, "bus");
+  // Create our node
+  auto node = std::unique_ptr<ds_base::DsBus>(new ds_base::DsBus());
 
-    // Create our node
-    auto node = std::unique_ptr<ds_base::DsBus>(new ds_base::DsBus());
+  // Run the node.  Blocks until exit
+  node->run();
 
-    // Run the node.  Blocks until exit
-    node->run();
-
-    // Return success
-    return 0;
+  // Return success
+  return 0;
 }
-

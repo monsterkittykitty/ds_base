@@ -80,6 +80,8 @@ void DsBus::setupPublishers()
   // the whole queue is controlled by a service
   d->cmd_serv_ = advertiseService<ds_core_msgs::IoSMcommand::Request, ds_core_msgs::IoSMcommand::Response>(
       ros::this_node::getName() + "/cmd", boost::bind(&DsBus::Impl::_service_req, d, _1, _2));
+
+  d->preempt_sub_ = subscribe(ros::this_node::getName() + "/preempt_cmd", 10, &DsBus::Impl::_preempt_cmd, d);
 }
 
 void DsBus::checkProcessStatus(const ros::TimerEvent& event)

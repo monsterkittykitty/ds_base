@@ -334,6 +334,7 @@ void _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd
     if (iter->getId() == id)
     {
       *iter = cmd;
+      (*iter).setId(id);
     }
   }
 }

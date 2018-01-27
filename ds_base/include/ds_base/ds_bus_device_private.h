@@ -85,6 +85,12 @@ struct DsBusDevice::Impl : public ds_base::DsProcess::Impl
   /// \brief The topic that spits all bus traffic
   ros::Subscriber bus_;
 
+  /// \brief Topic to send preempt commands to the bus
+  ros::Publisher preempt_cmd_;
+
+  /// \brief Topic to update commands at a high rate
+  ros::Publisher update_cmd_;
+
   /// \brief The service that controls the I/O state machine on that bus
   ros::ServiceClient iosm_cmd_;
 };

@@ -82,6 +82,7 @@ void DsBus::setupPublishers()
       ros::this_node::getName() + "/cmd", boost::bind(&DsBus::Impl::_service_req, d, _1, _2));
 
   d->preempt_sub_ = subscribe(ros::this_node::getName() + "/preempt_cmd", 10, &DsBus::Impl::_preempt_cmd, d);
+  d->update_sub_  = subscribe(ros::this_node::getName() + "/update_cmd", 10, &DsBus::Impl::_update_cmd, d);
 }
 
 void DsBus::checkProcessStatus(const ros::TimerEvent& event)

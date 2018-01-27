@@ -81,6 +81,17 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
     }
   }
 
+  void _update_cmd(const ds_core_msgs::IoCommandList& cmdList) {
+    for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++) {
+      ds_asio::IoCommand cmd(*iter);
+
+      if (!iosm->overwriteRegularCommand(cmd.getId(), cmd)) {
+        ROS_ERROR_STREAM("Unable to find I/O state machine command ID " <<cmd.getId()
+                                                                        <<", cmdstr = \"" <<cmd.getCommand() <<"\"");
+      }
+    }
+  }
+
   /// @brief Publisher for all incoming bus traffic
   ros::Publisher bus_pub_;
 
@@ -89,6 +100,9 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
 
   /// @brief Subscription for rapid acceptance of preempt commands
   ros::Subscriber preempt_sub_;
+
+  /// @brief Subscription for rapid updating of periodic commands
+  ros::Subscriber update_sub_;
 
   /// @brief Our I/O state machine
   boost::shared_ptr<ds_asio::IoSM> iosm;

@@ -40,6 +40,7 @@ ds_asio::IoCommand::IoCommand(const ds_core_msgs::IoCommand& _cmd)
   delayAfter = ros::Duration(_cmd.delayAfter_ms / 1000.0);
   timeout = ros::Duration(_cmd.timeout_ms / 1000.0);
 
+  id = _cmd.id;
   cmd = _cmd.command;
 }
 
@@ -180,9 +181,9 @@ void IoSM::deleteRegularCommand(const uint64_t id)
   impl->deleteRegularCommand(id);
 }
 
-void IoSM::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd)
+bool IoSM::overwriteRegularCommand(const uint64_t id, const IoCommand &cmd)
 {
-  impl->overwriteRegularCommand(id, cmd);
+  return impl->overwriteRegularCommand(id, cmd);
 }
 
 void IoSM::addPreemptCommand(const IoCommand& cmd)
@@ -321,7 +322,7 @@ void _IoSM_impl::deleteRegularCommand(const uint64_t id)
   }    // for all elements
 }
 
-void _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd)
+bool _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand &cmd)
 {
   std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
 
@@ -335,8 +336,10 @@ void _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd
     {
       *iter = cmd;
       (*iter).setId(id);
+      return true;
     }
   }
+  return false;
 }
 
 void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)

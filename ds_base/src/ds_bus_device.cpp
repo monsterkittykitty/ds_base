@@ -2,6 +2,7 @@
 // Created by ivaughn on 1/15/18.
 //
 
+#include <ds_core_msgs/IoCommandList.h>
 #include "ds_base/ds_bus_device.h"
 #include "ds_base/ds_bus_device_private.h"
 
@@ -106,4 +107,7 @@ void DsBusDevice::setupConnections()
                      << d->bus_node_name_);
     ros::shutdown();
   }
+
+  d->preempt_cmd_ = advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/preempt_cmd", 10, false);
+  d->update_cmd_ = advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/update_cmd", 10, false);
 }

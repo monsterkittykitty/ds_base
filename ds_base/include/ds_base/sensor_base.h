@@ -8,7 +8,6 @@
 
 namespace ds_base
 {
-
 struct SensorBasePrivate;
 
 /// @brief Base class for sensors defined in ds_sensor package.
@@ -29,11 +28,9 @@ struct SensorBasePrivate;
 ///
 class SensorBase : public ds_base::DsProcess
 {
-
   DS_DECLARE_PRIVATE(SensorBase)
 
 public:
-
   using ConnectionMap = std::unordered_map<std::string, boost::shared_ptr<ds_asio::DsConnection>>;
   using TimestampMap = std::unordered_map<std::string, ros::Time>;
 
@@ -183,9 +180,9 @@ protected:
   ///  - publishes the message.
   ///
   /// \param event
-  void checkProcessStatus(const ros::TimerEvent &event) override;
+  void checkProcessStatus(const ros::TimerEvent& event) override;
 
- private:
+private:
   std::unique_ptr<SensorBasePrivate> d_ptr_;
 };
 }

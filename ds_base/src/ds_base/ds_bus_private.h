@@ -17,20 +17,51 @@
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/nil_generator.hpp>
 
-namespace ds_base {
-
+namespace ds_base
+{
 struct DsBusPrivate
 {
-    DsBusPrivate(): message_timeout_ (ros::Duration(-1)),
-            uuid_(boost::uuids::nil_uuid()) {
-        // do nothing (else)
-    }
+  DsBusPrivate() : message_timeout_(ros::Duration(-1)), uuid_(boost::uuids::nil_uuid())
+  {
+    // do nothing (else)
+  }
 
-    ~DsBusPrivate() = default;
+  ~DsBusPrivate() = default;
 
-  void _data_recv(const ds_core_msgs::RawData& bytes) {
+  void _data_recv(const ds_core_msgs::RawData& bytes)
+  {
     last_message_timestamp_ = bytes.header.stamp;
     bus_pub_.publish(bytes);
+  }
+
+  bool _service_req(const ds_core_msgs::IoSMcommand::Request& req, ds_core_msgs::IoSMcommand::Response& resp) {
+    for (auto iter = req.commands.begin(); iter != req.commands.end(); iter++) {
+      ds_asio::IoCommand cmd(*iter);
+
+      switch (req.iosm_command) {
+        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_REGULAR:resp.retval.push_back(iosm->addRegularCommand(cmd));
+          break;
+
+        case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_REGULAR:iosm->overwriteRegularCommand(cmd.getId(), cmd);
+          resp.retval.push_back(cmd.getId());
+          break;
+
+        case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_REGULAR:iosm->deleteRegularCommand(cmd.getId());
+          resp.retval.push_back(cmd.getId());
+          break;
+
+        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_PREEMPT:iosm->addPreemptCommand(cmd);
+          resp.retval.push_back(1);  // preempt commands don't have an ID
+          break;
+
+        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_SHUTDOWN:
+        case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_SHUTDOWN:
+        case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_SHUTDOWN:
+          // TODO: Privateement these
+          ROS_ERROR_STREAM("NOT IMPLEMENTED: Could not add shutdown command " << cmd.getCommand());
+          break;
+      }
+    }
   }
 
   void _preempt_cmd(const ds_core_msgs::IoCommandList& cmdList) {
@@ -52,43 +83,6 @@ struct DsBusPrivate
                                                                         << ", cmdstr = \"" << cmd.getCommand() << "\"");
       }
     }
-  }
-
-  bool _service_req(const ds_core_msgs::IoSMcommand::Request& req,
-                    ds_core_msgs::IoSMcommand::Response& resp) {
-      for (auto iter = req.commands.begin(); iter != req.commands.end(); iter++) {
-
-          ds_asio::IoCommand cmd(*iter);
-
-          switch (req.iosm_command) {
-              case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_REGULAR:
-                  resp.retval.push_back(iosm->addRegularCommand(cmd));
-                  break;
-
-              case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_REGULAR:
-                  iosm->overwriteRegularCommand(cmd.getId(), cmd);
-                  resp.retval.push_back(cmd.getId());
-                  break;
-
-              case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_REGULAR:
-                  iosm->deleteRegularCommand(cmd.getId());
-                  resp.retval.push_back(cmd.getId());
-                  break;
-
-              case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_PREEMPT:
-                  iosm->addPreemptCommand(cmd);
-                  resp.retval.push_back(1); // preempt commands don't have an ID
-                  break;
-
-              case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_SHUTDOWN:
-              case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_SHUTDOWN:
-              case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_SHUTDOWN:
-                  // TODO: Privateement these
-                  ROS_ERROR_STREAM("NOT IMPLEMENTED: Could not add shutdown command " << cmd.getCommand());
-                  break;
-          }
-      }
-    return true;
   }
 
   /// @brief Publisher for all incoming bus traffic

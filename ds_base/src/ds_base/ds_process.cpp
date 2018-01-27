@@ -7,13 +7,12 @@
 
 namespace ds_base
 {
-DsProcess::DsProcess()
-    : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
+DsProcess::DsProcess() : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
 {
 }
 
 DsProcess::DsProcess(int argc, char** argv, const std::string& name)
-    : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
+  : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
 {
   ros::init(argc, argv, name);
 }
@@ -143,7 +142,8 @@ void DsProcess::setupParameters()
 void DsProcess::setupPublishers()
 {
   DS_D(DsProcess);
-  d->status_publisher_ = nodeHandle()->advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
+  d->status_publisher_ =
+      nodeHandle()->advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
 }
 
 void DsProcess::checkProcessStatus(const ros::TimerEvent& event)
@@ -169,16 +169,15 @@ ds_core_msgs::Status DsProcess::statusMessage()
   return status;
 }
 
-void DsProcess::publishStatus(const ds_core_msgs::Status &msg)
+void DsProcess::publishStatus(const ds_core_msgs::Status& msg)
 {
   DS_D(DsProcess);
   d->status_publisher_.publish(msg);
 }
 
-void DsProcess::setUuid(const boost::uuids::uuid &uuid) noexcept
+void DsProcess::setUuid(const boost::uuids::uuid& uuid) noexcept
 {
   DS_D(DsProcess);
   d->uuid_ = uuid;
 }
-
 }

@@ -16,7 +16,6 @@ struct DsBusDevicePrivate;
 
 class DsBusDevice : public ds_base::DsProcess
 {
-
   DS_DECLARE_PRIVATE(DsBusDevice)
 
 public:
@@ -75,7 +74,7 @@ private:
   /// @brief Access the underlying pimpl pointer.
   auto ds_bus_device_func() noexcept -> DsBusDevicePrivate*
   {
-    return reinterpret_cast<DsBusDevicePrivate *>(d_ptr_.get());
+    return reinterpret_cast<DsBusDevicePrivate*>(d_ptr_.get());
   }
 
   /// @brief Access the underlying pimpl pointer.
@@ -85,7 +84,6 @@ private:
   }
 
   std::unique_ptr<DsBusDevicePrivate> d_ptr_;
-
 };
 
 }  // namespace ds_base

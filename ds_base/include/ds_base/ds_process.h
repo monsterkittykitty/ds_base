@@ -12,7 +12,6 @@
 
 namespace ds_base
 {
-
 struct DsProcessPrivate;
 
 /// @brief The base class for ROS nodes in Deep Submergence ROS
@@ -49,7 +48,6 @@ struct DsProcessPrivate;
 /// be found in the `EXTENDING.md` document.
 class DsProcess
 {
-
   DS_DECLARE_PRIVATE(DsProcess)
 
 public:

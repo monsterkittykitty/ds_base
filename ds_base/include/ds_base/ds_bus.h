@@ -11,7 +11,6 @@
 
 namespace ds_base
 {
-
 struct DsBusPrivate;
 
 class DsBus : public ds_base::DsProcess
@@ -31,7 +30,7 @@ protected:
   void checkProcessStatus(const ros::TimerEvent& event) override;
   void setupParameters() override;
 
- private:
+private:
   std::unique_ptr<DsBusPrivate> d_ptr_;
 };
 

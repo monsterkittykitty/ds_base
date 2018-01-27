@@ -18,16 +18,14 @@ using namespace ds_base;
 // we end up needing to add logic inside the constructors we'll only have to add
 // it in two places now (the protected versions) instead of all four.
 // Public default constructor:  use our own protected anolog
-DsBus::DsBus() : DsProcess()
-  , d_ptr_(std::unique_ptr<DsBusPrivate>(new DsBusPrivate))
+DsBus::DsBus() : DsProcess(), d_ptr_(std::unique_ptr<DsBusPrivate>(new DsBusPrivate))
 {
   // do nothing
 }
 
 // Another public->protected forwarding.
 DsBus::DsBus(int argc, char* argv[], const std::string& name)
-    : DsProcess(argc, argv, name)
-    , d_ptr_(std::unique_ptr<DsBusPrivate>(new DsBusPrivate))
+  : DsProcess(argc, argv, name), d_ptr_(std::unique_ptr<DsBusPrivate>(new DsBusPrivate))
 {
   // do nothing
 }
@@ -52,8 +50,9 @@ void DsBus::setupPublishers()
   d->bus_pub_ = nodeHandle()->advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/bus", 10, false);
 
   // the whole queue is controlled by a service
-  d->cmd_serv_ = nodeHandle()->advertiseService<ds_core_msgs::IoSMcommand::Request, ds_core_msgs::IoSMcommand::Response>(
-      ros::this_node::getName() + "/cmd", boost::bind(&DsBusPrivate::_service_req, d, _1, _2));
+  d->cmd_serv_ =
+      nodeHandle()->advertiseService<ds_core_msgs::IoSMcommand::Request, ds_core_msgs::IoSMcommand::Response>(
+          ros::this_node::getName() + "/cmd", boost::bind(&DsBusPrivate::_service_req, d, _1, _2));
 }
 
 void DsBus::checkProcessStatus(const ros::TimerEvent& event)
@@ -80,7 +79,8 @@ void DsBus::checkProcessStatus(const ros::TimerEvent& event)
   publishStatus(status);
 }
 
-void DsBus::setupParameters() {
+void DsBus::setupParameters()
+{
   ds_base::DsProcess::setupParameters();
 
   DS_D(DsBus);
@@ -88,4 +88,3 @@ void DsBus::setupParameters() {
 
   auto generated_uuid = ds_base::generateUuid("bus_node_" + descriptiveName());
 }
-

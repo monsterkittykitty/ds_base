@@ -9,8 +9,7 @@
 
 namespace ds_base
 {
-DsBusDevicePrivate::DsBusDevicePrivate()
-  : message_timeout_(ros::Duration(-1)), uuid_(boost::uuids::nil_uuid())
+DsBusDevicePrivate::DsBusDevicePrivate() : message_timeout_(ros::Duration(-1)), uuid_(boost::uuids::nil_uuid())
 {
 }
 

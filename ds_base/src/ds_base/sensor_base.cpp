@@ -14,15 +14,12 @@
 
 namespace ds_base
 {
-SensorBase::SensorBase()
-    : DsProcess()
-    , d_ptr_(std::unique_ptr<SensorBasePrivate>(new SensorBasePrivate))
+SensorBase::SensorBase() : DsProcess(), d_ptr_(std::unique_ptr<SensorBasePrivate>(new SensorBasePrivate))
 {
 }
 
 SensorBase::SensorBase(int argc, char* argv[], const std::string& name)
-  : DsProcess(argc, argv, name)
-  , d_ptr_(std::unique_ptr<SensorBasePrivate>(new SensorBasePrivate))
+  : DsProcess(argc, argv, name), d_ptr_(std::unique_ptr<SensorBasePrivate>(new SensorBasePrivate))
 {
 }
 
@@ -53,16 +50,17 @@ void SensorBase::sendCommand(std::string command, std::string connection)
 {
   DS_D(SensorBase);
 
-  try {
+  try
+  {
     auto con = d->connections_.at(connection);
     auto msg = boost::shared_ptr<std::string>(new std::string);
     *msg = std::move(command);
     con->send(std::move(msg));
   }
-  catch (std::out_of_range& e) {
+  catch (std::out_of_range& e)
+  {
     ROS_WARN_STREAM("No connection named '" << connection << "'");
   }
-
 }
 
 void SensorBase::sendCommand(std::string command, std::string connection, std::string suffix)
@@ -126,58 +124,69 @@ void SensorBase::setupParameters()
   }
 }
 
-ds_asio::DsConnection *SensorBase::connection(const std::string &name) {
+ds_asio::DsConnection* SensorBase::connection(const std::string& name)
+{
   DS_D(SensorBase);
-  try {
+  try
+  {
     return d->connections_.at(name).get();
   }
-  catch (std::out_of_range& e) {
+  catch (std::out_of_range& e)
+  {
     ROS_WARN_STREAM("No connection named '" << name << "'");
     return nullptr;
   }
 }
 
-SensorBase::ConnectionMap &SensorBase::connections() {
+SensorBase::ConnectionMap& SensorBase::connections()
+{
   DS_D(SensorBase);
   return d->connections_;
 }
 
-void SensorBase::updateTimestamp(std::string name) {
+void SensorBase::updateTimestamp(std::string name)
+{
   updateTimestamp(name, std::move(ros::Time::now()));
 }
 
-void SensorBase::updateTimestamp(std::string name, ros::Time time) {
+void SensorBase::updateTimestamp(std::string name, ros::Time time)
+{
   DS_D(SensorBase);
   d->last_timestamps_[name] = std::move(time);
 }
 
-ros::Time SensorBase::lastTimestamp(const std::string &name) const noexcept {
+ros::Time SensorBase::lastTimestamp(const std::string& name) const noexcept
+{
   const DS_D(SensorBase);
-  try {
+  try
+  {
     return d->last_timestamps_.at(name);
   }
-  catch (std::out_of_range& e) {
+  catch (std::out_of_range& e)
+  {
     return {};
   }
 }
 
-const SensorBase::TimestampMap &SensorBase::lastTimestamps() const noexcept {
+const SensorBase::TimestampMap& SensorBase::lastTimestamps() const noexcept
+{
   const DS_D(SensorBase);
   return d->last_timestamps_;
 }
 
-
-void SensorBase::checkMessageTimestamps(ds_core_msgs::Status &status)
+void SensorBase::checkMessageTimestamps(ds_core_msgs::Status& status)
 {
   const DS_D(SensorBase);
 
   // Message timeouts disabled.
-  if(d->message_timeout_ < ros::Duration(0)) {
+  if (d->message_timeout_ < ros::Duration(0))
+  {
     return;
   }
 
   // No timestamps?  That's an error.
-  if(d->last_timestamps_.empty()) {
+  if (d->last_timestamps_.empty())
+  {
     status.status = ds_core_msgs::Status::STATUS_ERROR;
     return;
   }
@@ -185,10 +194,13 @@ void SensorBase::checkMessageTimestamps(ds_core_msgs::Status &status)
   auto it = std::begin(d->last_timestamps_);
   const auto now = ros::Time::now();
 
-  while(it != std::end(d->last_timestamps_)) {
+  while (it != std::end(d->last_timestamps_))
+  {
     const auto age = now - it->second;
-    if(age > d->message_timeout_) {
-      ROS_WARN_STREAM("Last timestamp for " << it->first << "is " << it->second << " (" << age.toSec() << " seconds ago)");
+    if (age > d->message_timeout_)
+    {
+      ROS_WARN_STREAM("Last timestamp for " << it->first << "is " << it->second << " (" << age.toSec() << " seconds "
+                                                                                                          "ago)");
       status.status = ds_core_msgs::Status::STATUS_WARN;
       return;
     }
@@ -196,12 +208,10 @@ void SensorBase::checkMessageTimestamps(ds_core_msgs::Status &status)
   }
 }
 
-void SensorBase::checkProcessStatus(const ros::TimerEvent &event) {
-
+void SensorBase::checkProcessStatus(const ros::TimerEvent& event)
+{
   auto msg = statusMessage();
   checkMessageTimestamps(msg);
   publishStatus(msg);
-
 }
-
 }

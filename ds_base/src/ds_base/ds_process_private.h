@@ -59,7 +59,7 @@ struct DsProcessPrivate
   /// \param period
   void updateStatusCheckTimer(DsProcess* base, ros::Duration period);
 
-  bool is_setup_;                                                 //!< Has setup() been called?
+  bool is_setup_;  //!< Has setup() been called?
 
   std::unique_ptr<ds_asio::DsAsio> asio_;               //!< DsAsio instance
   std::unique_ptr<ds_asio::DsNodeHandle> node_handle_;  //!< DsNodeHandle instance
@@ -71,7 +71,8 @@ struct DsProcessPrivate
 
   ros::Publisher status_publisher_;  //!< The status channel publisher.
 
-  std::unordered_map<std::string, ros::Time> last_published_timestamp_;  //!< Timestamp of last message sent by publisher
+  std::unordered_map<std::string, ros::Time> last_published_timestamp_;  //!< Timestamp of last message sent by
+                                                                         //!publisher
 };
 }
 #endif  // DS_BASE_DS_PROCESS_PRIVATE_H

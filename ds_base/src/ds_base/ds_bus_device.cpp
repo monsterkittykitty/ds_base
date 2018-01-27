@@ -19,17 +19,14 @@ using namespace ds_base;
 // we end up needing to add logic inside the constructors we'll only have to add
 // it in two places now (the protected versions) instead of all four.
 // Public default constructor:  use our own protected anolog
-DsBusDevice::DsBusDevice()
-    : DsProcess()
-    , d_ptr_(std::unique_ptr<DsBusDevicePrivate>(new DsBusDevicePrivate))
+DsBusDevice::DsBusDevice() : DsProcess(), d_ptr_(std::unique_ptr<DsBusDevicePrivate>(new DsBusDevicePrivate))
 {
   // do nothing
 }
 
 // Another public->protected forwarding.
 DsBusDevice::DsBusDevice(int argc, char* argv[], const std::string& name)
-  : DsProcess(argc, argv, name)
-  , d_ptr_(std::unique_ptr<DsBusDevicePrivate>(new DsBusDevicePrivate))
+  : DsProcess(argc, argv, name), d_ptr_(std::unique_ptr<DsBusDevicePrivate>(new DsBusDevicePrivate))
 {
   // do nothing
 }
@@ -65,8 +62,9 @@ void DsBusDevice::setupConnections()
 
   DS_D(DsBusDevice);
   // Connect to the bus
-  if (d->bus_node_name_.empty()) {
-    ROS_FATAL_STREAM("No bus_node specified for bus device node " <<ros::this_node::getName());
+  if (d->bus_node_name_.empty())
+  {
+    ROS_FATAL_STREAM("No bus_node specified for bus device node " << ros::this_node::getName());
     ros::shutdown();
   }
   d->bus_ = nodeHandle()->subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);

@@ -134,6 +134,8 @@ Example::Example(int argc, char* argv[], const std::string& name)
     , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
 {
 }
+
+Example::~Example() = default;
 ```
 
 Not too interesting yet.  We'll get there.  Right now we've got a new class that builds from `DsProcess`
@@ -239,6 +241,8 @@ Example::Example(int argc, char* argv[], const std::string& name)
     , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
 {
 }
+
+Example::~Example() = default;
 
 void Example::setupPublishers()
 {
@@ -402,6 +406,8 @@ Example::Example(int argc, char* argv[], const std::string& name)
     , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate))
 {
 }
+
+Example::~Example() = default;
 
 void Example::setupPublishers()
 {
@@ -665,6 +671,8 @@ Example::Example(int argc, char* argv[], const std::string& name)
 {
 }
 
+Example::~Example() = default;
+
 void Example::setupParameters()
 {
   DsProcess::setupParameters();
@@ -819,6 +827,8 @@ Example::Example(int argc, char* argv[], const std::string& name)
     , d_ptr_(std::unique_ptr<ExamplePrivate>(new ExamplePrivate(this)))
 {
 }
+
+Example::~Example() = default;
 ```
 
 Then you can access the public class pointer using the `DS_Q` macro (which will create a `q` variable):

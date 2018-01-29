@@ -87,6 +87,10 @@ add_library(${PROJECT_NAME}
   include/ds_base/sensor_base.h
   src/ds_base/sensor_base.cpp
   src/ds_base/sensor_base_private.h
+
+  include/ds_base/controller_base.h
+  src/ds_base/controller_base.cpp
+  src/ds_base/controller_base_private.h
   # src/sensor_base_private.cpp
 )
 

@@ -239,6 +239,13 @@ public:
   /// \param cmd The new command to run ASAP.
   void addPreemptCommand(const IoCommand& cmd);
 
+  /// @brief Access the list of regular commands.
+  ///
+  /// Provides read-only access to the list of commands.
+  ///
+  /// \return A read-only version of the list of regular commands
+  const std::list<ds_asio::IoCommand>& getRegularCommands() const;
+
 protected:
   /// \brief Shared pointer to our implementation
   std::shared_ptr<ds_asio::iosm_inner::_IoSM_impl> impl;

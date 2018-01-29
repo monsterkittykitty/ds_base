@@ -44,6 +44,10 @@ public:
 
   boost::asio::io_service& getIoService();
 
+  /// \brief Flag that a write has already happened, and the mock connection
+  /// should start by immediately emitting its first reply
+  void setWriteDuringStartup();
+
 protected:
   /// \brief A vector of strings written by the thing using this to test
   std::deque<std::string> written;

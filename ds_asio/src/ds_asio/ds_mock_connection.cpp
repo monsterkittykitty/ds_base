@@ -43,6 +43,10 @@ void DsMockConnection::run()
   {
     sendNextMessage();
   }
+  if (! toRead.empty()) {
+    io_service_.reset();
+  }
+
   io_service_.run();
 }
 
@@ -58,6 +62,10 @@ const std::deque<ds_core_msgs::RawData>& DsMockConnection::ToRead() const
 std::deque<ds_core_msgs::RawData>& DsMockConnection::ToRead()
 {
   return toRead;
+}
+
+void DsMockConnection::setWriteDuringStartup() {
+  writeDuringStartup = true;
 }
 
 void DsMockConnection::sendNextMessage()

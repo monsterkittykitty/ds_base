@@ -113,6 +113,9 @@ public:
 
   // TODO: Shutdown queue?
 
+  /// @brief Accessor for the list of regular commands
+  const std::list<ds_asio::IoCommand>& getRegularCommands() const;
+
   const boost::shared_ptr<DsConnection>& getConnection() const;
 
 protected:

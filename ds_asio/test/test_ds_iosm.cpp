@@ -31,6 +31,7 @@ protected:
 
     // Run through all the tests until we're done
     virtual void runConnection() {
+
         start  = boost::posix_time::microsec_clock::universal_time();
         conn->run();
         finish = boost::posix_time::microsec_clock::universal_time();
@@ -248,6 +249,68 @@ TEST_F(ds_iosm_test, post_delay) {
     EXPECT_LE( 99, reply1_to_finish.total_milliseconds());
     EXPECT_GE(105, reply1_to_finish.total_milliseconds());
 }
+
+TEST_F(ds_iosm_test, delete_test) {
+
+    // The standard test is
+    iosm->addRegularCommand(ds_asio::IoCommand("test_query_1", 0.10));
+    uint64_t cmd_id = iosm->addRegularCommand(ds_asio::IoCommand("test_query_2", 0.10));
+    iosm->addRegularCommand(ds_asio::IoCommand("test_query_3", 0.10));
+
+    conn->ToRead().push_back(buildRawMsg("test_reply_1"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_2"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_3"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_4"));
+
+    runConnection();
+
+    // check the data that went out
+    ASSERT_EQ(5, conn->Written().size());
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[0]);
+    EXPECT_EQ(std::string("test_query_2"), conn->Written()[1]);
+    EXPECT_EQ(std::string("test_query_3"), conn->Written()[2]);
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[3]);
+    EXPECT_EQ(std::string("test_query_2"), conn->Written()[4]);
+
+    // check data that passed through the I/O state machine
+    ASSERT_EQ(4, received_data.size());
+    EXPECT_EQ("test_reply_1", receivedString(0));
+    EXPECT_EQ("test_reply_2", receivedString(1));
+    EXPECT_EQ("test_reply_3", receivedString(2));
+    EXPECT_EQ("test_reply_4", receivedString(3));
+
+    // check that the total test time was reasonably speedy
+    EXPECT_GE(5, runtime.total_milliseconds());
+
+    // Ok, now that we're good so far... go ahead and delete command #2
+    iosm->deleteRegularCommand(cmd_id);
+
+    conn->setWriteDuringStartup();
+
+    // continue the test
+    conn->ToRead().push_back(buildRawMsg("test_reply_5"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_6"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_7"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_8"));
+
+    // actually run the test
+    conn->run();
+
+    // start looking for data sent by the state machine; note that
+    // cmd 2 has been deleted!
+    ASSERT_EQ(9, conn->Written().size());
+    EXPECT_EQ(std::string("test_query_3"), conn->Written()[5]);
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[6]);
+    EXPECT_EQ(std::string("test_query_3"), conn->Written()[7]);
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[8]);
+
+    ASSERT_EQ(8, received_data.size());
+    EXPECT_EQ("test_reply_5", receivedString(4));
+    EXPECT_EQ("test_reply_6", receivedString(5));
+    EXPECT_EQ("test_reply_7", receivedString(6));
+    EXPECT_EQ("test_reply_8", receivedString(7));
+}
+
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)
 {

@@ -41,6 +41,7 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
 
       ds_asio::IoCommand cmd(*iter);
 
+      ROS_ERROR_STREAM("Got command request for cmd: \"" <<cmd.getCommand() <<"\"");
       switch (req.iosm_command) {
         case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_REGULAR:
           resp.retval.push_back(iosm->addRegularCommand(cmd));
@@ -77,6 +78,8 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
     for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++) {
       ds_asio::IoCommand cmd(*iter);
 
+      ROS_ERROR_STREAM("Adding preempt cmd: " <<cmd.getCommand() <<"\"");
+
       iosm->addPreemptCommand(cmd);
     }
   }
@@ -85,6 +88,7 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
     for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++) {
       ds_asio::IoCommand cmd(*iter);
 
+      ROS_ERROR_STREAM("Overwriting cmd: " <<cmd.getCommand() <<"\"");
       if (!iosm->overwriteRegularCommand(cmd.getId(), cmd)) {
         ROS_ERROR_STREAM("Unable to find I/O state machine command ID " <<cmd.getId()
                                                                         <<", cmdstr = \"" <<cmd.getCommand() <<"\"");

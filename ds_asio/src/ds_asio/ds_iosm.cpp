@@ -34,7 +34,7 @@ ds_asio::IoCommand::IoCommand(const ds_core_msgs::IoCommand& _cmd)
 {
   emitOnMatch = _cmd.emitOnMatch;
   timeoutWarn = _cmd.timeoutWarn;
-  forceNext = !_cmd.forceNext;
+  forceNext = _cmd.forceNext;
 
   delayBefore = ros::Duration(_cmd.delayBefore_ms / 1000.0);
   delayAfter = ros::Duration(_cmd.delayAfter_ms / 1000.0);
@@ -206,6 +206,10 @@ const ds_asio::ReadCallback& IoSM::getCallback() const
   return impl->getCallback();
 }
 
+const std::list<ds_asio::IoCommand>& IoSM::getRegularCommands() const {
+  return impl->getRegularCommands();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // _IoSM_impl (see ds_iosm_private.h)
 ////////////////////////////////////////////////////////////////////////////////
@@ -351,6 +355,10 @@ void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)
   _runNextCommand_nolock();
 }
 
+const std::list<ds_asio::IoCommand>& _IoSM_impl::getRegularCommands() const {
+  return regularCommands;
+}
+
 //--------------------------------------------
 // Command-Runner interface
 void _IoSM_impl::_dataReady_nolock(const ds_asio::IoCommand& cmd, const ds_core_msgs::RawData& raw)
@@ -437,6 +445,7 @@ void _IoSM_impl::_runNextCommand_nolock()
     return;
   }
 
+
   // start with preempt commands
   if (preemptCommands.size() > 0 && (isPreemptCommand || !runner->cmd.getForceNext()))
   {
@@ -454,7 +463,10 @@ void _IoSM_impl::_runNextCommand_nolock()
     {
       currCommand = regularCommands.begin();
     }
-    _startCommand_nolock(*currCommand);
+    if (currCommand != regularCommands.end()) {
+      _startCommand_nolock(*currCommand);
+    }
+
   }
 }
 

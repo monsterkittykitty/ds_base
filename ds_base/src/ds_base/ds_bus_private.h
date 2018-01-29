@@ -7,7 +7,6 @@
 
 #include "ds_asio/ds_iosm.h"
 #include "ds_base/ds_bus.h"
-#include "ds_base/ds_process_private.h"
 #include <ds_base/util.h>
 
 #include <ds_core_msgs/Status.h>
@@ -18,60 +17,51 @@
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/nil_generator.hpp>
 
-namespace ds_base {
-
-struct DsBus::Impl : public ds_base::DsProcess::Impl {
-  Impl(): ds_base::DsProcess::Impl(),
-          message_timeout_ (ros::Duration(-1)),
-          uuid_(boost::uuids::nil_uuid()) {
+namespace ds_base
+{
+struct DsBusPrivate
+{
+  DsBusPrivate() : message_timeout_(ros::Duration(-1)), uuid_(boost::uuids::nil_uuid())
+  {
     // do nothing (else)
   }
 
-  ~Impl() override = default;
+  ~DsBusPrivate() = default;
 
-
-  void _data_recv(const ds_core_msgs::RawData& bytes) {
+  void _data_recv(const ds_core_msgs::RawData& bytes)
+  {
     last_message_timestamp_ = bytes.header.stamp;
     bus_pub_.publish(bytes);
   }
 
-  bool _service_req(const ds_core_msgs::IoSMcommand::Request& req,
-                    ds_core_msgs::IoSMcommand::Response& resp) {
+  bool _service_req(const ds_core_msgs::IoSMcommand::Request& req, ds_core_msgs::IoSMcommand::Response& resp) {
     for (auto iter = req.commands.begin(); iter != req.commands.end(); iter++) {
-
       ds_asio::IoCommand cmd(*iter);
 
-      ROS_ERROR_STREAM("Got command request for cmd: \"" <<cmd.getCommand() <<"\"");
       switch (req.iosm_command) {
-        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_REGULAR:
-          resp.retval.push_back(iosm->addRegularCommand(cmd));
+        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_REGULAR:resp.retval.push_back(iosm->addRegularCommand(cmd));
           break;
 
-        case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_REGULAR:
-          iosm->overwriteRegularCommand(cmd.getId(), cmd);
+        case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_REGULAR:iosm->overwriteRegularCommand(cmd.getId(), cmd);
           resp.retval.push_back(cmd.getId());
           break;
 
-        case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_REGULAR:
-          iosm->deleteRegularCommand(cmd.getId());
+        case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_REGULAR:iosm->deleteRegularCommand(cmd.getId());
           resp.retval.push_back(cmd.getId());
           break;
 
-        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_PREEMPT:
-          iosm->addPreemptCommand(cmd);
-          resp.retval.push_back(1); // preempt commands don't have an ID
+        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_PREEMPT:iosm->addPreemptCommand(cmd);
+          resp.retval.push_back(1);  // preempt commands don't have an ID
           break;
 
         case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_SHUTDOWN:
         case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_SHUTDOWN:
         case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_SHUTDOWN:
-          // TODO: Implement these
+          // TODO: Privateement these
           ROS_ERROR_STREAM("NOT IMPLEMENTED: Could not add shutdown command " << cmd.getCommand());
           break;
       }
     }
-
-    return true;
   }
 
   void _preempt_cmd(const ds_core_msgs::IoCommandList& cmdList) {
@@ -88,10 +78,9 @@ struct DsBus::Impl : public ds_base::DsProcess::Impl {
     for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++) {
       ds_asio::IoCommand cmd(*iter);
 
-      ROS_ERROR_STREAM("Overwriting cmd: " <<cmd.getCommand() <<"\"");
       if (!iosm->overwriteRegularCommand(cmd.getId(), cmd)) {
-        ROS_ERROR_STREAM("Unable to find I/O state machine command ID " <<cmd.getId()
-                                                                        <<", cmdstr = \"" <<cmd.getCommand() <<"\"");
+        ROS_ERROR_STREAM("Unable to find I/O state machine command ID " << cmd.getId()
+                                                                        << ", cmdstr = \"" << cmd.getCommand() << "\"");
       }
     }
   }

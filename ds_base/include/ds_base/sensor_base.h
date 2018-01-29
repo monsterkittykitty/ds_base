@@ -1,7 +1,3 @@
-//
-// Created by zac on 12/5/17.
-//
-
 #ifndef DS_SENSOR_SENSORBASE_H
 #define DS_SENSOR_SENSORBASE_H
 
@@ -12,6 +8,8 @@
 
 namespace ds_base
 {
+struct SensorBasePrivate;
+
 /// @brief Base class for sensors defined in ds_sensor package.
 ///
 /// See EXTENDING.md in the repo root directory for a detailed guide to creating a new sensor based
@@ -30,11 +28,12 @@ namespace ds_base
 ///
 class SensorBase : public ds_base::DsProcess
 {
-protected:
-  /// Protected implementation struct
-  struct Impl;
+  DS_DECLARE_PRIVATE(SensorBase)
 
 public:
+  using ConnectionMap = std::unordered_map<std::string, boost::shared_ptr<ds_asio::DsConnection>>;
+  using TimestampMap = std::unordered_map<std::string, ros::Time>;
+
   ///@brief SensorBase constructor
   ///
   /// You must call `ros::init` separately when using this method.
@@ -48,9 +47,9 @@ public:
   /// \param argv
   /// \param name
   SensorBase(int argc, char* argv[], const std::string& name);
-  SensorBase(const SensorBase& rhs);
-
   ~SensorBase() override;
+
+  DS_DISABLE_COPY(SensorBase)
 
   /// @brief Set the measurement timeout for the sensor.
   ///
@@ -85,11 +84,44 @@ public:
   /// \param suffix
   virtual void sendCommand(std::string command, std::string connection, std::string suffix);
 
-protected:
-  /// @brief Protected constructor for subclasses using their own subclassed pimpl.
-  explicit SensorBase(std::unique_ptr<Impl> impl);
-  explicit SensorBase(std::unique_ptr<Impl> impl, int argc, char* argv[], const std::string& name);
+  /// @brief Get access to an instrument connection
+  ///
+  /// Returns `nullptr` if no connection by that name exists.
+  /// \param name
+  /// \return
+  ds_asio::DsConnection* connection(const std::string& name);
 
+  /// @brief Get access to the full connection map.
+  ///
+  /// \return
+  ConnectionMap& connections();
+
+  /// @brief Update the timestamp for the provided string with the current time.
+  ///
+  /// \param name
+  void updateTimestamp(std::string name);
+
+  /// @brief Update the timestamp for the provided label with the provided time.
+  ///
+  /// \param name
+  void updateTimestamp(std::string name, ros::Time time);
+
+  /// @brief Get the last timestamp for the provided label.
+  ///
+  /// An invalid ros::Time is returned if the label does not exist.
+  ///
+  /// \param name
+  /// \return
+  ros::Time lastTimestamp(const std::string& name) const noexcept;
+
+  /// @brief Get all the recorded timestamps so far
+  ///
+  /// The returned reference is constant.
+  ///
+  /// \return
+  const TimestampMap& lastTimestamps() const noexcept;
+
+protected:
   /// @brief setup parameters
   ///
   /// The default override checks for the following additional parameters:
@@ -124,14 +156,34 @@ protected:
   {
   }
 
+  /// @brief Update a status message based on the last recorded timestamps.
+  ///
+  /// Called by the status check timer callback.
+  ///
+  /// Default logic:
+  ///
+  /// - if messageTimeout() is set to -1, no further checks are performed.
+  /// - if lastTimestamps() is empty, the status is set to STATUS_ERROR
+  /// - if any timestamp in lastTimestamps() is > messageTimeout, the
+  ///   status is set to STATUS_WARN
+  ///
+  /// \param status
+  virtual void checkMessageTimestamps(ds_core_msgs::Status& status);
+
+  /// @brief  Default sensor status check behavior.
+  ///
+  /// The default status check performs the following logic:
+  ///
+  ///  - starts out good
+  ///  - calls SensorBase::checkMessageTimestamps, potentially modifying
+  ///    the original status.
+  ///  - publishes the message.
+  ///
+  /// \param event
+  void checkProcessStatus(const ros::TimerEvent& event) override;
+
 private:
-  /// @brief Access the underlying pimpl pointer.
-  auto d_func() noexcept -> Impl*;
-
-  /// @brief Access the underlying pimpl pointer.
-  auto d_func() const noexcept -> Impl const*;
-
-  std::shared_ptr<Impl> impl_;
+  std::unique_ptr<SensorBasePrivate> d_ptr_;
 };
 }
 

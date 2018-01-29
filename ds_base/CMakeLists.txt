@@ -64,29 +64,30 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME}
-  include/ds_base/ds_process.h
-  src/ds_process.cpp
 
-  include/ds_base/ds_process_private.h
-  src/ds_process_private.cpp
+  include/ds_base/ds_global.h
 
   include/ds_base/util.h
-  src/util.cpp
+  src/ds_base/util.cpp
+
+  include/ds_base/ds_process.h
+  src/ds_base/ds_process.cpp
+  src/ds_base/ds_process_private.h
+  src/ds_base/ds_process_private.cpp
 
   include/ds_base/ds_bus.h
-  src/ds_bus_private.h
-  src/ds_bus.cpp
+  src/ds_base/ds_bus_private.h
+  src/ds_base/ds_bus.cpp
 
   include/ds_base/ds_bus_device.h
-  include/ds_base/ds_bus_device_private.h
-  src/ds_bus_device.cpp
-  src/ds_bus_device_private.cpp
+  src/ds_base/ds_bus_device_private.h
+  src/ds_base/ds_bus_device.cpp
+  src/ds_base/ds_bus_device_private.cpp
 
   include/ds_base/sensor_base.h
-  src/sensor_base.cpp
-
-  include/ds_base/sensor_base_private.h
-  src/sensor_base_private.cpp
+  src/ds_base/sensor_base.cpp
+  src/ds_base/sensor_base_private.h
+  # src/sensor_base_private.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

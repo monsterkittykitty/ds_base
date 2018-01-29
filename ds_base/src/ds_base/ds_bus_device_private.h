@@ -6,8 +6,7 @@
 #define PROJECT_DS_BUS_DEVICE_PRIVATE_H
 
 #include "ds_base/ds_bus_device.h"
-#include "ds_base/ds_process_private.h"
-#include "ds_process.h"
+#include "ds_base/ds_process.h"
 #include <ds_base/util.h>
 
 #include <ds_core_msgs/Status.h>
@@ -19,57 +18,18 @@
 
 namespace ds_base
 {
-struct DsBusDevice::Impl : public ds_base::DsProcess::Impl
+struct DsBusDevicePrivate
 {
-  Impl();
+  DsBusDevicePrivate();
 
-  virtual ~Impl() = default;
+  virtual ~DsBusDevicePrivate() = default;
 
   // disable copy operations
-  Impl(const Impl&) = delete;
-  void operator=(const Impl&) = delete;
+  DsBusDevicePrivate(const DsBusDevicePrivate&) = delete;
+  void operator=(const DsBusDevicePrivate&) = delete;
 
   /// @brief Convenience method to send an I/O state machine command and get the reply
   ds_core_msgs::IoSMcommand::Response sendIosmCommand(const ds_core_msgs::IoSMcommand::Request& cmd);
-
-  /// @brief Create a data publisher
-  ///
-  /// Provided topic names will have the node name prepended to it, creating a "private"
-  /// scoped topic name.
-  ///
-  /// \tparam T     Type of message to publish
-  /// \param name   name of topic.  Will be "private" scope (e.g. beneath the node name)
-  /// \param queue  Size of topic queue
-  /// \param latch  Data topic is latching or not.
-  template <typename T>
-  void addMessagePublisher(const std::string& name, uint32_t queue, bool latch = false)
-  {
-    publishers_[name] = node_handle_->advertise<T>(ros::this_node::getName() + "/" + name, queue, latch);
-  }
-
-  template <typename T>
-  void publishMessage(const std::string& name, T msg)
-  {
-    auto ok = false;
-    try
-    {
-      auto& pub = publishers_.at(name);
-      if (!pub)
-      {
-        ROS_WARN_STREAM("Unable to publish on topic: " << name << ".  ros::Publisher is invalid");
-        return;
-      }
-      pub.publish(msg);
-    }
-    catch (std::out_of_range& e)
-    {
-      ROS_WARN_STREAM("Unable to publish on topic: " << name << ".  No publisher found for topic");
-      return;
-    }
-
-    last_message_[name] = msg;
-    last_message_timestamp_[name] = msg.header.stamp;
-  }
 
   boost::uuids::uuid uuid_;
 

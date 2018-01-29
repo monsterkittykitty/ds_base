@@ -83,3 +83,62 @@ void DsBusDevice::setupConnections()
   d->preempt_cmd_ = nodeHandle()->advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/preempt_cmd", 10, false);
   d->update_cmd_ = nodeHandle()->advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/update_cmd", 10, false);
 }
+
+void DsBusDevice::setupIoSM() {
+  // do nothing
+}
+
+const boost::uuids::uuid& DsBusDevice::Uuid() const {
+  DS_D(const DsBusDevice);
+
+  return d->uuid_;
+}
+
+boost::uuids::uuid& DsBusDevice::Uuid() {
+  DS_D(DsBusDevice);
+
+  return d->uuid_;
+}
+
+const ros::Duration& DsBusDevice::MessageTimeout() const {
+  DS_D(const DsBusDevice);
+
+  return d->message_timeout_;
+}
+
+ros::Duration& DsBusDevice::MessageTimeout() {
+  DS_D(DsBusDevice);
+
+  return d->message_timeout_;
+}
+
+const std::string& DsBusDevice::BusNodeName() const {
+  DS_D(const DsBusDevice);
+
+  return d->bus_node_name_;
+}
+
+ros::Subscriber& DsBusDevice::Bus() {
+  DS_D(DsBusDevice);
+
+  return d->bus_;
+}
+
+ros::Publisher& DsBusDevice::PreemptCmd() {
+  DS_D(DsBusDevice);
+
+  return d->preempt_cmd_;
+}
+
+ros::Publisher& DsBusDevice::UpdateCmd() {
+  DS_D(DsBusDevice);
+
+  return d->update_cmd_;
+}
+
+ros::ServiceClient& DsBusDevice::IosmCmd() {
+  DS_D(DsBusDevice);
+
+  return d->iosm_cmd_;
+}
+

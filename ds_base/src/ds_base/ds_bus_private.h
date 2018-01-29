@@ -35,6 +35,7 @@ struct DsBusPrivate
   }
 
   bool _service_req(const ds_core_msgs::IoSMcommand::Request& req, ds_core_msgs::IoSMcommand::Response& resp) {
+    bool retval = true;
     for (auto iter = req.commands.begin(); iter != req.commands.end(); iter++) {
       ds_asio::IoCommand cmd(*iter);
 
@@ -59,16 +60,16 @@ struct DsBusPrivate
         case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_SHUTDOWN:
           // TODO: Privateement these
           ROS_ERROR_STREAM("NOT IMPLEMENTED: Could not add shutdown command " << cmd.getCommand());
+          retval = false;
           break;
       }
     }
+    return retval;
   }
 
   void _preempt_cmd(const ds_core_msgs::IoCommandList& cmdList) {
     for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++) {
       ds_asio::IoCommand cmd(*iter);
-
-      ROS_ERROR_STREAM("Adding preempt cmd: " <<cmd.getCommand() <<"\"");
 
       iosm->addPreemptCommand(cmd);
     }

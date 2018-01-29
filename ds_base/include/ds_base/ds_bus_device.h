@@ -60,7 +60,7 @@ protected:
   /// machine (below)
   ///
   /// \param base
-  virtual void setupIoSM(){};
+  virtual void setupIoSM();
 
   /// @brief Handle bytes received from the bus
   ///
@@ -69,6 +69,35 @@ protected:
   ///
   /// \param bytes The raw data from the bus
   virtual void parseReceivedBytes(const ds_core_msgs::RawData& bytes){};
+
+
+  // Getters & setters
+  /// \brief Get access to the device UUID
+  const boost::uuids::uuid& Uuid() const;
+
+  /// \brief Get non-const access to the device UUID
+  boost::uuids::uuid& Uuid();
+
+  /// \brief Get access to the message timeout duration.  Useful when checking status
+  const ros::Duration& MessageTimeout() const;
+
+  /// \brief Get non-const access to the message timeout duration.
+  ros::Duration& MessageTimeout();
+
+  /// \brief Get the name of the node managing this bus
+  const std::string& BusNodeName() const ;
+
+  /// \brief Accessor for the bus topic subscriber
+  ros::Subscriber& Bus();
+
+  /// \brief Accessor for the publisher to publish preempt commands to the bus
+  ros::Publisher& PreemptCmd();
+
+  /// \brief Accessor for the publisher to update existing commands
+  ros::Publisher& UpdateCmd();
+
+  /// \brief Acessor for the service client for IoSM commands on the Bus node
+  ros::ServiceClient& IosmCmd();
 
 private:
   /// @brief Access the underlying pimpl pointer.

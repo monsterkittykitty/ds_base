@@ -12,6 +12,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 find_package(catkin REQUIRED COMPONENTS
   ds_asio
   std_msgs
+  ds_nav_msgs
 )
 
 ## System dependencies are found with CMake's conventions

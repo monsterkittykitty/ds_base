@@ -28,4 +28,10 @@ bool ControllerBase::enabled() const noexcept
   const DS_D(ControllerBase);
   return d->is_enabled_;
 }
+void ControllerBase::setupSubscriptions() {
+  DsProcess::setupSubscriptions();
+  DS_D(ControllerBase);
+  d->state_update_sub_ = nodeHandle()->subscribe("state_input", 1, &ControllerBase::stateUpdateCallback, this);
+  d->reference_update_sub_ = nodeHandle()->subscribe("reference_input", 1, &ControllerBase::referenceUpdateCallback, this);
+}
 }

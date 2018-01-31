@@ -15,7 +15,8 @@ struct ControllerBasePrivate
   ~ControllerBasePrivate() = default;
 
   bool is_enabled_;
-
+  ros::Subscriber state_update_sub_;
+  ros::Subscriber reference_update_sub_;
 };
 
 }

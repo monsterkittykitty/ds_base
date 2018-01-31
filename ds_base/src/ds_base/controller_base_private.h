@@ -15,6 +15,9 @@ struct ControllerBasePrivate
   ~ControllerBasePrivate() = default;
 
   bool is_enabled_;
+  ds_nav_msgs::AggregatedState last_reference_;
+  ds_nav_msgs::AggregatedState last_state_;
+
   ros::Subscriber state_update_sub_;
   ros::Subscriber reference_update_sub_;
 };

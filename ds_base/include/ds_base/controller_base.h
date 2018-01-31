@@ -50,17 +50,21 @@ class ControllerBase : public ds_base::DsProcess
   /// \return
   virtual bool enabled() const noexcept;
 
- protected:
-  void setupSubscriptions() override;
-  /// @brief  Callback fired upon receipt of new state messages
-  ///
-  /// \param msg
-  virtual void stateUpdateCallback(const ds_nav_msgs::AggregatedState& msg) = 0;
-
   /// @brief Callback fired upon receipt of new reference messages
   ///
   /// \param msg
-  virtual void referenceUpdateCallback(const ds_nav_msgs::AggregatedState& msg) = 0;
+  virtual void setReference(const ds_nav_msgs::AggregatedState &msg);
+  const ds_nav_msgs::AggregatedState& reference() const noexcept;
+
+  /// @brief  Callback fired upon receipt of new state messages
+  ///
+  /// \param msg
+  virtual void setState(const ds_nav_msgs::AggregatedState &msg);
+  const ds_nav_msgs::AggregatedState& state() const noexcept;
+
+
+ protected:
+  void setupSubscriptions() override;
 
  private:
   std::unique_ptr<ControllerBasePrivate> d_ptr_;

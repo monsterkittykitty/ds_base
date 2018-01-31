@@ -35,20 +35,28 @@ class ControllerBase : public ds_base::DsProcess
   /// @brief Enable controller output
   ///
   /// \param enabled
-  void setEnabled(bool enabled);
+  virtual void setEnabled(bool enabled);
 
   /// @brief Is controller output enabled?
   ///
   /// \return
-  bool enabled() const noexcept;
+  virtual bool enabled() const noexcept;
 
  protected:
 
-  /// @brief
+  /// @brief  Callback fired upon receipt of new nav data
+  ///
+  /// \param msg
   virtual void stateUpdateCallback(const ds_nav_msgs::AggregatedState& msg)
   {
   }
 
+  /// @brief Callback fired upon receipt of new reference data
+  ///
+  /// \param msg
+  virtual void referenceUpdateCallback(const ds_nav_msgs::AggregatedState& msg)
+  {
+  }
  private:
   std::unique_ptr<ControllerBasePrivate> d_ptr_;
 };

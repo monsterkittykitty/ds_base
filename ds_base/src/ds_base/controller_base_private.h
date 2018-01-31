@@ -8,6 +8,14 @@ namespace ds_base
 
 struct ControllerBasePrivate
 {
+  ControllerBasePrivate()
+      : is_enabled_(false)
+  {
+  }
+  ~ControllerBasePrivate() = default;
+
+  bool is_enabled_;
+
 };
 
 }

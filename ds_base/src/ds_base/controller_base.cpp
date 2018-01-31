@@ -17,4 +17,15 @@ ControllerBase::ControllerBase(int argc, char **argv, const std::string &name)
 
 ControllerBase::~ControllerBase() = default;
 
+void ControllerBase::setEnabled(bool enabled)
+{
+  DS_D(ControllerBase);
+  d->is_enabled_ = enabled;
+}
+
+bool ControllerBase::enabled() const noexcept
+{
+  const DS_D(ControllerBase);
+  return d->is_enabled_;
+}
 }

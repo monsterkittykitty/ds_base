@@ -43,11 +43,17 @@ class ParamConnectionPrivate {
       return;
     }
 
-    update_subtype<bool>(msg->bools);
-    update_subtype<int>(msg->ints);
-    update_subtype<float>(msg->floats);
-    update_subtype<double>(msg->doubles);
-    update_subtype<std::string>(msg->strings);
+    ParamConnection::ParamCollection updated;
+    update_subtype<bool>(msg->bools, updated);
+    update_subtype<int>(msg->ints, updated);
+    update_subtype<float>(msg->floats, updated);
+    update_subtype<double>(msg->doubles, updated);
+    update_subtype<std::string>(msg->strings, updated);
+
+    // (possibly) fire our callback
+    if (callback) {
+      callback(updated);
+    }
   }
 
   // this is a clever trick... since all the message fields have the
@@ -63,7 +69,7 @@ class ParamConnectionPrivate {
   // HOWEVER, we have no such luck for "T", because there's no way for the compiler to guess
   // what type you mean.  So you have to tell it.  Which is fine.
   template<typename T, typename MSG>
-  void update_subtype(const MSG& vec) {
+  void update_subtype(const MSG& vec, ParamConnection::ParamCollection& updated) {
 
     for (typename MSG::const_iterator iter = vec.begin(); iter != vec.end(); iter++) {
 
@@ -77,6 +83,7 @@ class ParamConnectionPrivate {
               "cast it to the requested type! Ignoring update...");
         } else {
           param->updateValue(iter->value);
+          updated.push_back(param_iter->second);
         }
 
       }
@@ -128,6 +135,8 @@ class ParamConnectionPrivate {
 
   std::string conn_name;
   std::map<std::string, std::shared_ptr<UpdatingParam> > params;
+
+  ParamConnection::Callback_t callback;
 
 };
 

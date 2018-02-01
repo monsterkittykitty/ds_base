@@ -60,6 +60,19 @@ class ParamConnection : public std::enable_shared_from_this<ParamConnection> {
   /// for debugging or console messages or something
   const std::string& connName() const;
 
+  /// \typedef A typedef for a collection of parameters.  If you use iterators and
+  /// this typedef you probably won't have to rework code even if we switch to lists
+  /// or certain other STL containers
+  typedef std::vector<std::shared_ptr<ds_param::UpdatingParam> >ParamCollection;
+
+  /// \typedef The callback type fired when a parameter is changed
+  typedef boost::function<void(ParamCollection&)> Callback_t;
+
+  /// \brief Set the "variable changed" callback
+  ///
+  /// \param _cb The callback function.  Should accept a ParamCollection as its only (visibile) parameter
+  void setCallback(const Callback_t& _cb);
+
  protected:
   std::shared_ptr<ParamConnectionPrivate> impl;
 };

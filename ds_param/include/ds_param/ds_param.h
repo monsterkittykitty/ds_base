@@ -10,6 +10,7 @@
 
 #include <ds_core_msgs/ParamUpdate.h>
 #include <ros/ros.h>
+#include <boost/optional.hpp>
 
 namespace ds_param {
 
@@ -17,6 +18,17 @@ namespace ds_param {
 class ParamConnection;
 class ParamConnectionPrivate;
 class UpdatingParamPrivate;
+
+enum UpdatingParamTypes {
+  PARAM_UNKNOWN=0,
+  PARAM_BOOL,
+  PARAM_INT,
+  PARAM_FLOAT,
+  PARAM_DOUBLE,
+  PARAM_STRING,
+  PARAM_ENUM,
+  PARAM_CUSTOM=1000 // probably never used
+};
 
 /// \brief The abstract base class for all our parameter types.
 ///
@@ -30,6 +42,9 @@ class UpdatingParam {
 
   /// \brief Get a string describing this type (also available in the YAML)
   virtual std::string Type() const = 0;
+
+  /// \brief Get a description of the type for easy switch statements
+  virtual UpdatingParamTypes TypeNum() const;
 
   /// \brief Get the fully-resolved ROS name for this type
   const std::string& Name() const;
@@ -48,6 +63,9 @@ class UpdatingParam {
   /// \return Wether this process advertises this variable or not
   bool Advertise() const;
   void setAdvertise(bool v);
+
+  bool operator==(const UpdatingParam& p) const;
+  bool operator!=(const UpdatingParam& p) const;
 
  protected:
   // only constructor is protected; as this class is pure-virtual,
@@ -79,16 +97,23 @@ class UpdatingParamT : public UpdatingParam {
   typedef std::shared_ptr<UpdatingParamT<T> > Ptr;
   typedef std::shared_ptr<const UpdatingParamT<T> > ConstPtr;
 
+  /// \brief Get the current value of this parameter
   const T& Get() const;
+
+  /// \brief Set the value of this parameter and tell the world
   void Set(const T& _v);
+
+  /// \brief Get the previous value this parameter had.
+  ///
+  /// \return The previous value this parameter had, or no value if no previous values have been observed
+  const boost::optional<T>& GetPrevious() const;
 
   virtual std::string YamlDescription() const override;
   virtual std::string Type() const;
+  virtual UpdatingParamTypes TypeNum() const;
 
   virtual void loadFromServer();
   virtual void fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const;
-
-  // TODO: Add callback-on-change
 
  protected:
   void setOnServer();
@@ -119,15 +144,21 @@ class UpdatingParamEnum : public UpdatingParamT<int> {
 
   // getters, setters, type, etc are all inherited
   virtual std::string YamlDescription() const override;
+  virtual std::string Type() const;
+  virtual UpdatingParamTypes TypeNum() const;
 
   void addNamedValue(const std::pair<std::string, int>& value);
   void addNamedValue(const std::string& name, int value);
   const std::vector<std::pair<std::string, int> >& getNamedValues() const;
   std::vector<std::pair<std::string, int> >& getNamedValues();
 
+
   std::string getValueByName() const;
   void setValueByName(const std::string& name);
   bool hasNamedValue(const std::string& name) const;
+
+  typedef boost::function<void (const UpdatingParamEnum& param)> Callback;
+  void setCallback(const Callback& _cb);
 
  protected:
   friend ParamConnectionPrivate;  // need to use updateValue

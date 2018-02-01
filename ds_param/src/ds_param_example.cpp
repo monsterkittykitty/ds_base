@@ -4,6 +4,7 @@
 
 #include "ds_param/ds_param_conn.h"
 
+#include <boost/optional/optional_io.hpp>
 
 class ParamDemo {
 
@@ -41,15 +42,38 @@ class ParamDemo {
     other_int->Set(idx);
     other_str->Set(ss.str());
 
+    std::string old_str;
+    if (param_int->GetPrevious()) {
+      old_str = std::to_string(param_int->GetPrevious().get());
+    } else {
+      old_str = "NOT SET";
+    }
+
     ROS_ERROR_STREAM(ros::this_node::getName()
 
                          <<": " <<"MY param: " << param_int->Get()
-                         <<" --> \"" <<param_str->Get() <<"\""
+                         <<" --> \"" <<param_str->Get() <<"\" (was " <<old_str <<")"
 
                          <<"    OTHER param: " << other_int->Get()
                          <<" --> \"" <<other_str->Get() <<"\"");
     idx++;
 
+  }
+
+
+
+  // Setup the callback demos
+  void setupCallback() {
+    conn->setCallback(boost::bind(&ParamDemo::_change_callback, this, _1));
+  }
+
+  void _change_callback(const ds_param::ParamConnection::ParamCollection& params) {
+    for (auto iter=params.begin(); iter != params.end(); iter++) {
+      if (*iter == param_int) {
+        ROS_ERROR_STREAM("\t\t\tPARAM INT Changed from \"" <<param_int->GetPrevious()
+                                                           <<"\" to \"" <<param_int->Get() <<"\"");
+      }
+    }
   }
 
  protected:
@@ -80,6 +104,17 @@ int main(int argc, char* argv[]) {
 
   ros::Timer timer = nh.createTimer(ros::Duration(3.0),
                               boost::bind(&ParamDemo::_callback, &demo, _1), false);
+
+  bool use_callback;
+  if (!nh.getParam(ros::this_node::getName() + "/use_callback", use_callback)) {
+    ROS_FATAL_STREAM("No variable for use_callback!");
+    return -1;
+  }
+
+  if (use_callback) {
+    demo.setupCallback();
+  }
+
 
   // spins until shut down
   while (ros::ok()) {

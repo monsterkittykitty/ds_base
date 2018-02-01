@@ -62,6 +62,10 @@ const std::string& ParamConnection::connName() const {
   return impl->conn_name;
 };
 
+void ParamConnection::setCallback(const Callback_t& _cb) {
+  impl->callback = _cb;
+}
+
 // explicit instantiations-- this basically fills in the template during the build so that
 // the necessary implementation ends up in hte library
 template typename BoolParam::Ptr   ParamConnection::connect<BoolParam  >(const std::string &param_name, bool advertise);

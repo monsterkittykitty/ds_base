@@ -6,6 +6,7 @@
     <param name="test_str_param" type="str" value="DEFAULT_1"/>
     <param name="other_node" type="str" value="shared_param_2"/>
     <param name="start_idx" type="int" value="100"/>
+    <param name="use_callback" type="bool" value="true"/>
   </node>
   <node name="shared_param_2" pkg="ds_param" type="ds_param_example">
     <param name="test_enum_param" type="int" value="0"/>
@@ -13,5 +14,6 @@
     <param name="test_str_param" type="str" value="DEFAULT_2"/>
     <param name="other_node" type="str" value="shared_param_1"/>
     <param name="start_idx" type="int" value="200"/>
+    <param name="use_callback" type="bool" value="false"/>
   </node>
 </launch>

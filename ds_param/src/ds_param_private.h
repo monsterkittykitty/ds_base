@@ -39,6 +39,8 @@ class UpdatingParamTPrivate : public UpdatingParamPrivate {
 
   typedef T ValueType;
   T value;
+  boost::optional<T> prev_value;
+
 
   UpdatingParamTPrivate(const std::shared_ptr<ParamConnectionPrivate>& _c, const std::string& _n, bool _a)
       : UpdatingParamPrivate(_c, _n, _a) {}

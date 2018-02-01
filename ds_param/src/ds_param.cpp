@@ -25,7 +25,11 @@ std::string UpdatingParam::YamlDescription() const {
   return "{ " + Name() + " : UNKNOWN }";
 }
 
-const std::string &UpdatingParam::Name() const {
+UpdatingParamTypes UpdatingParam::TypeNum() const {
+  return PARAM_UNKNOWN;
+}
+
+const std::string& UpdatingParam::Name() const {
   return d_func()->name;
 }
 
@@ -35,6 +39,13 @@ bool UpdatingParam::Advertise() const {
 
 void UpdatingParam::setAdvertise(bool v) {
   d_func()->advertise_flag = v;
+}
+
+bool UpdatingParam::operator==(const UpdatingParam& other) const {
+  return d_ptr_->name == other.d_ptr_->name;
+}
+bool UpdatingParam::operator!=(const UpdatingParam& other) const {
+  return d_ptr_->name != other.d_ptr_->name;
 }
 
 inline auto UpdatingParam::d_func() noexcept -> UpdatingParamPrivate* {
@@ -73,11 +84,12 @@ const T &UpdatingParamT<T>::Get() const {
 
 template<typename T>
 void UpdatingParamT<T>::Set(const T &_v) {
-
   PT_D;
 
   // First, update our local copy
+  d->prev_value = d->value;
   d->value = _v;
+
 
   // Now the parameter server
   setOnServer();
@@ -87,11 +99,18 @@ void UpdatingParamT<T>::Set(const T &_v) {
 }
 
 template<typename T>
+const boost::optional<T>& UpdatingParamT<T>::GetPrevious() const {
+  PT_D;
+  return d->prev_value;
+};
+
+template<typename T>
 void UpdatingParamT<T>::updateValue(const T& _v) {
   PT_D;
+  d->prev_value = d->value;
   d->value = _v;
 
-  // The public should use use.  They want set.  Because it propagates changes
+  // The public should use use set.  They want set.  Because it propagates changes
   // and stuff.
   //
   // HOWEVER, when we get a change from the outside, we want to use
@@ -139,8 +158,18 @@ std::string UpdatingParamT<std::string>::Type() const {
 }
 
 template<>
+UpdatingParamTypes UpdatingParamT<std::string>::TypeNum() const {
+  return PARAM_STRING;
+}
+
+template<>
 std::string UpdatingParamT<int>::Type() const {
   return "int";
+}
+
+template<>
+UpdatingParamTypes UpdatingParamT<int>::TypeNum() const {
+  return PARAM_INT;
 }
 
 template<>
@@ -149,13 +178,28 @@ std::string UpdatingParamT<double>::Type() const {
 }
 
 template<>
+UpdatingParamTypes UpdatingParamT<double>::TypeNum() const {
+  return PARAM_DOUBLE;
+}
+
+template<>
 std::string UpdatingParamT<float>::Type() const {
   return "float";
 }
 
 template<>
+UpdatingParamTypes UpdatingParamT<float>::TypeNum() const {
+  return PARAM_FLOAT;
+}
+
+template<>
 std::string UpdatingParamT<bool>::Type() const {
   return "bool";
+}
+
+template<>
+UpdatingParamTypes UpdatingParamT<bool>::TypeNum() const {
+  return PARAM_BOOL;
 }
 
 
@@ -292,6 +336,14 @@ bool UpdatingParamEnum::hasNamedValue(const std::string& name) const {
     }
   }
   return false;
+}
+
+std::string UpdatingParamEnum::Type() const {
+  return "enum";
+}
+
+UpdatingParamTypes UpdatingParamEnum::TypeNum() const {
+  return PARAM_ENUM;
 }
 
 inline auto UpdatingParamEnum::d_func() noexcept -> UpdatingParamEnumPrivate* {

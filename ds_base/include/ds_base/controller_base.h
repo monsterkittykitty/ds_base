@@ -9,6 +9,14 @@ namespace ds_base
 
 struct ControllerBasePrivate;
 
+/// @brief Base class for controllers.
+///
+/// # Topics
+///
+/// `ControllerBase` automatically subscribes to the following topics:
+///
+///   - `state_input`     (`ds_nav_msgs::AggregatedState`):  State update messages
+///   - `reference_input` (`ds_nav_msgs::AggregatedState`):  Reference update messages
 class ControllerBase : public ds_base::DsProcess
 {
   DS_DECLARE_PRIVATE(ControllerBase)
@@ -35,19 +43,28 @@ class ControllerBase : public ds_base::DsProcess
   /// @brief Enable controller output
   ///
   /// \param enabled
-  void setEnabled(bool enabled);
+  virtual void setEnabled(bool enabled);
 
   /// @brief Is controller output enabled?
   ///
   /// \return
-  bool enabled() const noexcept;
+  virtual bool enabled() const noexcept;
+
+  /// @brief Callback fired upon receipt of new reference messages
+  ///
+  /// \param msg
+  virtual void setReference(const ds_nav_msgs::AggregatedState &msg);
+  const ds_nav_msgs::AggregatedState& reference() const noexcept;
+
+  /// @brief  Callback fired upon receipt of new state messages
+  ///
+  /// \param msg
+  virtual void setState(const ds_nav_msgs::AggregatedState &msg);
+  const ds_nav_msgs::AggregatedState& state() const noexcept;
+
 
  protected:
-
-  /// @brief
-  virtual void stateUpdateCallback(const ds_nav_msgs::AggregatedState& msg)
-  {
-  }
+  void setupSubscriptions() override;
 
  private:
   std::unique_ptr<ControllerBasePrivate> d_ptr_;

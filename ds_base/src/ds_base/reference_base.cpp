@@ -33,7 +33,8 @@ void ReferenceBase::publishReference(const ds_nav_msgs::AggregatedState &referen
 void ReferenceBase::setupPublishers() {
   DsProcess::setupPublishers();
   DS_D(ReferenceBase);
-  d->ref_pub_ = nodeHandle()->advertise<ds_nav_msgs::AggregatedState>("reference_out", 10, false);
+  const auto output_topic = ros::param::param<std::string>("~reference_output_topic", "reference_out");
+  d->ref_pub_ = nodeHandle()->advertise<ds_nav_msgs::AggregatedState>(output_topic, 10, false);
 }
 void ReferenceBase::setEnabled(bool enabled)
 {

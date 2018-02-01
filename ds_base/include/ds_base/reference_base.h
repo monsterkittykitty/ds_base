@@ -17,6 +17,19 @@ struct ReferenceBasePrivate;
 ///
 /// Reference generators produce the "desired state" portion of
 /// the equation
+///
+/// # Parameters
+///
+/// In addition to the parameters used in DsProcess, ReferenceBase looks
+/// for the following:
+///
+/// - `~reference_output_topic`   Default: "reference_out".
+///   Reference messages are published on this topic.
+///
+/// # Published topics
+///
+/// - "reference_out" (ds_nav_msgs::AggregatedState)
+///   Can be changed using the `~reference_output_topic` parameter
 class ReferenceBase: public DsProcess
 {
   DS_DECLARE_PRIVATE(ReferenceBase);
@@ -51,7 +64,7 @@ class ReferenceBase: public DsProcess
   /// @brief Get the active state of the reference.
   ///
   /// \return
-  bool enabled() const noexcept;
+  virtual bool enabled() const noexcept;
 
   /// @brief Publish a new reference state
   ///

@@ -93,6 +93,11 @@ add_library(${PROJECT_NAME}
   src/ds_base/controller_base.cpp
   src/ds_base/controller_base_private.h
   # src/sensor_base_private.cpp
+
+  include/ds_base/reference_base.h
+  src/ds_base/reference_base.cpp
+  src/ds_base/reference_base_private.h
+  # src/sensor_base_private.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

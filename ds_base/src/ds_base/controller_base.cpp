@@ -51,7 +51,10 @@ void ControllerBase::setState(const ds_nav_msgs::AggregatedState &msg) {
 void ControllerBase::setupSubscriptions() {
   DsProcess::setupSubscriptions();
   DS_D(ControllerBase);
-  d->state_update_sub_ = nodeHandle()->subscribe("state_input", 1, &ControllerBase::setState, this);
-  d->reference_update_sub_ = nodeHandle()->subscribe("reference_input", 1, &ControllerBase::setReference, this);
+  const auto state_input_topic = ros::param::param<std::string>("~state_input_topic", "estimated_state");
+  const auto ref_input_topic = ros::param::param<std::string>("~reference_input_topic", "reference_state");
+
+  d->state_update_sub_ = nodeHandle()->subscribe(state_input_topic, 1, &ControllerBase::setState, this);
+  d->reference_update_sub_ = nodeHandle()->subscribe(ref_input_topic, 1, &ControllerBase::setReference, this);
 }
 }

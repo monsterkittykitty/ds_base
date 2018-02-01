@@ -11,6 +11,13 @@ struct ControllerBasePrivate;
 
 /// @brief Base class for controllers.
 ///
+/// # Parameters
+///
+/// `ControllerBase` looks for the following parameters:
+///
+///   `~state_input_topic`  defaults to `state_input`
+///   `~reference_input_topic` defaults to `reference_input`
+///
 /// # Topics
 ///
 /// `ControllerBase` automatically subscribes to the following topics:

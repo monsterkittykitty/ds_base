@@ -23,12 +23,12 @@ struct ReferenceBasePrivate;
 /// In addition to the parameters used in DsProcess, ReferenceBase looks
 /// for the following:
 ///
-/// - `~reference_output_topic`   Default: "reference_out".
+/// - `~reference_output_topic`   Default: "reference_state".
 ///   Reference messages are published on this topic.
 ///
 /// # Published topics
 ///
-/// - "reference_out" (ds_nav_msgs::AggregatedState)
+/// - "reference_state" (ds_nav_msgs::AggregatedState)
 ///   Can be changed using the `~reference_output_topic` parameter
 class ReferenceBase: public DsProcess
 {

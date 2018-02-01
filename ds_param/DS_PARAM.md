@@ -178,7 +178,8 @@ Check out the example node `ds_param_example.cpp` as used by `test.launch`.
 
 ## Example YAML (SUPER-initial version):
 
-Formatting slightly altered to fit in document.  This is generated programmatically for a reason.
+Formatting slightly altered to fit in document.  This is generated programmatically for a reason.  It was tested and 
+parses in python-yaml.
 
 ```yaml
 node:

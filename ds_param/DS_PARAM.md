@@ -52,7 +52,7 @@ and parameter updates for ```ds_param```.  The connection is created as follows:
 // down in some function somewhere:
 
 ros::NodeHandle handle; // probably created elsewhere, MUST not be private
-ds_param::ParamConnection conn = ds_param::ParamConnection::create(handle);
+ds_param::ParamConnection::Ptr conn = ds_param::ParamConnection::create(handle);
 ```
 
 Individual variables are then accessed using the templated ```connect``` method as, for example:

@@ -1,5 +1,6 @@
 #include "ds_base/controller_base.h"
 #include "controller_base_private.h"
+#include "../../../ds_param/include/ds_param/ds_param_conn.h"
 
 namespace ds_base
 {
@@ -54,7 +55,30 @@ void ControllerBase::setupSubscriptions() {
   const auto state_input_topic = ros::param::param<std::string>("~state_input_topic", "estimated_state");
   const auto ref_input_topic = ros::param::param<std::string>("~reference_input_topic", "reference_state");
 
-  d->state_update_sub_ = nodeHandle()->subscribe(state_input_topic, 1, &ControllerBase::setState, this);
-  d->reference_update_sub_ = nodeHandle()->subscribe(ref_input_topic, 1, &ControllerBase::setReference, this);
+  auto nh = nodeHandle();
+  d->state_update_sub_ = nh->subscribe(state_input_topic, 1, &ControllerBase::setState, this);
+  d->reference_update_sub_ = nh->subscribe(ref_input_topic, 1, &ControllerBase::setReference, this);
+
+  d->param_sub_ = ds_param::ParamConnection::create(*nh);
+  d->active_controller_ = d->param_sub_->connect<ds_param::IntParam>("active_controller");
+  d->param_sub_->setCallback(boost::bind(&ControllerBase::parameterSubscriptionCallback, this, _1));
+}
+void ControllerBase::setup() {
+  DsProcess::setup();
+  DS_D(ControllerBase);
+  setEnabled(d->active_controller_->Get() == type());
+}
+
+void ControllerBase::parameterSubscriptionCallback(const ds_param::ParamConnection::ParamCollection &params)
+{
+
+  DS_D(ControllerBase);
+  for(auto it=std::begin(params); it != std::end(params); ++it)
+  {
+    if (*it == d->active_controller_) {
+      setEnabled(d->active_controller_->Get() == type());
+      break;
+    }
+  }
 }
 }

@@ -3,6 +3,7 @@
 
 #include "ds_base/ds_process.h"
 #include "ds_nav_msgs/AggregatedState.h"
+#include "ds_param/ds_param_conn.h"
 
 namespace ds_base
 {
@@ -17,6 +18,13 @@ struct ControllerBasePrivate;
 ///
 ///   `~state_input_topic`  defaults to `state_input`
 ///   `~reference_input_topic` defaults to `reference_input`
+///
+/// # Parameter Subscriptions
+///
+/// References all monitor the *namespace* integer parameter `active_reference`.
+/// When this parameter changes the new value is checked against the value
+/// returned by the `type()` method.  The controller is enabled if they match,
+/// disabled if they don't.
 ///
 /// # Topics
 ///
@@ -47,6 +55,16 @@ class ControllerBase : public ds_base::DsProcess
 
   DS_DISABLE_COPY(ControllerBase);
 
+  /// @brief Unique type ID for this controller
+  ///
+  /// The type ID is used for two reasons:
+  ///
+  ///   - Eases downcasting a base class to the derived class
+  ///   - Enables context switching using a ds_param subscription
+  ///
+  /// \return
+  virtual uint64_t type() const noexcept = 0;
+
   /// @brief Enable controller output
   ///
   /// \param enabled
@@ -69,9 +87,17 @@ class ControllerBase : public ds_base::DsProcess
   virtual void setState(const ds_nav_msgs::AggregatedState &msg);
   const ds_nav_msgs::AggregatedState& state() const noexcept;
 
-
+  void setup() override;
  protected:
   void setupSubscriptions() override;
+
+  /// @brief Callback triggered by updates to subscribed parameters.
+  ///
+  /// The default behavior enables/disables the reference based on the value
+  /// of the `active_reference` parameter
+  ///
+  /// \param params
+  virtual void parameterSubscriptionCallback(const ds_param::ParamConnection::ParamCollection& params);
 
  private:
   std::unique_ptr<ControllerBasePrivate> d_ptr_;

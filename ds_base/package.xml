@@ -55,6 +55,10 @@
   <build_export_depend>ds_asio</build_export_depend>
   <exec_depend>ds_asio</exec_depend>
 
+  <build_depend>ds_param</build_depend>
+  <build_export_depend>ds_param</build_export_depend>
+  <exec_depend>ds_param</exec_depend>
+
   <build_depend>ds_core_msgs</build_depend>
   <build_export_depend>ds_core_msgs</build_export_depend>
 

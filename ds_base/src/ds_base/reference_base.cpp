@@ -46,4 +46,33 @@ bool ReferenceBase::enabled() const noexcept {
   const DS_D(ReferenceBase);
   return d->is_enabled_;
 }
+
+void ReferenceBase::setupSubscriptions() {
+  DsProcess::setupSubscriptions();
+  auto nh = nodeHandle();
+  DS_D(ReferenceBase);
+  d->param_sub_ = ds_param::ParamConnection::create(*nh);
+  d->active_reference_ = d->param_sub_->connect<ds_param::IntParam>("active_reference");
+  d->param_sub_->setCallback(boost::bind(&ReferenceBase::parameterSubscriptionCallback, this, _1));
+}
+
+void ReferenceBase::setup() {
+  DsProcess::setup();
+  DS_D(ReferenceBase);
+  setEnabled(d->active_reference_->Get() == type());
+}
+
+void ReferenceBase::parameterSubscriptionCallback(const ds_param::ParamConnection::ParamCollection &params)
+{
+
+  DS_D(ReferenceBase);
+  for(auto it=std::begin(params); it != std::end(params); ++it)
+  {
+    if (*it == d->active_reference_) {
+      setEnabled(d->active_reference_->Get() == type());
+      break;
+    }
+  }
+}
+
 }

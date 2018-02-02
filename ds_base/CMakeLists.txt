@@ -11,6 +11,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   ds_asio
+  ds_param
   std_msgs
   ds_nav_msgs
 )
@@ -49,7 +50,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ds_base
-  CATKIN_DEPENDS ds_asio
+  CATKIN_DEPENDS ds_asio ds_param
   # DEPENDS Boost
 )
 

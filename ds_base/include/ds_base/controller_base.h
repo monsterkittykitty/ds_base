@@ -77,14 +77,32 @@ class ControllerBase : public ds_base::DsProcess
 
   /// @brief Callback fired upon receipt of new reference messages
   ///
+  /// Default implementation stores the reference message, and can be
+  /// retrieved using the `reference()` method
+  ///
   /// \param msg
   virtual void setReference(const ds_nav_msgs::AggregatedState &msg);
+
+  /// @breif Retrieve the last recorded reference message.
+  ///
+  /// Returns the last reference message stored using `setReference()`
+  ///
+  /// \return
   const ds_nav_msgs::AggregatedState& reference() const noexcept;
 
   /// @brief  Callback fired upon receipt of new state messages
   ///
+  /// Default implementation stores the state message, and can be
+  /// retrieved using the `state()` method
+  ///
   /// \param msg
   virtual void setState(const ds_nav_msgs::AggregatedState &msg);
+
+  /// @breif Retrieve the last recorded state message.
+  ///
+  /// Returns the last state message stored using `setState()`
+  ///
+  /// \return
   const ds_nav_msgs::AggregatedState& state() const noexcept;
 
   void setup() override;

@@ -127,6 +127,9 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/thruster.h
   src/${PROJECT_NAME}/thruster.cpp
+
+  include/${PROJECT_NAME}/angle.h
+  src/${PROJECT_NAME}/angle.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -205,6 +208,8 @@ install(DIRECTORY include/${PROJECT_NAME}/
 catkin_add_gtest(test_fofonoff_depth src/test/test_fofonoff_depth.cpp)
 target_link_libraries(test_fofonoff_depth ${PROJECT_NAME})
 
+catkin_add_gtest(test_angle src/test/test_angle.cpp)
+target_link_libraries(test_angle ${PROJECT_NAME})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

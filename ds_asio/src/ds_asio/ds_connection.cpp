@@ -4,12 +4,10 @@ namespace ds_asio
 {
 DsConnection::DsConnection(boost::asio::io_service& _io) : io_service_(_io)
 {
-  nh_ = nullptr;
 }
 
-DsConnection::DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback,
-                           ros::NodeHandle* myNh)
-  : io_service_(_io), name_(name), callback_(callback), nh_(myNh)
+DsConnection::DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback)
+  : io_service_(_io), name_(name), callback_(callback)
 {
   // do nothing else
 }

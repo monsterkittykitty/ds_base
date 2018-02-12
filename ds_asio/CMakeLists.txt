@@ -158,13 +158,13 @@ add_library(${PROJECT_NAME}
   include/${PROJECT_NAME}/ds_connection_factory.h
   src/${PROJECT_NAME}/ds_connection_factory.cpp
 
-  include/${PROJECT_NAME}/ds_nodehandle.h
-  src/${PROJECT_NAME}/ds_nodehandle.cpp
+  # include/${PROJECT_NAME}/ds_nodehandle.h
+  # src/${PROJECT_NAME}/ds_nodehandle.cpp
 
-        src/${PROJECT_NAME}/ds_iosm.cpp
-        include/${PROJECT_NAME}/ds_iosm.h
-        src/${PROJECT_NAME}/ds_iosm_private.h
-        include/ds_asio/ds_mock_connection.h src/ds_asio/ds_mock_connection.cpp)
+  src/${PROJECT_NAME}/ds_iosm.cpp
+  include/${PROJECT_NAME}/ds_iosm.h
+  src/${PROJECT_NAME}/ds_iosm_private.h
+  include/ds_asio/ds_mock_connection.h src/ds_asio/ds_mock_connection.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

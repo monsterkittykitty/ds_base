@@ -4,7 +4,7 @@
 namespace ds_asio
 {
 boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, const ReadCallback& callback,
-                                                      DsNodeHandle& myNh)
+                                                      ros::NodeHandle& myNh)
 {
   if (connections.find(name) != connections.end())
   {
@@ -19,7 +19,7 @@ boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, const Re
 }
 
 boost::shared_ptr<IoSM> DsAsio::addIoSM(std::string iosm_name, std::string conn_name, const ReadCallback& callback,
-                                        DsNodeHandle& myNh)
+                                        ros::NodeHandle& myNh)
 {
   boost::shared_ptr<DsConnection> conn = addConnection(conn_name, ReadCallback(), myNh);
   boost::shared_ptr<IoSM> ret(new IoSM(io_service, iosm_name, callback));
@@ -43,7 +43,7 @@ boost::shared_ptr<DsConnection> DsAsio::connection(const std::string& name)
 }
 
 std::map<std::string, boost::shared_ptr<DsConnection> >
-DsAsio::startConnections(DsNodeHandle& myNh, std::map<std::string, ReadCallback> mapping)
+DsAsio::startConnections(ros::NodeHandle& myNh, std::map<std::string, ReadCallback> mapping)
 {
   std::map<std::string, boost::shared_ptr<DsConnection> > handle;
 
@@ -76,7 +76,20 @@ void DsAsio::signalHandler(const boost::system::error_code& error, int signal_nu
   }
 }
 
-DsAsio::DsAsio() = default;
+DsCallbackQueue *DsAsio::dsCallbackQueue()
+{
+  return callback_queue_.get();
+}
+
+ros::CallbackQueueInterface *DsAsio::callbackQueue() {
+  return static_cast<ros::CallbackQueueInterface *>(dsCallbackQueue());
+}
+
+DsAsio::DsAsio()
+  : callback_queue_(std::unique_ptr<DsCallbackQueue>(new DsCallbackQueue(&io_service)))
+{
+
+}
 
 DsAsio::DsAsio(int argc, char** argv, const std::string& name) : DsAsio()
 {
@@ -85,6 +98,8 @@ DsAsio::DsAsio(int argc, char** argv, const std::string& name) : DsAsio()
   ROS_INFO_STREAM(ros::this_node::getName());
   ROS_INFO_STREAM(ros::this_node::getNamespace());
 }
+
+DsAsio::~DsAsio() = default;
 
 void DsAsio::run(void)
 {
@@ -95,7 +110,4 @@ void DsAsio::run(void)
   io_service.run();
 }
 
-DsAsio::~DsAsio()
-{
-}
 }

@@ -2,22 +2,22 @@
 
 namespace ds_asio
 {
-DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh)
-  : DsConnection(io_service, name, callback, myNh)
+DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle& myNh)
+  : DsConnection(io_service, name, callback)
 {
-  setup();
+  setup(myNh);
   receive();
 }
 
-void DsUdp::setup(void)
+void DsUdp::setup(ros::NodeHandle& nh)
 {
   int udp_rx;
-  if (nh_->hasParam(ros::this_node::getName() + "/" + name_ + "/udp_rx"))
+  if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/udp_rx"))
   {
     ROS_INFO_STREAM("udp_rx exists");
-    nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/udp_rx", udp_rx, 44444);
+    nh.param<int>(ros::this_node::getName() + "/" + name_ + "/udp_rx", udp_rx, 44444);
     ROS_INFO_STREAM(udp_rx);
-    socket_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx));
+    socket_ = std::unique_ptr<udp::socket>(new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx)));
   }
   else
   {
@@ -26,10 +26,10 @@ void DsUdp::setup(void)
   }
 
   int udp_tx;
-  if (nh_->hasParam(ros::this_node::getName() + "/" + name_ + "/udp_tx"))
+  if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/udp_tx"))
   {
     ROS_INFO_STREAM("udp_tx exists");
-    nh_->getParam(ros::this_node::getName() + "/" + name_ + "/udp_tx", udp_tx);
+    nh.getParam(ros::this_node::getName() + "/" + name_ + "/udp_tx", udp_tx);
     ROS_INFO_STREAM(udp_tx);
   }
   else
@@ -39,10 +39,10 @@ void DsUdp::setup(void)
   }
 
   std::string udp_address;
-  if (nh_->hasParam(ros::this_node::getName() + "/" + name_ + "/udp_address"))
+  if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/udp_address"))
   {
     ROS_INFO_STREAM("udp_address exists");
-    nh_->getParam(ros::this_node::getName() + "/" + name_ + "/udp_address", udp_address);
+    nh.getParam(ros::this_node::getName() + "/" + name_ + "/udp_address", udp_address);
     ROS_INFO_STREAM(udp_address);
   }
   else
@@ -54,7 +54,7 @@ void DsUdp::setup(void)
   remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
 
   // The /raw channel should be appended to the nodehandle namespace
-  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
+  raw_publisher_ = nh.advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
 }
 
 void DsUdp::receive(void)

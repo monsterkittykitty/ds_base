@@ -19,13 +19,13 @@ namespace ds_asio
 class DsSerial : public DsConnection
 {
 public:
-  DsSerial(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh);
+  DsSerial(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle& myNh);
 
-  virtual void receive(void);
+  void receive(void) override;
 
-  virtual void send(boost::shared_ptr<std::string> message);
+  void send(boost::shared_ptr<std::string> message) override;
 
-  void setup(void);
+  void setup(ros::NodeHandle& nh) override;
 
   boost::asio::serial_port& get_io_object(void);
 

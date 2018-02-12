@@ -3,7 +3,6 @@
 
 #include "ds_base/ds_global.h"
 #include "ds_asio/ds_asio.h"
-#include "ds_asio/ds_nodehandle.h"
 #include "ds_core_msgs/Status.h"
 
 #include <ros/ros.h>
@@ -74,7 +73,7 @@ public:
   ///
   /// @return A pointer to the protected DsNodeHandle instance. If the DsNodeHandle does not already exist,
   /// it in instantiated here
-  ds_asio::DsNodeHandle* nodeHandle();
+  ros::NodeHandle nodeHandle(const std::string& ns="");
 
   /// @brief Run the owned asio io_service event loop.
   ///

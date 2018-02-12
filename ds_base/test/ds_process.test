@@ -1,0 +1,3 @@
+<launch>
+    <test test-name="ds_process" pkg="ds_base" type="test_ds_process"/>
+</launch>

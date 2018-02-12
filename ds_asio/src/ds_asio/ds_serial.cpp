@@ -5,43 +5,43 @@
 namespace ds_asio
 {
 DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback,
-                   ros::NodeHandle* myNh)
-  : DsConnection(io_service, name, callback, myNh), num_read_error_(0)
+                   ros::NodeHandle& myNh)
+  : DsConnection(io_service, name, callback), num_read_error_(0)
 {
-  setup();
+  setup(myNh);
   receive();
 
   // The read error retry timer just calls receive again.
   auto retry_timer_callback = [](DsSerial* base, const ros::TimerEvent& event) { base->receive(); };
 
   read_error_retry_timer_ =
-      nh_->createTimer(ros::Duration(1), boost::bind<void>(retry_timer_callback, this, _1), true, false);
+      myNh.createTimer(ros::Duration(1), boost::bind<void>(retry_timer_callback, this, _1), true, false);
 
   ROS_ASSERT(read_error_retry_timer_.isValid());
 }
 
-void DsSerial::setup(void)
+void DsSerial::setup(ros::NodeHandle& nh)
 {
   std::string port_name;
-  nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/port", port_name, "/dev/ttyUSB0");
+  nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/port", port_name, "/dev/ttyUSB0");
   ROS_INFO_STREAM("Serial port: " << port_name);
 
   int baud_rate;
-  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/baud", baud_rate, 9600);
+  nh.param<int>(ros::this_node::getName() + "/" + name_ + "/baud", baud_rate, 9600);
   ROS_INFO_STREAM("Baud rate: " << baud_rate);
 
   int data_bits;
-  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/data_bits", data_bits, 8);
+  nh.param<int>(ros::this_node::getName() + "/" + name_ + "/data_bits", data_bits, 8);
   ROS_INFO_STREAM("Data bits: " << data_bits);
 
   std::string myMatch;
-  nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/matcher", myMatch, "match_char");
+  nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/matcher", myMatch, "match_char");
   ROS_INFO_STREAM("Matcher: " << myMatch);
   if (!myMatch.compare("match_char"))
   {
     // char delimiter;
     std::string hexAscii;
-    nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/delimiter", hexAscii, "0A");
+    nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/delimiter", hexAscii, "0A");
     uint8_t delimiter;
     if (!sscanf(hexAscii.c_str(), "%hhX", &delimiter))
     {
@@ -54,9 +54,9 @@ void DsSerial::setup(void)
   else if (!myMatch.compare("match_header_length"))
   {
     int length;
-    nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/length", length, 833);
+    nh.param<int>(ros::this_node::getName() + "/" + name_ + "/length", length, 833);
     std::string hexAscii;
-    nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/header", hexAscii, "7F7F");
+    nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/header", hexAscii, "7F7F");
     std::vector<unsigned char> myHeader;
     for (int i = 0; i < hexAscii.length(); i += 2)
     {
@@ -69,11 +69,11 @@ void DsSerial::setup(void)
   }
 
   std::string myParity;
-  nh_->param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");
+  nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");
   ROS_INFO_STREAM("Parity: " << myParity);
 
   int myStopbits;
-  nh_->param<int>(ros::this_node::getName() + "/" + name_ + "/stop_bits", myStopbits, 1);
+  nh.param<int>(ros::this_node::getName() + "/" + name_ + "/stop_bits", myStopbits, 1);
   ROS_INFO_STREAM("Stop Bits: " << myStopbits);
 
   ROS_INFO_STREAM("Opening serial port in raw mode.");
@@ -127,7 +127,7 @@ void DsSerial::setup(void)
   port_->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
   // The /raw channel should be appended to the nodehandle namespace
-  raw_publisher_ = nh_->advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
+  raw_publisher_ = nh.advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
 }
 
 void DsSerial::receive(void)

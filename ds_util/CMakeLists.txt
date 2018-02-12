@@ -214,5 +214,8 @@ target_link_libraries(test_fofonoff_depth ${PROJECT_NAME})
 catkin_add_gtest(test_angle src/test/test_angle.cpp)
 target_link_libraries(test_angle ${PROJECT_NAME})
 
+catkin_add_gtest(test_reference_smoothing src/test/test_reference_smoothing.cpp)
+target_link_libraries(test_reference_smoothing ${PROJECT_NAME})
+
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

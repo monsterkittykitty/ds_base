@@ -93,13 +93,25 @@ TEST(AngularSeperation, expectedValues)
   // Angle separations are in the interval (-pi, pi]
   from = 0;
   to = 180;
-  expected = -180;
+  expected = 180;
   result = ds_util::angular_separation_radians(from * M_PI/180, to * M_PI/180);
   EXPECT_NEAR(expected, result * 180 / M_PI, 0.1);
 
   from = 180;
   to = 0;
-  expected = 180;
+  expected = -180;
+  result = ds_util::angular_separation_radians(from * M_PI/180, to * M_PI/180);
+  EXPECT_NEAR(expected, result * 180 / M_PI, 0.1);
+
+  from = 185;
+  to = 180;
+  expected = -5;
+  result = ds_util::angular_separation_radians(from * M_PI/180, to * M_PI/180);
+  EXPECT_NEAR(expected, result * 180 / M_PI, 0.1);
+
+  from = 175;
+  to = 180;
+  expected = 5;
   result = ds_util::angular_separation_radians(from * M_PI/180, to * M_PI/180);
   EXPECT_NEAR(expected, result * 180 / M_PI, 0.1);
 }

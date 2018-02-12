@@ -132,6 +132,9 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/angle.h
   src/${PROJECT_NAME}/angle.cpp
+
+  include/${PROJECT_NAME}/reference_smoothing.h
+  src/${PROJECT_NAME}/reference_smoothing.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -215,6 +218,9 @@ target_link_libraries(test_angle ${PROJECT_NAME})
 
 catkin_add_gtest(test_int2hex src/test/test_int_to_hex.cpp)
 target_link_libraries(test_int2hex ${PROJECT_NAME})
+
+catkin_add_gtest(test_reference_smoothing src/test/test_reference_smoothing.cpp)
+target_link_libraries(test_reference_smoothing ${PROJECT_NAME})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

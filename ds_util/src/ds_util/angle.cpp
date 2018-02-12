@@ -6,34 +6,17 @@ namespace ds_util
 double angular_separation_radians(double from, double to)
 {
 
-  // Move angles into range [0, 2pi)
-  from = std::fmod(from, 2*M_PI);
-  to = std::fmod(to, 2*M_PI);
+  // dot product produces the cosine of the included angle
+  auto cDPSI = (std::sin(from)*std::sin(to) + std::cos(from)*std::cos(to));
 
-  // Move from into range (-pi, pi]
-  while (from >= M_PI)
-  {
-    from -= 2 * M_PI;
-  }
+  // cross product produces the sine of the included angle
+  auto sDPSI = (std::cos(from)*std::sin(to) - std::sin(from)*std::cos(to));
 
-  while (from < -M_PI)
-  {
-    from += 2 * M_PI;
-  }
+  // Finally, take the arctan of the sine and cosine.  This gives us a signed
+  // included angle.
+  auto DPSI = std::atan2((sDPSI),(cDPSI));
 
-  // Move 'to' into range (-pi, pi]
-  while (to >= M_PI)
-  {
-    to -= 2 * M_PI;
-  }
-
-  while (to < -M_PI)
-  {
-    to += 2 * M_PI;
-  }
-
-  const auto sep = std::acos(std::cos(from)*std::cos(to) + std::sin(from)*std::sin(to));
-  return to > from ? sep: -sep;
+  return DPSI;
 }
 
 }

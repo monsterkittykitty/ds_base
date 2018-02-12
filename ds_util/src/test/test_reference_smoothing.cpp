@@ -23,6 +23,11 @@ TEST(ReferenceSmoothing, trapezoidal)
   EXPECT_EQ(pos, 0.0);
   EXPECT_EQ(vel, 0.0);
   EXPECT_EQ(acc, 1.0);
+
+  std::tie(pos, vel, acc) = ds_util::goal_trajectory_trapezoidal(1.0, pos, vel, acc, 1.0, 1.0, ros::Duration(1.0));
+  EXPECT_EQ(pos, 1.0);
+  EXPECT_EQ(vel, 0.0);
+  EXPECT_EQ(acc, 0.0);
 }
 
 // Run all the tests that were declared with TEST()

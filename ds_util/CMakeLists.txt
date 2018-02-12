@@ -122,6 +122,8 @@ include_directories(
 add_library(${PROJECT_NAME}
   include/${PROJECT_NAME}/ds_util.h
 
+  include/${PROJECT_NAME}/int_to_hex.h
+
   include/${PROJECT_NAME}/fofonoff_depth.h
   src/${PROJECT_NAME}/fofonoff_depth.cpp
 
@@ -210,6 +212,9 @@ target_link_libraries(test_fofonoff_depth ${PROJECT_NAME})
 
 catkin_add_gtest(test_angle src/test/test_angle.cpp)
 target_link_libraries(test_angle ${PROJECT_NAME})
+
+catkin_add_gtest(test_int2hex src/test/test_int_to_hex.cpp)
+target_link_libraries(test_int2hex ${PROJECT_NAME})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

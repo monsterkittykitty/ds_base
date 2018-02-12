@@ -4,5 +4,6 @@
 #include "ds_util/angle.h"
 #include "ds_util/fofonoff_depth.h"
 #include "ds_util/thruster.h"
+#include "ds_util/reference_smoothing.h"
 
 #endif //DS_UTIL_DS_UTIL_H

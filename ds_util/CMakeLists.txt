@@ -135,6 +135,9 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/reference_smoothing.h
   src/${PROJECT_NAME}/reference_smoothing.cpp
+
+  include/${PROJECT_NAME}/median.h
+  src/${PROJECT_NAME}/median.cpp
 )
 
 ## Add cmake target dependencies of the library

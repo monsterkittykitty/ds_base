@@ -56,6 +56,53 @@ TEST_F(Int2HexTest, char_) {
     EXPECT_EQ("37", ds_util::int_to_hex<char>(test));
 }
 
+TEST_F(Int2HexTest, long_zero) {
+    uint16_t test = 0;
+    EXPECT_EQ("00", ds_util::int_to_long_hex<uint16_t>(test));
+}
+
+
+TEST_F(Int2HexTest, long_wrap) {
+    uint32_t test = 267;
+    EXPECT_EQ("010B", ds_util::int_to_long_hex<uint32_t>(test));
+}
+TEST_F(Int2HexTest, long_wrap2) {
+    uint32_t test = 367;
+    EXPECT_EQ("016F", ds_util::int_to_long_hex<uint32_t>(test));
+}
+
+TEST_F(Int2HexTest, long_uint8) {
+    uint8_t test = 37;
+    EXPECT_EQ("25", ds_util::int_to_long_hex<uint8_t>(test));
+}
+
+TEST_F(Int2HexTest, long_uint32_32) {
+    uint32_t test = 37;
+    EXPECT_EQ("00000025", ds_util::int_to_32_hex<uint32_t>(test));
+}
+
+TEST_F(Int2HexTest, long_short_32) {
+    uint16_t test = 350;
+    EXPECT_EQ("0000015E", ds_util::int_to_32_hex<uint16_t>(test));
+}
+
+TEST_F(Int2HexTest, long_char_32) {
+    char test = '7';
+    EXPECT_EQ("00000037", ds_util::int_to_32_hex<char>(test));
+}
+
+TEST_F(Int2HexTest, long_uint64_32) {
+    uint64_t test = 5700000325;
+    EXPECT_EQ("53BF1A45", ds_util::int_to_32_hex<uint64_t>(test));
+}
+
+TEST_F(Int2HexTest, long_zero_32) {
+    uint64_t test = 0;
+    EXPECT_EQ("00000000", ds_util::int_to_32_hex<uint64_t>(test));
+}
+
+
+
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)
 {

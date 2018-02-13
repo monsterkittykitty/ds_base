@@ -19,14 +19,13 @@ DsProcess::DsProcess(int argc, char** argv, const std::string& name)
 
 DsProcess::~DsProcess() = default;
 
-ds_asio::DsNodeHandle* DsProcess::nodeHandle()
+ros::NodeHandle DsProcess::nodeHandle(const std::string& ns)
 {
   DS_D(DsProcess);
-  if (!d->node_handle_)
-  {
-    d->node_handle_.reset(new ds_asio::DsNodeHandle(&d->asio_->io_service));
-  }
-  return d->node_handle_.get();
+  auto nh = ros::NodeHandle(ns);
+  nh.setCallbackQueue(d->asio_->callbackQueue());
+
+  return nh;
 }
 
 void DsProcess::run()
@@ -74,18 +73,16 @@ boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::str
                                                                   const ds_asio::ReadCallback& callback)
 {
   auto nh = nodeHandle();
-  ROS_ASSERT(nh);
   DS_D(DsProcess);
-  return d->asio_->addConnection(name, callback, *nh);
+  return d->asio_->addConnection(name, callback, nh);
 }
 
 boost::shared_ptr<ds_asio::IoSM> DsProcess::addIoSM(const std::string& iosm_name, const std::string& conn_name,
                                                     const ds_asio::ReadCallback& callback)
 {
   auto nh = nodeHandle();
-  ROS_ASSERT(nh);
   DS_D(DsProcess);
-  return d->asio_->addIoSM(iosm_name, conn_name, callback, *nh);
+  return d->asio_->addIoSM(iosm_name, conn_name, callback, nh);
 }
 
 boost::uuids::uuid DsProcess::uuid() noexcept
@@ -143,7 +140,7 @@ void DsProcess::setupPublishers()
 {
   DS_D(DsProcess);
   d->status_publisher_ =
-      nodeHandle()->advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
+      nodeHandle().advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
 }
 
 void DsProcess::checkProcessStatus(const ros::TimerEvent& event)

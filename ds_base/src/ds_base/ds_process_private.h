@@ -6,7 +6,6 @@
 #define DS_BASE_DS_PROCESS_PRIVATE_H
 
 #include "ds_asio/ds_asio.h"
-#include "ds_asio/ds_nodehandle.h"
 #include "ds_base/ds_process.h"
 
 namespace ds_base
@@ -62,7 +61,6 @@ struct DsProcessPrivate
   bool is_setup_;  //!< Has setup() been called?
 
   std::unique_ptr<ds_asio::DsAsio> asio_;               //!< DsAsio instance
-  std::unique_ptr<ds_asio::DsNodeHandle> node_handle_;  //!< DsNodeHandle instance
 
   ros::Duration status_check_period_;  //!< The period for the status health timer (<0 disables)
   ros::Timer status_check_timer_;      //!< The status health timer itself.

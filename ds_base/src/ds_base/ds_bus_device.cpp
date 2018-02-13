@@ -67,10 +67,12 @@ void DsBusDevice::setupConnections()
     ROS_FATAL_STREAM("No bus_node specified for bus device node " << ros::this_node::getName());
     ros::shutdown();
   }
-  d->bus_ = nodeHandle()->subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);
+
+  auto nh = nodeHandle();
+  d->bus_ = nh.subscribe(d->bus_node_name_ + "/bus", 10, &DsBusDevice::parseReceivedBytes, this);
 
   // Connect our service client to control the bus state machine
-  d->iosm_cmd_ = nodeHandle()->serviceClient<ds_core_msgs::IoSMcommand>(d->bus_node_name_ + "/cmd");
+  d->iosm_cmd_ = nh.serviceClient<ds_core_msgs::IoSMcommand>(d->bus_node_name_ + "/cmd");
   d->iosm_cmd_.waitForExistence(ros::Duration(60.0));  // wait up to 1 minute for the service to exist
   if (!d->iosm_cmd_.exists())
   {
@@ -80,8 +82,8 @@ void DsBusDevice::setupConnections()
     ros::shutdown();
   }
 
-  d->preempt_cmd_ = nodeHandle()->advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/preempt_cmd", 10, false);
-  d->update_cmd_ = nodeHandle()->advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/update_cmd", 10, false);
+  d->preempt_cmd_ = nh.advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/preempt_cmd", 10, false);
+  d->update_cmd_ = nh.advertise<ds_core_msgs::IoCommandList>(d->bus_node_name_ + "/update_cmd", 10, false);
 }
 
 void DsBusDevice::setupIoSM() {

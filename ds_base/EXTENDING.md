@@ -253,8 +253,9 @@ void Example::setupPublishers()
   DS_D(Example);
   
   // Setup our publishers
-  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
-  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+  auto nh = nodeHandle();
+  d->out_pub_ = nh.advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nh.advertise<TimerMessageType>("time", 10, false);
 }
 ```
 
@@ -418,8 +419,9 @@ void Example::setupPublishers()
   DS_D(Example);
   
   // Setup our publishers
-  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
-  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+  auto nh = nodeHandle();
+  d->out_pub_ = nh.advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nh.advertise<TimerMessageType>("time", 10, false);
 }
 
 void Example::setupConnections()
@@ -445,7 +447,8 @@ void Example::setupTimers()
   DS_D(Example);
   
   // Just like the connection callback, we now use 'd' instead of 'this' in the boost::bind
-  d->timer_ = nodeHandle()->createTimer(ros::Duration(1), boost::bind(&ExamplePrivate::timerCallback, d, _1));
+  auto nh = nodeHandle();
+  d->timer_ = nh.createTimer(ros::Duration(1), boost::bind(&ExamplePrivate::timerCallback, d, _1));
 }
 ```
 
@@ -567,8 +570,9 @@ void Example::setupPublishers()
   DS_D(Example);
   
   // Setup our publishers
-  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
-  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+  auto nh = nodeHandle();
+  d->out_pub_ = nh.advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nh.advertise<TimerMessageType>("time", 10, false);
 }
 
 void Example::setupConnections()
@@ -595,7 +599,8 @@ void Example::setupTimers()
   DS_D(Example);
   
   // Just like the connection callback, we now use 'd' instead of 'this' in the boost::bind
-  d->timer_ = nodeHandle()->createTimer(d->timer_period_, boost::bind(&ExamplePrivate::timerCallback, d, _1));
+  auto nh = nodeHandle();
+  d->timer_ = nh.createTimer(d->timer_period_, boost::bind(&ExamplePrivate::timerCallback, d, _1));
 }
 ```
 
@@ -694,8 +699,9 @@ void Example::setupPublishers()
   DS_D(Example);
   
   // Setup our publishers
-  d->out_pub_ = nodeHandle()->advertise<DataMessageType>("output", 10, false);
-  d->time_pub_ = nodeHandle()->advertise<TimerMessageType>("time", 10, false);
+  auto nh = nodeHandle();
+  d->out_pub_ = nh.advertise<DataMessageType>("output", 10, false);
+  d->time_pub_ = nh.advertise<TimerMessageType>("time", 10, false);
 }
 
 void Example::setupConnections()
@@ -722,7 +728,8 @@ void Example::setupTimers()
   DS_D(Example);
   
   // Just like the connection callback, we now use 'd' instead of 'this' in the boost::bind
-  d->timer_ = nodeHandle()->createTimer(d->timer_period_, boost::bind(&ExamplePrivate::timerCallback, d, _1));
+  auto nh = nodeHandle();
+  d->timer_ = nh.createTimer(d->timer_period_, boost::bind(&ExamplePrivate::timerCallback, d, _1));
 }
 
 void Example::setup()

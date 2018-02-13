@@ -94,7 +94,7 @@ void SensorBase::setupServices()
   auto nh = nodeHandle();
 
   DS_D(SensorBase);
-  d->send_command_service_ = nh->advertiseService<StringCommand::Request, StringCommand::Response>(
+  d->send_command_service_ = nh.advertiseService<StringCommand::Request, StringCommand::Response>(
       ros::this_node::getName() + "/send_command", boost::bind<bool>(callback, this, _1, _2));
 }
 

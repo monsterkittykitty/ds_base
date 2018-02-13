@@ -47,14 +47,15 @@ void DsBus::setupPublishers()
 
   DS_D(DsBus);
   // add our additional secret sauce
-  d->bus_pub_ = nodeHandle()->advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/bus", 10, false);
+  auto nh = nodeHandle();
+  d->bus_pub_ = nh.advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/bus", 10, false);
 
   // the whole queue is controlled by a service
   d->cmd_serv_ =
-      nodeHandle()->advertiseService<ds_core_msgs::IoSMcommand::Request, ds_core_msgs::IoSMcommand::Response>(
+      nh.advertiseService<ds_core_msgs::IoSMcommand::Request, ds_core_msgs::IoSMcommand::Response>(
           ros::this_node::getName() + "/cmd", boost::bind(&DsBusPrivate::_service_req, d, _1, _2));
-  d->preempt_sub_ = nodeHandle()->subscribe(ros::this_node::getName() + "/preempt_cmd", 10, &DsBusPrivate::_preempt_cmd, d);
-  d->update_sub_  = nodeHandle()->subscribe(ros::this_node::getName() + "/update_cmd", 10, &DsBusPrivate::_update_cmd, d);
+  d->preempt_sub_ = nh.subscribe(ros::this_node::getName() + "/preempt_cmd", 10, &DsBusPrivate::_preempt_cmd, d);
+  d->update_sub_  = nh.subscribe(ros::this_node::getName() + "/update_cmd", 10, &DsBusPrivate::_update_cmd, d);
 
 }
 

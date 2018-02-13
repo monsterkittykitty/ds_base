@@ -10,6 +10,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  rostest
   ds_asio
   ds_param
   std_msgs
@@ -132,6 +133,13 @@ install(DIRECTORY include/${PROJECT_NAME}/
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
+add_rostest_gtest(test_ds_process
+        test/ds_process.test
+        # src/test/utils.h
+        # src/test/utils.cpp
+        src/test/test_ds_process.cpp
+        )
+target_link_libraries(test_ds_process ${PROJECT_NAME})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

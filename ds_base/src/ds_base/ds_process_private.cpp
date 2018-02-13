@@ -10,7 +10,9 @@
 namespace ds_base
 {
 DsProcessPrivate::DsProcessPrivate()
-  : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio)), uuid_(boost::uuids::nil_uuid()), is_setup_(false)
+  : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
+  , uuid_(boost::uuids::nil_uuid())
+  , is_setup_(false)
 {
 }
 
@@ -33,7 +35,7 @@ void DsProcessPrivate::updateStatusCheckTimer(DsProcess* base, ros::Duration per
   }
 
   status_check_period_ = period;
-  status_check_timer_ = base->nodeHandle()->createTimer(status_check_period_, &DsProcess::checkProcessStatus, base);
+  status_check_timer_ = base->nodeHandle().createTimer(status_check_period_, &DsProcess::checkProcessStatus, base);
   ROS_INFO_STREAM("Status check timer set to " << status_check_period_);
 }
 }

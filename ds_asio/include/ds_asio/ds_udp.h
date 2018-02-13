@@ -20,13 +20,13 @@ namespace ds_asio
 class DsUdp : public DsConnection
 {
 public:
-  DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh);
+  DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle& myNh);
 
-  virtual void receive(void);
+  void receive(void) override;
 
-  virtual void send(boost::shared_ptr<std::string> message);
+  void send(boost::shared_ptr<std::string> message) override;
 
-  void setup(void);
+  void setup(ros::NodeHandle& nh) override;
 
   udp::socket& get_io_object(void);
 
@@ -41,7 +41,7 @@ private:
   void handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
                    std::size_t bytes_transferred);
 
-  udp::socket* socket_;
+  std::unique_ptr<udp::socket> socket_;
   udp::endpoint* remote_endpoint_;
   boost::array<char, 128> recv_buffer_;
   uint8_t num_read_error_;

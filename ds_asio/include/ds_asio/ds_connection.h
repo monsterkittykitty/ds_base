@@ -24,8 +24,8 @@ typedef boost::function<void(ds_core_msgs::RawData)> ReadCallback;
 class DsConnection
 {
 public:
-  DsConnection(boost::asio::io_service& _io);
-  DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback, ros::NodeHandle* myNh);
+  explicit DsConnection(boost::asio::io_service& _io);
+  DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback);
   virtual ~DsConnection();
 
   /// @brief An interface to send data through a connection
@@ -41,6 +41,9 @@ public:
 
   /// @brief Start async read loop
   virtual void receive(void) = 0;
+
+  /// @brief Set up the connection using the provided node handle
+  virtual void setup(ros::NodeHandle& nh) = 0;
 
   /// @brief Get this connection's name
   const std::string& getName() const;
@@ -65,7 +68,6 @@ protected:
 
   std::string name_;
 
-  ros::NodeHandle* nh_;
   ros::Publisher raw_publisher_;
   ds_core_msgs::RawData raw_data_;
 };

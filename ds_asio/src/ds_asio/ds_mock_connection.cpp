@@ -100,4 +100,7 @@ void DsMockConnection::sendNextMessage()
   io_service_.post(boost::bind(callback_, toRead.front()));
   toRead.pop_front();
 }
+void DsMockConnection::setup(ros::NodeHandle &nh) {
+
+}
 }

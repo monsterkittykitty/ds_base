@@ -29,7 +29,6 @@ namespace ds_util
         for (int it=1; it<=s; it++){
             j = i>>(s-it)*4; //Recast to uint16 so that it ill be treated as an integer, not a char
             j &= 0x000F; //Ensure that the integer remains within uint4 range
-            printf("%d : %x %x \n", it, i, j);
             stream << std::uppercase
                    << std::setfill ('0') << std::setw(sizeof(uint8_t))
                    << std::hex << j;
@@ -47,7 +46,6 @@ namespace ds_util
         for (int it=1; it<=s; it++){
             j = i>>(s-it)*4; //Recast to uint16 so that it ill be treated as an integer, not a char
             j &= 0x000F; //Ensure that the integer remains within uint8 range
-            printf("%d : %x %x \n", it, i, j);
             stream << std::uppercase
                    << std::setfill ('0') << std::setw(sizeof(uint8_t))
                    << std::hex << j;

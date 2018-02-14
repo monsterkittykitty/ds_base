@@ -138,6 +138,9 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/dynamics.h
   src/${PROJECT_NAME}/dynamics.cpp
+
+  include/${PROJECT_NAME}/median.h
+  src/${PROJECT_NAME}/median.cpp
 )
 
 ## Add cmake target dependencies of the library

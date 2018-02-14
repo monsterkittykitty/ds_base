@@ -25,4 +25,4 @@ namespace ds_util
 
 }
 
-#endif //DS_UTIL_ANGLE_H
+#endif //DS_UTIL_REFERENCE_SMOOTHING_H

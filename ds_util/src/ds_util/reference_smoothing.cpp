@@ -50,4 +50,132 @@ namespace ds_util
     return std::make_tuple(ref_pos, ref_vel, ref_acc);
   }
 
+/// \brief Computes a trajectory from the current position and velocity to goal, without exceeding max_velocity.
+///
+/// Velocities are filtered with time constant Tau
+///
+/// From reference.cpp in rov.  Here's the original modification history:
+///
+/// ======================================================================
+///
+///   function goal_trajectory
+///   Computes a trajectory from the current position and velocity
+///   to goal, without exeeding max_velocity.  Velocities are
+///   filtered with the time constant tau
+///
+/// Modification History:
+///   DATE         AUTHOR  COMMENT
+///   ???          DRY     Created and written
+///   26-JUL-2000  LLW     Ported from DRY's original in J1.
+///   14-OCT-2005  SCM     added acceleration term
+///   22-OCT-2005  SCM     fixed bugs
+///   ====================================================================== */
+///
+/// \param goal The goal to shoot for
+/// \param max_velocity  The max velocity to use
+/// \param position  The current position for the value we're moving
+/// \param velocity The current velocity
+/// \param tau The smoothing timecosntant parameter
+/// \param dt The timestep
+/// \param smooth_ref Select a smoothing reference
+void goal_trajectory(double goal, double max_velocity, double& position, double& velocity, double tau, double dt, int smooth_ref) {
+
+  double dx;
+  double last_position;
+  double last_velocity;
+  double alpha;
+  double beta;
+  double acceleration_const;
+  double acceleration;
+  double tau_2;
+  acceleration_const = 0.005;
+
+  alpha = exp (-dt / tau);
+  beta = 1.0 - alpha;
+  last_position = position;
+  last_velocity = velocity;
+
+  dx = goal - position;
+  //find teh sign of dx
+  // ----------------------------------------------------------------------
+  //   25-MAY-2001 LLW&DAS  Hacked button auto to do step moves
+  //                        #define SMOOTH_BUTTON_TRAJECTORY 1 to have smooth buttom moves
+  // ----------------------------------------------------------------------
+
+  if (smooth_ref == 1)
+  {
+    velocity = alpha * last_velocity + beta * max_velocity * sgn (dx);
+
+    if (fabs (dx / tau) > max_velocity)
+    {
+      position = goal - dx + velocity*dt;
+    }
+    else
+    {
+      position = alpha * position + beta * goal;
+      dx = position - last_position;
+      velocity = dx / dt;
+    }
+  }
+
+  else if (smooth_ref == 2)
+  {
+
+    // define the acceleration of the vehicle based upon
+    //the position from from the goal
+    if (dx >0)
+      acceleration = acceleration_const;
+    else if (dx <0)
+      acceleration = -acceleration_const;
+
+    // now find change the current velocity based upon that calc
+
+    velocity = last_velocity + acceleration*dt ;
+    //is that velocity greater then the max velocity if so then...
+    if(fabs(velocity) > fabs(max_velocity))
+    {
+      velocity = max_velocity;
+      acceleration = (max_velocity - last_velocity)/dt;
+    }
+
+    //WHAT IS THE MIN AMOUNT OF TIME TO SLOW DOWN
+    tau_2 = velocity/acceleration_const;
+
+    //CHECK TO SEE IF THE THAT IS GREATER THEN THE TIME IT TAKES TO THE
+    //GOAL... if so then....
+    if (fabs (dx / tau_2) > last_velocity)
+    {
+      position = goal - dx + last_velocity * dt + 0.5*acceleration*dt*dt;
+    }
+    else //if not ...
+    {
+      //RECHECK sign of dx and define accel constant
+      if (dx >0)
+        acceleration = -acceleration_const;
+      else if (dx <0)
+        acceleration = acceleration_const;
+
+      //slow down hopefully get zero velocity at goal.
+      velocity = last_velocity - acceleration*dt;
+      //define desired position
+      position = goal;
+
+      // this is wrong...
+      if (fabs(last_velocity) < fabs(acceleration*dt)||(velocity <= 0.0))
+      {
+        acceleration = 0.0;
+        velocity = 0.0;
+        position = goal;
+      }
+    }
+  }
+  else
+  {
+    velocity = 0.0;
+    position = goal;
+  }
+
+
+}
+
 }

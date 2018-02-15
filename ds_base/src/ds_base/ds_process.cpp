@@ -91,6 +91,12 @@ boost::uuids::uuid DsProcess::uuid() noexcept
   return d->uuid_;
 }
 
+ds_asio::DsAsio* DsProcess::asio(void)
+{
+  const DS_D(DsProcess);
+  return d->asio_->asio();
+}
+
 void DsProcess::setup()
 {
   DS_D(DsProcess);

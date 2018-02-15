@@ -143,6 +143,9 @@ public:
   /// - setupServices()
   virtual void setup();
 
+  /// @brief Returns a pointer to the DsAsio object that DsProcess owns
+  ds_asio::DsAsio* asio(void);
+  
   /// @brief Return a ds_core_msgs::Status message
   ///
   /// Default implementation doesn't do any actual health checks, it only

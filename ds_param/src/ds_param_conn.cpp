@@ -5,6 +5,9 @@
 #include "ds_param_private.h"
 #include "ds_param_conn_private.h"
 
+#include <sstream>
+#include <stdexcept>
+
 namespace ds_param {
 
 ParamConnection::ParamConnection(ros::NodeHandle &_h) : impl(
@@ -28,7 +31,10 @@ typename T::Ptr ParamConnection::connect(const std::string &param_name, bool adv
                                         <<"\") already exists!");
     ret = std::dynamic_pointer_cast<T>(iter->second);
     if (! ret) {
-      ROS_ERROR_STREAM("Variable named \"" <<full_name <<"\" already exists, but could not be cast to the requested type");
+      std::stringstream msg;
+      msg <<"Variable named \"" <<full_name <<"\" already exists, but could not be cast to the requested type";
+      ROS_ERROR_STREAM(msg.str());
+      throw std::invalid_argument(msg.str());
     } else {
       if (advertise) {
         // FORCE us to advertise an existing variable if connection asks us to, whether
@@ -41,8 +47,10 @@ typename T::Ptr ParamConnection::connect(const std::string &param_name, bool adv
   }
 
   if (!impl->handle.hasParam(full_name)) {
-    ROS_ERROR_STREAM("Variable named \"" << full_name << "\" does not exist on the parameter server!");
-    return ret;
+    std::stringstream msg;
+    msg <<"Variable named \"" << full_name << "\" does not exist on the parameter server!";
+    ROS_ERROR_STREAM(msg.str());
+    throw std::invalid_argument(msg.str());
   }
 
   ret = std::make_shared<T>(impl, full_name, advertise);
@@ -64,6 +72,19 @@ const std::string& ParamConnection::connName() const {
 
 void ParamConnection::setCallback(const Callback_t& _cb) {
   impl->callback = _cb;
+}
+
+void ParamConnection::lock() {
+  impl->lock();
+}
+
+void ParamConnection::unlock() {
+  impl->unlock();
+}
+
+/// \brief Check if this object is locked
+bool ParamConnection::IsLocked() const {
+  return impl->IsLocked();
 }
 
 // explicit instantiations-- this basically fills in the template during the build so that

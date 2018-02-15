@@ -6,7 +6,6 @@
 #define PROJECT_DS_PARAM_H
 
 #include <memory>
-#include "ds_global.h"
 
 #include <ds_core_msgs/ParamUpdate.h>
 #include <ros/ros.h>
@@ -49,8 +48,14 @@ class UpdatingParam {
   /// \brief Get the fully-resolved ROS name for this type
   const std::string& Name() const;
 
+  /// \brief Returns true if the variable has not been committed yet because the connection is locked
+  bool IsDirty() const;
+
   /// \brief Load this parameter from the server.  Called automatically when instantiated with a connection
   virtual void loadFromServer() = 0;
+
+  /// \brief Set this parameter on the server.  Called automatically when setting a variable.  You don't have to do this.
+  virtual void setOnServer() = 0;
 
   /// \brief Fill an update message
   virtual void fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const = 0;
@@ -113,10 +118,10 @@ class UpdatingParamT : public UpdatingParam {
   virtual UpdatingParamTypes TypeNum() const;
 
   virtual void loadFromServer();
+  virtual void setOnServer();
   virtual void fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const;
 
  protected:
-  void setOnServer();
   // updates the value but does NOT trigger updates; ONLY to be used internally (hence protected)
   void updateValue(const T& _v);
   friend ParamConnectionPrivate; // needed to use updateValue

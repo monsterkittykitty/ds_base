@@ -34,6 +34,8 @@ class ParamConnectionPrivate {
     nameBuilder <<std::setw(9) <<ros::WallTime::now().nsec;
     conn_name = nameBuilder.str();
 
+    locked = false;
+
     ROS_INFO_STREAM("Initialized ds_param::ParamConnection named \"" <<conn_name <<"\"");
   }
 
@@ -127,12 +129,42 @@ class ParamConnectionPrivate {
     descriptionPub.publish(toSend);
   }
 
+  bool IsLocked() const {
+    return locked;
+  }
+
+  void lock() {
+    locked = true;
+  }
+
+  void unlock() {
+
+    if (locked) {
+      // if we're unlocking, send our updates
+      ds_core_msgs::ParamUpdate msg;
+      for (auto iter=params.begin(); iter != params.end(); iter++) {
+        if (iter->second->IsDirty()) {
+          iter->second->fillUpdateMessage(msg);
+          iter->second->setOnServer();
+        }
+      }
+      msg.stamp = ros::Time::now();
+      msg.source = conn_name;
+      updatePub.publish(msg);
+    }
+
+    // TODO: block incoming changes and apply them after
+
+    locked = false;
+  }
+
  public:
   ros::NodeHandle& handle;
   ros::Publisher descriptionPub;
   ros::Publisher updatePub;
   ros::Subscriber updateSub;
 
+  bool locked;
   std::string conn_name;
   std::map<std::string, std::shared_ptr<UpdatingParam> > params;
 

@@ -13,8 +13,9 @@
 
 namespace ds_param {
 
-// forward declaration
+// forward declarations
 class ParamConnectionPrivate;
+class ParamGuard;
 
 class ParamConnection : public std::enable_shared_from_this<ParamConnection> {
  private:
@@ -72,6 +73,19 @@ class ParamConnection : public std::enable_shared_from_this<ParamConnection> {
   ///
   /// \param _cb The callback function.  Should accept a ParamCollection as its only (visibile) parameter
   void setCallback(const Callback_t& _cb);
+
+  /// \brief Queue updates rather than sending them out
+  ///
+  /// Locking an already-locked connection has no effect.  You probably don't want to use this directly--
+  /// instead use ParamGuard(your_connection_ptr);
+  void lock();
+
+  /// \brief Stop queueing updates, and send the current state of all variables that
+  /// have changed since we were locked
+  void unlock();
+
+  /// \brief Check if this object is locked
+  bool IsLocked() const;
 
  protected:
   std::shared_ptr<ParamConnectionPrivate> impl;

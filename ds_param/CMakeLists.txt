@@ -121,8 +121,14 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
+        include/ds_param/ds_param.h
+        include/ds_param/ds_param_conn.h
+        include/ds_param/ds_param_guard.h
         src/ds_param.cpp
-   src/ds_param_conn.cpp
+        src/ds_param_private.h
+        src/ds_param_conn.cpp
+        src/ds_param_guard.cpp
+        src/ds_param_conn_private.h
 )
 
 ## Add cmake target dependencies of the library

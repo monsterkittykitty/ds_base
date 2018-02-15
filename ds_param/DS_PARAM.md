@@ -143,6 +143,43 @@ in progress and high on the TODO list.
 The primary use-case is expected to come up in aggregators.  A navigation aggregator, for example, might read a list of
 possible heading sources and construct an `EnumParam` based on those options.
 
+## Locking the Connection
+
+Sometimes it is advantageous to send multiple updates in a single parameter update message.  You can do this by locking
+the connection prior to queue updates rather than sending them.  All queued updates are sent when the connection is 
+unlocked.  Updates will continue to arrive while the connection is locked.
+
+The recommended way to lock the connection is with a ```ParamGuard``` to manage the lock.  This ```ParamGuard``` 
+implements RAII ("Resource Acquisition Is Initialization") locking semantics similar to ```std::mutex_lock```.  It will 
+automatically unlock when the object goes out of scope.  You can use it as follows:
+
+```objectivec
+#include "ds_param/param_conn.h"  // standard include
+#include "ds_param/param_guard.h" // Lock guard for atomic updates
+// somewhere up here, declare your:
+ds_param::ParamConnection::Ptr conn = ds_param::ParamConnection::create(nodeHandle);
+// and connect some parameters:
+
+{
+  ds_param::ParamGuard lock(conn);
+  
+  // parameters that need to update in a single message
+  some_var_1.Set(1);
+  some_var_valid.Set(true);
+  some_var_str.Set("This group of variables updates together with valid=\"true\", value=\"1\"");
+  
+  // lock gets deleted here because it passes out of scope
+  // that automatically unlocks the connection and sends all the updates above
+  // in a single message
+  // or, you can:
+  lock.unlock(); // manually.  If you're lame.
+}
+```
+
+While the connection is locked, a call to `Set` will update the value returned by `Get` on a parameter.  The current
+value will only be moved to `previous` if that current value was set prior to the connection being locked or if it has
+been updated since the connection was locked.
+
 
 ## Notable TODOs
 

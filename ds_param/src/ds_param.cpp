@@ -33,6 +33,10 @@ const std::string& UpdatingParam::Name() const {
   return d_func()->name;
 }
 
+bool UpdatingParam::IsDirty() const {
+  return d_func()->dirty;
+}
+
 bool UpdatingParam::Advertise() const {
   return d_func()->advertise_flag;
 }
@@ -87,9 +91,25 @@ void UpdatingParamT<T>::Set(const T &_v) {
   PT_D;
 
   // First, update our local copy
+
+  if (d->conn->IsLocked()) {
+    // only set the previous value if we're currently sync'd to the system.
+    // If we're locked, but have already been changed, then don't update the previous
+    // as previous reflects the previous that went out on the wrie
+    if (!d->dirty) {
+      d->prev_value = d->value;
+    }
+    d->value = _v;
+
+    // if we're locked, just set to dirty and return
+    d->dirty = true;
+
+    return;
+  }
+
+  // if the connection isn't locked send it out
   d->prev_value = d->value;
   d->value = _v;
-
 
   // Now the parameter server
   setOnServer();
@@ -109,6 +129,7 @@ void UpdatingParamT<T>::updateValue(const T& _v) {
   PT_D;
   d->prev_value = d->value;
   d->value = _v;
+  d->dirty = false;
 
   // The public should use use set.  They want set.  Because it propagates changes
   // and stuff.
@@ -147,6 +168,7 @@ template<typename T>
 void UpdatingParamT<T>::setOnServer() {
   PT_D;
   d->conn->getHandle().setParam(d->name, d->value);
+  d->dirty = false;
   // no error checking.  ROS should really fix that someday.
 }
 

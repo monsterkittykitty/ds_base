@@ -18,12 +18,13 @@ class UpdatingParamPrivate {
 
  public:
   UpdatingParamPrivate(const std::shared_ptr<ParamConnectionPrivate>& _c, const std::string& _n, bool _a)
-      : conn(_c), name(_n), advertise_flag(_a) {}
+      : conn(_c), name(_n), advertise_flag(_a), dirty(false) {}
   virtual ~UpdatingParamPrivate() = default;
 
   std::shared_ptr<ParamConnectionPrivate> conn;
   std::string name;
   bool advertise_flag;
+  bool dirty;
 
 };
 

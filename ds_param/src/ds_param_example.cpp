@@ -3,6 +3,7 @@
 //
 
 #include "ds_param/ds_param_conn.h"
+#include "ds_param/ds_param_guard.h"
 
 #include <boost/optional/optional_io.hpp>
 
@@ -31,6 +32,10 @@ class ParamDemo {
     other_int = conn->connect<ds_param::IntParam>("/" + other_node + "/test_int_param", false);
     other_str = conn->connect<ds_param::StringParam>("/" + other_node + "/test_str_param", false);
 
+    // setup two parameters we'll update atomically
+    param_bool_atomic = conn->connect<ds_param::BoolParam>(ros::this_node::getName() + "/test_atomic_bool", false);
+    param_int_atomic  = conn->connect<ds_param::IntParam >(ros::this_node::getName() + "/test_atomic_int" , false);
+
     // test prep
     idx=start;
   }
@@ -47,6 +52,15 @@ class ParamDemo {
       old_str = std::to_string(param_int->GetPrevious().get());
     } else {
       old_str = "NOT SET";
+    }
+
+    // these two will update simulatenously
+    {
+      // this will prevent updates from going out
+      ds_param::ParamGuard lock(conn);
+
+      param_bool_atomic->Set(! param_bool_atomic->Get());
+      param_int_atomic->Set(idx);
     }
 
     ROS_ERROR_STREAM(ros::this_node::getName()
@@ -89,6 +103,9 @@ class ParamDemo {
   ds_param::EnumParam::Ptr param_enum;
   ds_param::IntParam::Ptr param_int;
   ds_param::StringParam::Ptr param_str;
+
+  ds_param::BoolParam::Ptr param_bool_atomic;
+  ds_param::IntParam::Ptr param_int_atomic;
 
   // The OTHER NODE's shared parameters
   ds_param::IntParam::Ptr other_int;

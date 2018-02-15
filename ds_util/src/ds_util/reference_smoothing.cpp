@@ -179,4 +179,97 @@ void goal_trajectory_acceleration(double goal, double max_velocity, double& posi
     }
   }
 }
+
+struct TrapezoidalSmoother::Impl
+{
+  Impl()
+    : max_vel_(0), max_acc_(0), ref_pos_(0), ref_vel_(0), ref_acc_(0)
+  {
+  }
+
+  double max_vel_;
+  double max_acc_;
+  double ref_pos_;
+  double ref_vel_;
+  double ref_acc_;
+};
+
+TrapezoidalSmoother::TrapezoidalSmoother()
+  : d_ptr_(std::unique_ptr<TrapezoidalSmoother::Impl>(new TrapezoidalSmoother::Impl))
+{
+}
+
+TrapezoidalSmoother::~TrapezoidalSmoother() = default;
+
+void TrapezoidalSmoother::setMaxVelocity(double max_vel)
+{
+  auto d = d_ptr();
+  d->max_vel_ = std::abs(max_vel);
+}
+double TrapezoidalSmoother::maxVelocity() const noexcept
+{
+  const auto d = d_ptr();
+  return d->max_vel_;
+}
+
+void TrapezoidalSmoother::setMaxAcceleration(double max_acc)
+{
+  auto d = d_ptr();
+  d->max_acc_ = max_acc;
+}
+double TrapezoidalSmoother::maxAcceleration() const noexcept
+{
+  const auto d = d_ptr();
+  return d->max_acc_;
+}
+
+std::tuple<double, double, double> TrapezoidalSmoother::execute(double goal_pos, double ref_pos, double ref_vel,
+                                                                double ref_acc, double dt)
+{
+  setReference(ref_pos, ref_vel, ref_acc);
+  return execute(goal_pos, dt);
+}
+
+void TrapezoidalSmoother::reset()
+{
+  setReference(0, 0, 0);
+}
+
+double TrapezoidalSmoother::setReference(double pos, double vel, double acc)
+{
+  auto d = d_ptr();
+  d->ref_pos_ = pos;
+  d->ref_vel_ = vel;
+  d->ref_acc_ = acc;
+}
+std::tuple<double, double, double> TrapezoidalSmoother::refernce() const
+{
+  const auto d = d_ptr();
+  return std::make_tuple(d->ref_pos_, d->ref_vel_, d->ref_acc_);
+}
+std::tuple<double, double, double> TrapezoidalSmoother::execute(double goal_pos, double dt)
+{
+  auto d = d_ptr();
+
+  auto pos = 0.0;
+  auto vel = 0.0;
+  auto acc = 0.0;
+  std::tie(pos, vel, acc) =
+      goal_trajectory_trapezoidal(goal_pos, d->ref_pos_, d->ref_vel_, d->ref_acc_, d->max_vel_, d->max_vel_, dt);
+
+  d->ref_pos_ = pos;
+  d->ref_vel_ = vel;
+  d->ref_acc_ = acc;
+
+  return std::make_tuple(pos, vel, acc);
+}
+inline TrapezoidalSmoother::Impl* TrapezoidalSmoother::d_ptr()
+{
+  return d_ptr_.get();
+}
+
+inline TrapezoidalSmoother::Impl const* TrapezoidalSmoother::d_ptr() const
+{
+  return static_cast<TrapezoidalSmoother::Impl const*>(d_ptr_.get());
+}
 }

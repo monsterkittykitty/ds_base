@@ -2,6 +2,7 @@
 #define DS_UTIL_REFERENCE_SMOOTHING_H
 
 #include <tuple>
+#include <memory>
 
 namespace ds_util
 {
@@ -23,6 +24,75 @@ std::tuple<double, double, double> goal_trajectory_trapezoidal(double goal, doub
                                                                double ref_acc_in, double max_vel, double max_acc,
                                                                double dt);
 
+/// @brief A convenience class around goal_trajectory_trapezoidal
+///
+/// This class stores the max velocity and acceleration parameters for
+/// goal_trajectory_trapezoidal, cutting down the number of required
+/// arguments for smoothing iterations
+class TrapezoidalSmoother
+{
+  struct Impl;
+
+public:
+  TrapezoidalSmoother();
+  ~TrapezoidalSmoother();
+
+  void setMaxVelocity(double max_vel);
+  double maxVelocity() const noexcept;
+
+  void setMaxAcceleration(double max_acc);
+  double maxAcceleration() const noexcept;
+
+  void reset();
+
+  /// @brief Single-DOF smoothed trajectory between the current reference
+  ///        position and velocity to a goal position employing a trapezoidal
+  ///        velocity profile.
+  ///
+  /// The returned pos, vel, and acceleration quantities are also used
+  /// as the reference quantities for the next iteration.
+  ///
+  /// \param[in] goal Current goal
+  /// \param[in] ref_pos_in Input reference position
+  /// \param[in] ref_vel_in Input reference velocity
+  /// \param[in] ref_acc_in Input reference acceleration
+  /// \param[in] dt Timestep for trapezoidal smoothing
+  /// \return A std::tuple containing smoothed reference position, velocity, and acceleration
+  std::tuple<double, double, double> execute(double goal_pos, double ref_pos, double ref_vel, double ref_acc,
+                                             double dt);
+
+  /// @brief Single-DOF smoothed trajectory.
+  ///
+  /// Uses the current reference pos, vel, and acceleration from the
+  /// last update.
+  ///
+  /// The returned pos, vel, and acceleration quantities are also used
+  /// as the reference quantities for the next iteration.
+  ///
+  /// \param goal_pos
+  /// \param dt
+  /// \return
+  std::tuple<double, double, double> execute(double goal_pos, double dt);
+
+  /// @brief Set the reference pos, vel, and acceleration.
+  ///
+  /// The reference quantities are used in computing the smooth quantites
+  /// returned by execute()
+  ///
+  /// \param pos
+  /// \param vel
+  /// \param acc
+  /// \return
+  double setReference(double pos, double vel, double acc);
+
+  std::tuple<double, double, double> refernce() const;
+
+private:
+  Impl* d_ptr();
+  Impl const* d_ptr() const;
+
+  std::unique_ptr<Impl> d_ptr_;
+};
 /// \brief Computes a trajectory from the current position and velocity to goal, without exceeding max_velocity.
 ///
 /// Velocities are filtered with time constant Tau

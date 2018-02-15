@@ -15,7 +15,6 @@ namespace ds_util
 /// \param latitude_deg    Latitude in degrees
 /// \return  depth in meters
 double fofonoff_depth(double pressure_dbar, double latitude_deg) noexcept;
-
 }
 
-#endif //DS_UTIL_FOFONOFF_DEPTH_H
+#endif  // DS_UTIL_FOFONOFF_DEPTH_H

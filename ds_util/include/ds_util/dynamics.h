@@ -5,7 +5,6 @@
 
 namespace ds_util
 {
-
 /// @brief Estimate the lift for a wing
 ///
 ///
@@ -44,8 +43,6 @@ constexpr double calculate_wing_lift(double speed, double density, double area, 
   return calculate_wing_lift(0.5 * density * speed * speed, area, cl);
 }
 
-
-
 /// @brief Estimate the lift for a wing
 ///
 ///
@@ -76,10 +73,8 @@ constexpr double calculate_wing_lift(double speed, double density, double area, 
 /// \param cl_high                 Lift coefficent for high-aoa regime
 /// \param cl_high_angle           High angle of attack regime boundary
 /// \return
-double calculate_wing_lift(
-    double angle_of_attack, double speed, double density, double area, double cl0, double cl_low,
-    double cl_low_angle, double cl_high, double cl_high_angle);
-
+double calculate_wing_lift(double angle_of_attack, double speed, double density, double area, double cl0, double cl_low,
+                           double cl_low_angle, double cl_high, double cl_high_angle);
 
 /// @brief Estimate the drag force for a wing.
 ///
@@ -135,9 +130,8 @@ constexpr double calculate_wing_drag(double speed, double density, double area, 
 /// \param cd1
 /// \param cd2
 /// \return
-double calculate_wing_drag(
-    double angle_of_attack, double speed, double density, double area, double cd0, double cd1, double cd2);
-
+double calculate_wing_drag(double angle_of_attack, double speed, double density, double area, double cd0, double cd1,
+                           double cd2);
 
 /// @brief Estimate wing lift and drag forces.
 ///
@@ -147,9 +141,7 @@ double calculate_wing_drag(
 ///
 class WingDynamics
 {
-
- public:
-
+public:
   /// @brief
   ///
   /// \param area
@@ -162,7 +154,7 @@ class WingDynamics
   /// \param cd0    0th order drag coefficient
   /// \param cd1    1st order drag coefficient (default = 1)
   /// \param cd2    2nd order drag coefficient (default = 0)
-  void setDragCoefficients(double cd0, double cd1=1, double cd2=0);
+  void setDragCoefficients(double cd0, double cd1 = 1, double cd2 = 0);
 
   /// @brief Get the wig drag coefficients
   ///
@@ -174,7 +166,7 @@ class WingDynamics
   /// \param cl0       order lift coefficient
   /// \param cl_low    Additional coefficient when the AoA is within the low region
   /// \param cl_high   Additional coefficient when the AoA is outside the high region
-  void setLiftCoefficients(double cl0, double cl_low=0, double cl_high=0);
+  void setLiftCoefficients(double cl0, double cl_low = 0, double cl_high = 0);
 
   /// @brief Get the wing lift coefficients
   ///
@@ -226,7 +218,7 @@ class WingDynamics
   /// \return
   double fluidDensity() const noexcept;
 
- protected:
+protected:
   double cd0_;
   double cd1_;
   double cd2_;
@@ -241,8 +233,6 @@ class WingDynamics
   double area_;
   double density_;
 };
-
 }
 
-
-#endif //DS_UTIL_DYNAMICS_H
+#endif  // DS_UTIL_DYNAMICS_H

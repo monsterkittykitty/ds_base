@@ -4,7 +4,6 @@
 
 namespace ds_util
 {
-
 //  Computes depth according to the Saunders and Fofonoff equation.  Taken from
 //  pg 28 of Algorithms for Computation of Fundemental Properties of Seawater,
 //  UNESCO 1983.
@@ -22,5 +21,4 @@ double fofonoff_depth(double pressure_dbar, double latitude_deg) noexcept
 
   return depth;
 }
-
 }

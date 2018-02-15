@@ -7,8 +7,6 @@
 
 namespace ds_util
 {
-
-
 /// @brief Calculate the required current to produce the desired force
 ///
 /// The current is calculated using:
@@ -33,7 +31,6 @@ namespace ds_util
 /// \return  current
 double linear_force_to_current(double alpha, double beta, double force, double speed);
 
-
 /// @brief Transform from thruster current to approximate force
 ///
 /// This method is the inverse of linear_force_to_current
@@ -44,7 +41,6 @@ double linear_force_to_current(double alpha, double beta, double force, double s
 /// \param speed
 /// \return force
 double linear_current_to_force(double alpha, double beta, double current, double speed);
-
 }
 
-#endif //DS_UTIL_THRUSTER_H
+#endif  // DS_UTIL_THRUSTER_H

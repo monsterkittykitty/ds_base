@@ -3,7 +3,6 @@
 
 namespace ds_util
 {
-
 /// @brief Return the separation between two angles.
 ///
 /// This function returns the difference between two angles.  The returned
@@ -17,7 +16,6 @@ namespace ds_util
 /// \param to
 /// \return
 double angular_separation_radians(double from, double to);
-
 }
 
-#endif //DS_UTIL_ANGLE_H
+#endif  // DS_UTIL_ANGLE_H

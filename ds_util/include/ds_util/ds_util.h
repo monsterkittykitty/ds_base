@@ -7,4 +7,4 @@
 #include "ds_util/int_to_hex.h"
 #include "ds_util/reference_smoothing.h"
 
-#endif //DS_UTIL_DS_UTIL_H
+#endif  // DS_UTIL_DS_UTIL_H

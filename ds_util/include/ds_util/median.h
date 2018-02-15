@@ -3,11 +3,9 @@
 
 namespace ds_util
 {
+void sort(int n, double ra[]);
 
-  void sort(int n, double ra[]);
-
-  double median(double x[],int n);
-
+double median(double x[], int n);
 }
 
-#endif //DS_UTIL_MEDIAN_H
+#endif  // DS_UTIL_MEDIAN_H

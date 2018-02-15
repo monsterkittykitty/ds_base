@@ -6,23 +6,23 @@
 
 namespace ds_util
 {
+/// @brief returns +-1, depending on the sign of the input argument
+double sgn(double x);
 
-  /// @brief returns +-1, depending on the sign of the input argument
-  double sgn(double x);
-
-  /// @brief Creates a single-DOF smoothed trajectory between the current reference 
-  ///        position and velocity to a goal position employing a trapezoidal 
-  ///        velocity profile.
-  /// \param[in] goal Current goal
-  /// \param[in] ref_pos_in Input reference position
-  /// \param[in] ref_vel_in Input reference velocity
-  /// \param[in] ref_acc_in Input reference acceleration
-  /// \param[in] max_vel Maximum velocity
-  /// \param[in] max_acc Maximum acceleration
-  /// \param[in] dt Timestep for trapezoidal smoothing
-  /// \return A std::tuple containing smoothed reference position, velocity, and acceleration
-  std::tuple<double, double, double> goal_trajectory_trapezoidal(double goal, double ref_pos_in, double ref_vel_in, double ref_acc_in, double max_vel, double max_acc, ros::Duration dt);
-
+/// @brief Creates a single-DOF smoothed trajectory between the current reference
+///        position and velocity to a goal position employing a trapezoidal
+///        velocity profile.
+/// \param[in] goal Current goal
+/// \param[in] ref_pos_in Input reference position
+/// \param[in] ref_vel_in Input reference velocity
+/// \param[in] ref_acc_in Input reference acceleration
+/// \param[in] max_vel Maximum velocity
+/// \param[in] max_acc Maximum acceleration
+/// \param[in] dt Timestep for trapezoidal smoothing
+/// \return A std::tuple containing smoothed reference position, velocity, and acceleration
+std::tuple<double, double, double> goal_trajectory_trapezoidal(double goal, double ref_pos_in, double ref_vel_in,
+                                                               double ref_acc_in, double max_vel, double max_acc,
+                                                               ros::Duration dt);
 
 /// \brief Computes a trajectory from the current position and velocity to goal, without exceeding max_velocity.
 ///
@@ -53,8 +53,10 @@ namespace ds_util
 /// \param velocity The current velocity
 /// \param tau The smoothing timecosntant parameter
 /// \param dt The timestep
-/// \param smooth_ref The smoother type.  1 for "button smoother", 2 for "goal_trajectory_acceleration", anything else for "none"
-void goal_trajectory(double goal, double max_velocity, double& position, double& velocity, double tau, double dt, int smooth_ref);
+/// \param smooth_ref The smoother type.  1 for "button smoother", 2 for "goal_trajectory_acceleration", anything else
+/// for "none"
+void goal_trajectory(double goal, double max_velocity, double& position, double& velocity, double tau, double dt,
+                     int smooth_ref);
 
 /// \brief Smooths a reference (velocity + position) using the simple legacy max-velocity smoother
 ///
@@ -64,7 +66,8 @@ void goal_trajectory(double goal, double max_velocity, double& position, double&
 /// \param velocity  The derivative of the current reference (part of reference state)
 /// \param tau The smoothing time constant
 /// \param dt  The timestep to advance
-void goal_trajectory_button_smoother(double goal, double max_velocity, double& position, double& velocity, double tau, double dt);
+void goal_trajectory_button_smoother(double goal, double max_velocity, double& position, double& velocity, double tau,
+                                     double dt);
 
 /// \brief Smooths a reference (velocity + position) using the possibly-broken constant acceleration smoother
 ///
@@ -74,8 +77,8 @@ void goal_trajectory_button_smoother(double goal, double max_velocity, double& p
 /// \param velocity  The derivative of the current reference (part of reference state)
 /// \param tau The smoothing time constant
 /// \param dt  The timestep to advance
-void goal_trajectory_acceleration(double goal, double max_velocity, double& position, double& velocity, double tau, double dt);
-
+void goal_trajectory_acceleration(double goal, double max_velocity, double& position, double& velocity, double tau,
+                                  double dt);
 }
 
-#endif //DS_UTIL_REFERENCE_SMOOTHING_H
+#endif  // DS_UTIL_REFERENCE_SMOOTHING_H

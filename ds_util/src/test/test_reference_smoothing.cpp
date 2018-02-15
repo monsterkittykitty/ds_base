@@ -14,17 +14,17 @@ TEST(ReferenceSmoothing, trapezoidal)
 {
   double pos, vel, acc;
 
-  std::tie(pos, vel, acc) = ds_util::goal_trajectory_trapezoidal(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, ros::Duration(1.0));
+  std::tie(pos, vel, acc) = ds_util::goal_trajectory_trapezoidal(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
   EXPECT_EQ(pos, 0.0);
   EXPECT_EQ(vel, 0.0);
   EXPECT_EQ(acc, 0.0);
 
-  std::tie(pos, vel, acc) = ds_util::goal_trajectory_trapezoidal(1.0, 0.0, 0.0, 0.0, 1.0, 1.0, ros::Duration(1.0));
+  std::tie(pos, vel, acc) = ds_util::goal_trajectory_trapezoidal(1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
   EXPECT_EQ(pos, 0.0);
   EXPECT_EQ(vel, 0.0);
   EXPECT_EQ(acc, 1.0);
 
-  std::tie(pos, vel, acc) = ds_util::goal_trajectory_trapezoidal(1.0, pos, vel, acc, 1.0, 1.0, ros::Duration(1.0));
+  std::tie(pos, vel, acc) = ds_util::goal_trajectory_trapezoidal(1.0, pos, vel, acc, 1.0, 1.0, 1.0);
   EXPECT_EQ(pos, 1.0);
   EXPECT_EQ(vel, 0.0);
   EXPECT_EQ(acc, 0.0);

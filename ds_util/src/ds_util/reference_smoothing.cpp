@@ -1,4 +1,5 @@
 #include "ds_util/reference_smoothing.h"
+#include <cmath>
 
 namespace ds_util
 {
@@ -15,23 +16,22 @@ double sgn(double x)
 
 std::tuple<double, double, double> goal_trajectory_trapezoidal(double goal, double ref_pos_in, double ref_vel_in,
                                                                double ref_acc_in, double max_vel, double max_acc,
-                                                               ros::Duration dt)
+                                                               double dt)
 {
   double err, vel_d;
   double ref_pos = ref_pos_in;
   double ref_vel = ref_vel_in;
   double ref_acc = ref_acc_in;
-  double ts = dt.toSec();
 
   // Update current reference.
-  ref_vel = ref_vel + ref_acc * ts;
-  ref_pos = ref_pos + ref_vel * ts + 0.5 * ref_acc * ts * ts;
+  ref_vel = ref_vel + ref_acc * dt;
+  ref_pos = ref_pos + ref_vel * dt + 0.5 * ref_acc * dt * dt;
 
   // Compute current vector to goal.
   err = ref_pos - goal;
 
   // Determine acceleration to apply.
-  if (fabs(ref_vel) <= max_acc * ts && fabs(err) <= 0.5 * max_acc * ts * ts)
+  if (fabs(ref_vel) <= max_acc * dt && fabs(err) <= 0.5 * max_acc * dt * dt)
   {
     // At goal.
     ref_acc = 0;
@@ -51,7 +51,7 @@ std::tuple<double, double, double> goal_trajectory_trapezoidal(double goal, doub
     }
 
     // But only allow accelerations of no more than max_acc.
-    ref_acc = sgn(vel_d - ref_vel) * fmin(max_acc, fabs(vel_d - ref_vel) / ts);
+    ref_acc = sgn(vel_d - ref_vel) * fmin(max_acc, fabs(vel_d - ref_vel) / dt);
   }
 
   return std::make_tuple(ref_pos, ref_vel, ref_acc);

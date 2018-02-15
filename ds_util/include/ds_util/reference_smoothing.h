@@ -2,7 +2,6 @@
 #define DS_UTIL_REFERENCE_SMOOTHING_H
 
 #include <tuple>
-#include "ros/time.h"
 
 namespace ds_util
 {
@@ -22,7 +21,7 @@ double sgn(double x);
 /// \return A std::tuple containing smoothed reference position, velocity, and acceleration
 std::tuple<double, double, double> goal_trajectory_trapezoidal(double goal, double ref_pos_in, double ref_vel_in,
                                                                double ref_acc_in, double max_vel, double max_acc,
-                                                               ros::Duration dt);
+                                                               double dt);
 
 /// \brief Computes a trajectory from the current position and velocity to goal, without exceeding max_velocity.
 ///

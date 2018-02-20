@@ -147,6 +147,8 @@ public:
   /// \param area
   /// \param density
   WingDynamics(double area, double density);
+  WingDynamics(const WingDynamics& other);
+
   virtual ~WingDynamics();
 
   /// @brief Set the wing drag coefficients.

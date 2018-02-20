@@ -48,6 +48,8 @@ WingDynamics::WingDynamics(double area, double density)
 }
 
 WingDynamics::~WingDynamics() = default;
+WingDynamics::WingDynamics(const WingDynamics &other) = default;
+
 void WingDynamics::setDragCoefficients(double cd0, double cd1, double cd2)
 {
   cd0_ = cd0;

@@ -21,7 +21,7 @@ template <typename T2>
 static std::string int_to_32_hex(T2 i)
 {
   uint16_t j;
-  auto s = sizeof(uint32_t) * 2;
+  int s = sizeof(uint32_t) * 2;
   std::stringstream stream;
   for (int it = 1; it <= s; it++)
   {
@@ -37,7 +37,7 @@ template <typename T3>
 static std::string int_to_long_hex(T3 i)
 {
   uint16_t j;
-  auto s = sizeof(i);
+  int s = sizeof(i);
   std::stringstream stream;
   for (int it = 1; it <= s; it++)
   {

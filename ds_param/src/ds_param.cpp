@@ -294,7 +294,7 @@ std::string UpdatingParamEnum::YamlDescription() const {
   ret <<" type: \"" << Type() <<"\",";
   ret <<" enum: {";
   for (auto iter=d->namedValues.begin(); iter != d->namedValues.end(); iter++) {
-    ret <<" \"" <<iter->first <<"\": " <<iter->second <<", ";
+    ret <<" \"" <<iter->first <<"\": \"" <<iter->second <<"\", ";
   }
   ret <<"} }";
 

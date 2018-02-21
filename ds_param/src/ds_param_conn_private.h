@@ -29,7 +29,9 @@ class ParamConnectionPrivate {
 
     // Resolve our own name
     std::stringstream nameBuilder;
-    nameBuilder <<handle.resolveName(ros::this_node::getName());
+    std::string resolved_name = handle.resolveName(ros::this_node::getNamespace()
+                                                       + "/" + ros::this_node::getName());
+    nameBuilder <<resolved_name;
     nameBuilder <<"##";
     nameBuilder <<std::setw(9) <<ros::WallTime::now().nsec;
     conn_name = nameBuilder.str();
@@ -119,7 +121,9 @@ class ParamConnectionPrivate {
     ret <<"    namespace: " <<ros::this_node::getNamespace() <<"\n";
     ret <<"params: [ ";
     for (auto iter = params.begin(); iter!= params.end(); iter++) {
-      ret <<iter->second->YamlDescription() <<", ";
+      if (iter->second->Advertise()) {
+        ret << iter->second->YamlDescription() << ", ";
+      }
     }
     ret <<"]\n";
 

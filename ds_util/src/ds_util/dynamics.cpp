@@ -8,7 +8,7 @@ double calculate_wing_lift(double angle_of_attack, double speed, double density,
 {
   const auto abs_aoa = std::abs(angle_of_attack);
 
-  auto cl = cl0 * std::sin(2.0 * abs_aoa);
+  auto cl = cl0 * std::cos(2.0 * abs_aoa);
   if (abs_aoa <= std::abs(cl_low_angle))
   {
     cl += cl_low * abs_aoa;

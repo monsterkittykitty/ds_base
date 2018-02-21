@@ -236,8 +236,10 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #############
 
 ## Add gtest based cpp test target and link libraries
-catkin_add_gtest(test_iosm test/test_ds_iosm.cpp)
-target_link_libraries(test_iosm ${PROJECT_NAME})
+if(CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(test_iosm test/test_ds_iosm.cpp)
+    target_link_libraries(test_iosm ${PROJECT_NAME})
+endif(CATKIN_ENABLE_TESTING)
 
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})

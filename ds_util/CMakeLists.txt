@@ -9,9 +9,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-# find_package(catkin REQUIRED COMPONENTS
-#         roscpp
-#         )
+find_package(catkin REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -232,18 +230,19 @@ install(DIRECTORY include/${PROJECT_NAME}/
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
+if(CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(test_fofonoff_depth src/test/test_fofonoff_depth.cpp)
+    target_link_libraries(test_fofonoff_depth ${PROJECT_NAME})
 
-catkin_add_gtest(test_fofonoff_depth src/test/test_fofonoff_depth.cpp)
-target_link_libraries(test_fofonoff_depth ${PROJECT_NAME})
+    catkin_add_gtest(test_angle src/test/test_angle.cpp)
+    target_link_libraries(test_angle ${PROJECT_NAME})
 
-catkin_add_gtest(test_angle src/test/test_angle.cpp)
-target_link_libraries(test_angle ${PROJECT_NAME})
+    catkin_add_gtest(test_int2hex src/test/test_int_to_hex.cpp)
+    target_link_libraries(test_int2hex ${PROJECT_NAME})
 
-catkin_add_gtest(test_int2hex src/test/test_int_to_hex.cpp)
-target_link_libraries(test_int2hex ${PROJECT_NAME})
-
-catkin_add_gtest(test_reference_smoothing src/test/test_reference_smoothing.cpp)
-target_link_libraries(test_reference_smoothing ${PROJECT_NAME})
+    catkin_add_gtest(test_reference_smoothing src/test/test_reference_smoothing.cpp)
+    target_link_libraries(test_reference_smoothing ${PROJECT_NAME})
+endif(CATKIN_ENABLE_TESTING)
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

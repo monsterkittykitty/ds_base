@@ -283,15 +283,18 @@ class ParamConnection(object):
             # we have to send any pending updates
             msg = ParamUpdate()
 
+            any_set = False
             for p in self._params.values():
                 if p._dirty:
                     msg = p._fill_update_message(msg)
                     p._set_on_server()
                     p._dirty=False
+                    any_set = True
             msg.stamp = rospy.get_rostime()
             msg.source = self._conn_name
 
-            self._updatePublisher.publish(msg)
+            if any_set:
+                self._updatePublisher.publish(msg)
 
         self._locked = False
 

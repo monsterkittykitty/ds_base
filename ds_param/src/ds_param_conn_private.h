@@ -163,7 +163,7 @@ class ParamConnectionPrivate {
   }
 
  public:
-  ros::NodeHandle& handle;
+  ros::NodeHandle handle;
   ros::Publisher descriptionPub;
   ros::Publisher updatePub;
   ros::Subscriber updateSub;

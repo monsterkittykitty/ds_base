@@ -57,8 +57,8 @@
   <build_depend>ds_core_msgs</build_depend>
   <build_export_depend>ds_core_msgs</build_export_depend>
 
-  <build_depend>Boost</build_depend>
-  <exec_depend>Boost</exec_depend>
+  <build_depend>boost</build_depend>
+  <exec_depend>boost</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

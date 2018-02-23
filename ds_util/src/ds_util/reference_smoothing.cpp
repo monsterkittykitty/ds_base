@@ -242,7 +242,7 @@ double TrapezoidalSmoother::setReference(double pos, double vel, double acc)
   d->ref_vel_ = vel;
   d->ref_acc_ = acc;
 }
-std::tuple<double, double, double> TrapezoidalSmoother::refernce() const
+std::tuple<double, double, double> TrapezoidalSmoother::reference() const
 {
   const auto d = d_ptr();
   return std::make_tuple(d->ref_pos_, d->ref_vel_, d->ref_acc_);

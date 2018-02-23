@@ -85,7 +85,7 @@ public:
   /// \return
   double setReference(double pos, double vel, double acc);
 
-  std::tuple<double, double, double> refernce() const;
+  std::tuple<double, double, double> reference() const;
 
 private:
   Impl* d_ptr();

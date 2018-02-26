@@ -161,7 +161,9 @@ void DsSerial::handle_read(const boost::system::error_code& error, std::size_t b
   {
     num_read_error_ = 0;
     // Store timestamp as soon as received
-    raw_data_.ds_header.io_time = ros::Time::now();
+    ros::Time now = ros::Time::now();
+    raw_data_.ds_header.io_time = now;
+    raw_data_.header.stamp = now;
 
     boost::asio::streambuf::const_buffers_type bufs = streambuf_.data();
     ROS_INFO_STREAM("Streambuf data size: " << bytes_transferred);

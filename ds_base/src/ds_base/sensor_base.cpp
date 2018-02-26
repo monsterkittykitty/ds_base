@@ -236,7 +236,6 @@ void SensorBase::fillHeaderMetadata(std_msgs::Header& hdr,
 
   hdr.stamp = stamp;
   hdr.frame_id = d->frame_id_;
-  ROS_ERROR_STREAM("Setting frameID to \"" <<d->frame_id_ <<"\"");
   
   ds_hdr.io_time = io_time;
   boost::uuids::uuid _uuid = uuid(); // get from parent class

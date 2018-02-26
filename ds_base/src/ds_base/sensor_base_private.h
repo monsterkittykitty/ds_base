@@ -23,6 +23,9 @@ struct SensorBasePrivate
 
   ros::Duration message_timeout_;  //!< Acceptable duration between sensor messages.
 
+  /// @brief A string identifying the instrument frame for this sensor in TF
+  std::string frame_id_;
+
   ///@brief last timestamps, checked by SensorBase::checkTimestamps
   SensorBase::TimestampMap last_timestamps_;
 

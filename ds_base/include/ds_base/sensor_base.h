@@ -66,6 +66,21 @@ public:
   /// \return
   ros::Duration timeout() const noexcept;
 
+  /// @brief Set the frame_id string that identifies this sensor's instrument frame
+  ///
+  /// The sensor should report its own instrument frame.  If no such frame is available,
+  /// sensor_base will default to base_link.
+  ///
+  /// \param frame_id The name of this instrument's instrument frame in TF
+  void setFrameId(const std::string& frame_id);
+
+  /// @brief Get the current frame id string that identifies this sensor's instrument frame
+  ///
+  /// This should be set at startup in the config file
+  ///
+  /// \return The name of this instrument's TF link
+  const std::string& frameId() const noexcept;
+
   /// @brief Send a command over the a connection
   ///
   /// \param command
@@ -182,9 +197,35 @@ protected:
   /// \param event
   void checkProcessStatus(const ros::TimerEvent& event) override;
 
+  /// \brief Fill in message headers given an io time and timestamp
+  ///
+  /// Fills in a message's headers using the given timestamp and our 
+  /// current metadata
+  /// You can use these in conjunction with the handy macros:
+  ///
+  /// FILL_SENSOR_HDR(msg, stamp, io_time)  <!-- Uses the provided time
+  /// FILL_SENSOR_HDR_IOTIME(msg, io_time)  <!-- Uses the I/O time for both
+  ///
+  /// \param hdr The standard header for this message
+  /// \param ds_hdr The customized ds_header for this message
+  /// \param stamp the ROS Time to set as the authoratative time for this message
+  /// \param io_time The time that this message was received
+  void fillHeaderMetadata(std_msgs::Header& hdr,
+                          ds_core_msgs::DsHeader& ds_hdr, 
+                          const ros::Time& stamp, 
+                          const ros::Time& io_time) const;
+
+
 private:
   std::unique_ptr<SensorBasePrivate> d_ptr_;
 };
+
+#define FILL_SENSOR_HDR(msg, timestamp, io_time) \
+this->fillHeaderMetadata((msg).header, (msg).ds_header, (timestamp), (io_time))
+
+#define FILL_SENSOR_HDR_IOTIME(msg, io_time) \
+this->fillHeaderMetadata((msg).header, (msg).ds_header, (io_time), (io_time))
+
 }
 
 #endif  // DS_SENSOR_SENSORBASE_H

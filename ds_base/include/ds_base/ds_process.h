@@ -123,7 +123,7 @@ public:
   /// with identical parameters.
   ///
   /// \return
-  boost::uuids::uuid uuid() noexcept;
+  boost::uuids::uuid uuid() const noexcept;
 
   void publishStatus(const ds_core_msgs::Status& msg);
 

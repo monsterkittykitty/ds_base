@@ -85,7 +85,7 @@ boost::shared_ptr<ds_asio::IoSM> DsProcess::addIoSM(const std::string& iosm_name
   return d->asio_->addIoSM(iosm_name, conn_name, callback, nh);
 }
 
-boost::uuids::uuid DsProcess::uuid() noexcept
+boost::uuids::uuid DsProcess::uuid() const noexcept
 {
   const DS_D(DsProcess);
   return d->uuid_;

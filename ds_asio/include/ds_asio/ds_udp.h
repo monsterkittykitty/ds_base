@@ -43,7 +43,7 @@ private:
 
   std::unique_ptr<udp::socket> socket_;
   udp::endpoint* remote_endpoint_;
-  boost::array<char, 128> recv_buffer_;
+  boost::array<char, 512> recv_buffer_;
   uint8_t num_read_error_;
   ros::Timer read_error_retry_timer_;
 };

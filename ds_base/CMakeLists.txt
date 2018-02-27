@@ -39,6 +39,7 @@ endif(CLANG_FORMAT_FOUND)
 add_service_files(DIRECTORY srv
         FILES
         StringCommand.srv
+        BoolCommand.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

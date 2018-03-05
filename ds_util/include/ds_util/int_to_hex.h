@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <stdint.h>
 
 namespace ds_util
 {

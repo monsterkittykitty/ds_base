@@ -119,7 +119,7 @@ void UpdatingParamT<T>::Set(const T &_v) {
 }
 
 template<typename T>
-const boost::optional<T>& UpdatingParamT<T>::GetPrevious() const {
+boost::optional<T> UpdatingParamT<T>::GetPrevious() const {
   PT_D;
   return d->prev_value;
 };

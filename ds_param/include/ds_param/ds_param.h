@@ -111,7 +111,7 @@ class UpdatingParamT : public UpdatingParam {
   /// \brief Get the previous value this parameter had.
   ///
   /// \return The previous value this parameter had, or no value if no previous values have been observed
-  const boost::optional<T>& GetPrevious() const;
+  boost::optional<T> GetPrevious() const;
 
   virtual std::string YamlDescription() const override;
   virtual std::string Type() const;

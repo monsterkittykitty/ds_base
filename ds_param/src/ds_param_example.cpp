@@ -61,6 +61,11 @@ class ParamDemo {
 
       param_bool_atomic->Set(! param_bool_atomic->Get());
       param_int_atomic->Set(idx);
+      if (param_int->GetPrevious()) {
+        ROS_ERROR_STREAM("\tResetting PARAM INT: " << param_int->Get() << " to " << param_int->GetPrevious());
+        param_int->Set(*(param_int->GetPrevious()));
+        ROS_ERROR_STREAM("\tReset PARAM INT: " <<param_int->Get());
+      }
     }
 
     ROS_ERROR_STREAM(ros::this_node::getName()

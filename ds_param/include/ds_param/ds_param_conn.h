@@ -17,7 +17,7 @@ namespace ds_param {
 class ParamConnectionPrivate;
 class ParamGuard;
 
-class ParamConnection : public std::enable_shared_from_this<ParamConnection> {
+class ParamConnection {
  private:
   ParamConnection(ros::NodeHandle& handle);
 

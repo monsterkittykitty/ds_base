@@ -14,7 +14,12 @@ ParamConnection::ParamConnection(ros::NodeHandle &_h) : impl(
     std::make_shared<ParamConnectionPrivate>(_h)) {
 }
 
-ParamConnection::~ParamConnection() = default;
+ParamConnection::~ParamConnection()
+{
+  impl->updatePub.shutdown();
+  impl->updateSub.shutdown();
+  impl->descriptionPub.shutdown();
+}
 
 std::shared_ptr<ParamConnection> ParamConnection::create(ros::NodeHandle &handle) {
   return std::shared_ptr<ParamConnection>(new ParamConnection(handle));

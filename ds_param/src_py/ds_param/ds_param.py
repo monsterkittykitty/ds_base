@@ -1,5 +1,6 @@
 import rospy
 
+import threading
 from ds_core_msgs.msg import ParamUpdate, ParamDescription, KeyBool, KeyDouble, KeyFloat, KeyInt, KeyString
 
 __all__ = ['BoolParam', 'IntParam', 'FloatParam', 'DoubleParam', 'StringParam', 'EnumParam', 'ParamConnection']
@@ -222,21 +223,30 @@ class ParamConnection(object):
         self._locked = False
         self._params = {}
         self._callback = None
+        self._mutex = threading.Lock()
 
-        # Build our name the same way the C++ system works
-        self._conn_name = rospy.resolve_name(rospy.get_namespace() + "/" + rospy.get_name()) + "##"
-        self._conn_name += ('%09d' % rospy.get_rostime().nsecs)
+        self._mutex.acquire()
 
-        # Setup our I/O
-        self._descriptionPublisher = rospy.Publisher("/updating_param/description", ParamDescription,
-                                                     queue_size=1, latch=True)
+        try:
 
-        self._updatePublisher = rospy.Publisher("/updating_param/updates", ParamUpdate,
-                                                queue_size=1, latch=True)
-
-        self._updateSubscriber = rospy.Subscriber("/updating_param/updates", ParamUpdate,
-                                                  callback=self._update_callback,
-                                                  queue_size=10)
+            # Build our name the same way the C++ system works
+            self._conn_name = rospy.resolve_name(rospy.get_namespace() + "/" + rospy.get_name()) + "##"
+            self._conn_name += ('%09d' % rospy.get_rostime().nsecs)
+    
+            # Setup our I/O
+            self._descriptionPublisher = rospy.Publisher("/updating_param/description", ParamDescription,
+                                                         queue_size=1, latch=True)
+    
+            self._updatePublisher = rospy.Publisher("/updating_param/updates", ParamUpdate,
+                                                    queue_size=1, latch=True)
+    
+            self._updateSubscriber = rospy.Subscriber("/updating_param/updates", ParamUpdate,
+                                                      callback=self._update_callback,
+                                                      queue_size=10)
+        except:
+            self._mutex.release()
+            raise
+	self._mutex.release()
 
     def connect(self, varname, vartype, advertise, caller_id=None):
         '''Connect a variable via this connection
@@ -246,26 +256,33 @@ class ParamConnection(object):
         @caller_id (default=None): The same as the caller_id parameter to resolve_name.  You can use this
         to resolve names relative to some other namespace'''
 
-        fullname = rospy.resolve_name(varname, caller_id)
+        self._mutex.acquire()
+        try:
+            fullname = rospy.resolve_name(varname, caller_id)
 
-        # First, check to see if we already have a copy in our local cache
-        if fullname in self._params:
-            if advertise:
-                # Force advertisement to happen if its requested
-                self._params[fullname]._advertise = True
-                self._publish_description()
+            # First, check to see if we already have a copy in our local cache
+            if fullname in self._params:
+                if advertise:
+                    # Force advertisement to happen if its requested
+                    self._params[fullname]._advertise = True
+                    self._publish_description()
 
-            return self._params[fullname]
+                self._mutex.release()
+                return self._params[fullname]
 
-        if not rospy.has_param(fullname):
-            raise KeyError("Variable named \"" + fullname + "\" does not exist on the parameter server!")
+            if not rospy.has_param(fullname):
+                 raise KeyError("Variable named \"" + fullname + "\" does not exist on the parameter server!")
 
-        p = vartype(self, fullname, advertise)
-        p._load_from_server()
+            p = vartype(self, fullname, advertise)
+            p._load_from_server()
 
-        self._params[fullname] = p
+            self._params[fullname] = p
 
-        self._publish_description()
+            self._publish_description()
+        except:
+            self._mutex.release()
+            raise
+	self._mutex.release()
 
         return p
 
@@ -273,42 +290,70 @@ class ParamConnection(object):
         return self._conn_name
 
     def set_callback(self, callback):
-        self._callback = callback
+        self._mutex.acquire()
+        try:
+            self._callback = callback
+        except:
+            self._mutex.release()
+            raise
+	self._mutex.release()
 
     def lock(self):
-        self._locked = True
+        self._mutex.acquire()
+        try:
+            self._locked = True
+        except:
+            self._mutex.release()
+            raise
+	self._mutex.release()
+  
 
     def unlock(self):
-        if self._locked:
-            # we have to send any pending updates
-            msg = ParamUpdate()
+        self._mutex.acquire()
+        try:
+            if self._locked:
+                # we have to send any pending updates
+                msg = ParamUpdate()
 
-            any_set = False
-            for p in self._params.values():
-                if p._dirty:
-                    msg = p._fill_update_message(msg)
-                    p._set_on_server()
-                    p._dirty=False
-                    any_set = True
-            msg.stamp = rospy.get_rostime()
-            msg.source = self._conn_name
+                any_set = False
+                for p in self._params.values():
+                    if p._dirty:
+                         msg = p._fill_update_message(msg)
+                         p._set_on_server()
+                         p._dirty=False
+                         any_set = True
+                msg.stamp = rospy.get_rostime()
+                msg.source = self._conn_name
 
-            if any_set:
-                self._updatePublisher.publish(msg)
+                if any_set:
+                    self._updatePublisher.publish(msg)
 
-        self._locked = False
+            self._locked = False
+        except:
+            self._mutex.release()
+            raise
+        self._mutex.release()
 
     def is_locked(self):
         return self._locked
 
     def _signal_update(self, param):
-        msg = ParamUpdate()
-        msg = param._fill_update_message(msg)
+        if self._mutex.locked():
+            print '_signal_update: MUTEX ALREADY LOCKED!'
+        self._mutex.acquire()
+        try:
+            msg = ParamUpdate()
+            msg = param._fill_update_message(msg)
 
-        msg.stamp = rospy.get_rostime()
-        msg.source = self._conn_name
+            msg.stamp = rospy.get_rostime()
+            msg.source = self._conn_name
 
-        self._updatePublisher.publish(msg)
+            self._updatePublisher.publish(msg)
+        except:
+            self._mutex.release()
+            raise
+        self._mutex.release()
+
 
     def _publish_description(self):
         # Build our yaml description manually
@@ -330,20 +375,31 @@ class ParamConnection(object):
         self._descriptionPublisher.publish(msg)
 
     def _update_callback(self, msg):
-
         if msg.source == self._conn_name:
             # Don't respond to messages from ourself
+            print 'Ignoring callback from our own message!'
             return
+        
+        if self._mutex.locked():
+            print '_update_callback: MUTEX ALREADY LOCKED!'
+        self._mutex.acquire()
+        try:
 
-        updated_params = []
-        updated_params.extend(self._update_params(msg.bools))
-        updated_params.extend(self._update_params(msg.ints))
-        updated_params.extend(self._update_params(msg.floats))
-        updated_params.extend(self._update_params(msg.doubles))
-        updated_params.extend(self._update_params(msg.strings))
 
-        if self._callback is not None:
-            self._callback(updated_params)
+            updated_params = []
+            updated_params.extend(self._update_params(msg.bools))
+            updated_params.extend(self._update_params(msg.ints))
+            updated_params.extend(self._update_params(msg.floats))
+            updated_params.extend(self._update_params(msg.doubles))
+            updated_params.extend(self._update_params(msg.strings))
+
+            self._mutex.release()
+
+            if self._callback is not None:
+                self._callback(updated_params)
+        except:
+            self._mutex.release()
+            raise
 
     def _update_params(self, keyvalue):
         ret = []

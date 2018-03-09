@@ -396,6 +396,7 @@ class ParamConnection(object):
             self._mutex.release()
 
             if self._callback is not None:
+                print msg
                 self._callback(updated_params)
         except:
             self._mutex.release()

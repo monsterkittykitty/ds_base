@@ -338,8 +338,8 @@ class ParamConnection(object):
         return self._locked
 
     def _signal_update(self, param):
-        if self._mutex.locked():
-            print '_signal_update: MUTEX ALREADY LOCKED!'
+        #if self._mutex.locked():
+            #print '_signal_update: MUTEX ALREADY LOCKED!'
         self._mutex.acquire()
         try:
             msg = ParamUpdate()
@@ -377,11 +377,11 @@ class ParamConnection(object):
     def _update_callback(self, msg):
         if msg.source == self._conn_name:
             # Don't respond to messages from ourself
-            print 'Ignoring callback from our own message!'
+            #print 'Ignoring callback from our own message!'
             return
         
-        if self._mutex.locked():
-            print '_update_callback: MUTEX ALREADY LOCKED!'
+        #if self._mutex.locked():
+        #    print '_update_callback: MUTEX ALREADY LOCKED!'
         self._mutex.acquire()
         try:
 
@@ -396,7 +396,7 @@ class ParamConnection(object):
             self._mutex.release()
 
             if self._callback is not None:
-                print msg
+                #print msg
                 self._callback(updated_params)
         except:
             self._mutex.release()

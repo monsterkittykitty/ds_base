@@ -139,6 +139,9 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/int_to_hex.h
 
+  include/${PROJECT_NAME}/float_round.h
+  src/${PROJECT_NAME}/float_round.cpp
+
   include/${PROJECT_NAME}/fofonoff_depth.h
   src/${PROJECT_NAME}/fofonoff_depth.cpp
 
@@ -242,6 +245,9 @@ if(CATKIN_ENABLE_TESTING)
 
     catkin_add_gtest(test_reference_smoothing src/test/test_reference_smoothing.cpp)
     target_link_libraries(test_reference_smoothing ${PROJECT_NAME})
+
+    catkin_add_gtest(test_float_round src/test/test_float_round.cpp)
+    target_link_libraries(test_float_round ${PROJECT_NAME})
 endif(CATKIN_ENABLE_TESTING)
 
 ## Add folders to be run by python nosetests

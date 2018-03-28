@@ -42,6 +42,15 @@ EXPECT_FLOAT_EQ(2.0, ds_util::float_round(1.999, 2));
 EXPECT_FLOAT_EQ(1.3, ds_util::float_round(1.25, 1));
 }
 
+TEST_F(FloatRoundTest, double_round)
+{
+EXPECT_FLOAT_EQ(2, ds_util::float_round(ds_util::float_round(1.45, 1), 0));
+EXPECT_FLOAT_EQ(1.1, ds_util::float_round(ds_util::float_round(1.115, 2), 1));
+EXPECT_FLOAT_EQ(1.46, ds_util::float_round(ds_util::float_round(1.4555, 3), 2));
+EXPECT_FLOAT_EQ(1.192, ds_util::float_round(ds_util::float_round(1.1919995, 5), 4));
+EXPECT_FLOAT_EQ(1.6869, ds_util::float_round(ds_util::float_round(1.68686841, 6), 4));
+}
+
 
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)

@@ -8,6 +8,8 @@
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
 #include <ros/ros.h>
+#include <stdexcept>
+#include <sstream>
 
 namespace ds_asio
 {
@@ -36,10 +38,18 @@ public:
     std::string connectionType;
     myNh.getParam(ros::this_node::getName() + "/" + name + "/type", connectionType);
 
-    if (connectionType.compare("UDP") == 0)
+    if (connectionType.compare("UDP") == 0) {
       return boost::shared_ptr<DsUdp>(new DsUdp(io_service, name, callback, myNh));
-    else if (connectionType.compare("SERIAL") == 0)
+    } else if (connectionType.compare("SERIAL") == 0) {
       return boost::shared_ptr<DsSerial>(new DsSerial(io_service, name, callback, myNh));
+    }
+
+    std::stringstream msg;
+    msg <<"Unable to create connection \"" <<name <<"\" in node " <<ros::this_node::getName()
+      <<" with type \"" <<connectionType <<"\"!\nLooking for type rosparam at: \""
+      <<ros::this_node::getName() + "/" + name + "/type\"";
+
+    throw std::runtime_error(msg.str());
   }
 };
 }

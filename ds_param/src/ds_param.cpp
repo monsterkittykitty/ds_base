@@ -160,7 +160,7 @@ template<typename T>
 void UpdatingParamT<T>::loadFromServer() {
   PT_D;
   if (!d->conn->getHandle().getParam(d->name, d->value)) {
-    ROS_ERROR_STREAM("Could not set variable \"" <<Name() <<"\"<" <<Type() <<"> from server!");
+    ROS_ERROR_STREAM(ros::this_node::getName() <<" could not set variable \"" <<Name() <<"\"<" <<Type() <<"> from server!");
   }
 }
 

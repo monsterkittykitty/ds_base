@@ -39,16 +39,17 @@ TEST_F(ProcessTest, clean_exit)
   process_.reset();
 }
 
+void empty_callback(ds_core_msgs::RawData) {}
+
 TEST_F(ProcessTest, multiple_asio_connections)
 {
-  auto callback = [] (const ds_core_msgs::RawData&)
-  {};
+  process_->setup();
 
   auto str = ros::names::resolve(ros::this_node::getName(), std::string{"connection1"});
-  auto con1 = process_->addConnection(str, callback);
+  auto con1 = process_->addConnection(str, &empty_callback);
 
   str = ros::names::resolve(ros::this_node::getName(), std::string{"connection2"});
-  auto con2 = process_->addConnection(str, callback);
+  auto con2 = process_->addConnection(str, &empty_callback);
 }
 
 // Run all the tests that were declared with TEST()

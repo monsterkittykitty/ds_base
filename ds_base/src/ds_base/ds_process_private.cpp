@@ -13,6 +13,7 @@ DsProcessPrivate::DsProcessPrivate()
   : asio_(std::unique_ptr<ds_asio::DsAsio>(new ds_asio::DsAsio))
   , uuid_(boost::uuids::nil_uuid())
   , is_setup_(false)
+  , is_critical_(false)
 {
 }
 
@@ -38,4 +39,28 @@ void DsProcessPrivate::updateStatusCheckTimer(DsProcess* base, ros::Duration per
   status_check_timer_ = base->nodeHandle().createTimer(status_check_period_, &DsProcess::checkProcessStatus, base);
   ROS_INFO_STREAM("Status check timer set to " << status_check_period_);
 }
+
+void DsProcessPrivate::updateCriticalProcessTimer(DsProcess* base, ros::Duration period)
+{
+  if (period == critical_check_period_)
+  {
+    return;
+  }
+
+  // Stop pending triggers.
+  critical_check_timer_.stop();
+
+  // Negative durations disable the timer
+  if (period < ros::Duration(0))
+  {
+    ROS_INFO_STREAM("Disabling status check timer");
+    critical_check_period_ = ros::Duration(-1);
+    return;
+  }
+
+  critical_check_period_ = period;
+  //critical_check_timer_ = base->nodeHandle().createTimer(critical_check_period_, &DsProcess::onCriticalProcessTimer, base);
+  ROS_INFO_STREAM("Critical process check timer set to " << critical_check_period_);
+}
+
 }

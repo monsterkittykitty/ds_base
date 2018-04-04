@@ -69,6 +69,18 @@ void DsProcess::setStatusCheckPeriod(ros::Duration period) noexcept
   d->updateStatusCheckTimer(this, period);
 }
 
+ros::Duration DsProcess::criticalProcessPeriod() const noexcept
+{
+  const DS_D(DsProcess);
+  return d->critical_check_period_;
+}
+
+void DsProcess::setCriticalProcessPeriod(ros::Duration period) noexcept
+{
+  DS_D(DsProcess);
+  d->updateCriticalProcessTimer(this, period);
+}
+
 boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::string& name,
                                                                   const ds_asio::ReadCallback& callback)
 {
@@ -140,6 +152,22 @@ void DsProcess::setupParameters()
     ROS_WARN_STREAM("No UUID loaded from parameter node.  Using value: " << d->uuid_);
     return;
   }
+
+  bool isCritical = ros::param::param<bool>("~critical", false);
+  if (isCritical)
+    {
+      d->is_critical_ = true;
+      const auto critical_check_period = ros::param::param<double>("~critical_check_period", 5.0);
+      if (critical_check_period > 0)
+        {
+          ROS_INFO_STREAM("Setting critical process ttl broadcast period to " << critical_check_period << " seconds.");
+        }
+      else
+        {
+          ROS_INFO_STREAM("Disabling critical process ttl broadcast.");
+        }
+      setCriticalProcessPeriod(ros::Duration(critical_check_period));
+    }
 }
 
 void DsProcess::setupPublishers()
@@ -153,6 +181,12 @@ void DsProcess::checkProcessStatus(const ros::TimerEvent& event)
 {
   const auto status = statusMessage();
   publishStatus(status);
+}
+
+void DsProcess::onCriticalProcessTimer(const ros::TimerEvent& event)
+{
+  //const auto status = statusMessage();
+  //publishStatus(status);
 }
 
 ds_core_msgs::Status DsProcess::statusMessage()

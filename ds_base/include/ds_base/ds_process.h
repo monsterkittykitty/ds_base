@@ -90,6 +90,16 @@ public:
   /// A period < 0 disables health checks.
   void setStatusCheckPeriod(ros::Duration period) noexcept;
 
+  /// @brief Period betweeen critical process ttl broadcasts
+  ///
+  /// \return
+  ros::Duration criticalProcessPeriod() const noexcept;
+
+  /// @brief Set the period for critical process ttl broadcasts
+  ///
+  /// A period < 0 disables broadcasts
+  void setCriticalProcessPeriod(ros::Duration period) noexcept;
+
   /// @brief Give the node a descriptive name
   ///
   /// \param name
@@ -210,6 +220,11 @@ protected:
   ///
   /// \param event
   virtual void checkProcessStatus(const ros::TimerEvent& event);
+
+  /// @brief Publishes a ttl message if this is a critical process
+  ///
+  /// This method is triggered by the critical process timer.
+  virtual void onCriticalProcessTimer(const ros::TimerEvent& event);
 
   /// @brief Override the uuid read from the parameter server
   ///

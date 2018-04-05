@@ -249,7 +249,7 @@ ds_core_msgs::CriticalProcess DsProcess::criticalProcessMessage()
   msg.header.stamp = now;
   msg.ttl = d->ttl_;
   msg.nodename = ros::this_node::getName();
-  ROS_ERROR_STREAM(msg.nodename);
+  //ROS_ERROR_STREAM(msg.nodename);
   
   return msg;
 }

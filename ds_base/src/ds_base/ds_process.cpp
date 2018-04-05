@@ -271,4 +271,17 @@ void DsProcess::setUuid(const boost::uuids::uuid& uuid) noexcept
   DS_D(DsProcess);
   d->uuid_ = uuid;
 }
+
+void DsProcess::setTtl(int ttl)
+{
+  DS_D(DsProcess);
+  d->ttl_ = ttl;
+}
+
+int DsProcess::getTtl(void)
+{
+  DS_D(DsProcess);
+  return d->ttl_;
+}
+
 }

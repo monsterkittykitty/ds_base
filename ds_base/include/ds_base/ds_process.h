@@ -237,6 +237,10 @@ protected:
   /// \return
   void setUuid(const boost::uuids::uuid& uuid) noexcept;
 
+  void setTtl(int ttl);
+
+  int getTtl(void);
+  
 private:
   std::unique_ptr<DsProcessPrivate> d_ptr_;
 };

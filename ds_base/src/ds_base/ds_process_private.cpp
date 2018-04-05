@@ -59,7 +59,7 @@ void DsProcessPrivate::updateCriticalProcessTimer(DsProcess* base, ros::Duration
   }
 
   critical_check_period_ = period;
-  //critical_check_timer_ = base->nodeHandle().createTimer(critical_check_period_, &DsProcess::onCriticalProcessTimer, base);
+  critical_check_timer_ = base->nodeHandle().createTimer(critical_check_period_, &DsProcess::onCriticalProcessTimer, base);
   ROS_INFO_STREAM("Critical process check timer set to " << critical_check_period_);
 }
 

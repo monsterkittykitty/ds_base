@@ -4,10 +4,12 @@
 #include "ds_base/ds_global.h"
 #include "ds_asio/ds_asio.h"
 #include "ds_core_msgs/Status.h"
+#include "ds_core_msgs/CriticalProcess.h"
 
 #include <ros/ros.h>
 #include <boost/asio.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace ds_base
 {
@@ -137,6 +139,8 @@ public:
 
   void publishStatus(const ds_core_msgs::Status& msg);
 
+  void publishCriticalProcess(const ds_core_msgs::CriticalProcess& msg);
+
   /// @brief Setup node after ros has been initialized.
   ///
   /// This method is called in DsProcess' constructors, after the object has
@@ -167,6 +171,8 @@ public:
   ///
   /// \param event
   virtual ds_core_msgs::Status statusMessage();
+
+  ds_core_msgs::CriticalProcess criticalProcessMessage();
 
 protected:
   /// @brief Get parameters from server

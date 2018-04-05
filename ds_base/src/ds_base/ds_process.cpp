@@ -150,12 +150,14 @@ void DsProcess::setupParameters()
   else
   {
     ROS_WARN_STREAM("No UUID loaded from parameter node.  Using value: " << d->uuid_);
-    return;
   }
 
   bool isCritical = ros::param::param<bool>("~critical", false);
   if (isCritical)
     {
+      ROS_ERROR_STREAM(ros::this_node::getName() << " is critical");
+      const auto ttl = ros::param::param<int>("~critical_ttl", 60);
+      d->ttl_ = ttl;
       d->is_critical_ = true;
       const auto critical_check_period = ros::param::param<double>("~critical_check_period", 5.0);
       if (critical_check_period > 0)
@@ -168,13 +170,44 @@ void DsProcess::setupParameters()
         }
       setCriticalProcessPeriod(ros::Duration(critical_check_period));
     }
+  else
+    {
+      ROS_INFO_STREAM(ros::this_node::getName() << " is not critical");
+    }
+  return;
 }
 
 void DsProcess::setupPublishers()
 {
   DS_D(DsProcess);
-  d->status_publisher_ =
-      nodeHandle().advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
+  d->status_publisher_ = nodeHandle().advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
+  ROS_ERROR_STREAM("Is Critical: " << d->is_critical_ << " " << ros::this_node::getName());
+  if (d->is_critical_ == true)
+  {
+      std::string ns = ros::this_node::getNamespace();
+      ROS_ERROR_STREAM("Critical node namespace: " << ns);
+      std::vector<std::string> splitns;
+      boost::algorithm::split(splitns, ns, boost::is_any_of("/"));
+      std::string basens;
+      for (int i = 0; i < splitns.size(); ++i)
+        {
+          ROS_ERROR_STREAM(splitns[i]);
+          if (splitns[i] != "")
+            {
+              basens = splitns[i];
+              break;
+            }
+        }
+      if (splitns.size() > 0) // There is a base (domain) namespace
+        {
+          d->critical_process_publisher_ = nodeHandle().advertise<ds_core_msgs::CriticalProcess>("/" + basens + "/critical_process", 10, false);
+        }
+      else
+        {
+          ROS_ERROR_STREAM("Couldn't find a base (domain) namespace to advertise critical_process topic");
+        }
+  }
+
 }
 
 void DsProcess::checkProcessStatus(const ros::TimerEvent& event)
@@ -185,8 +218,8 @@ void DsProcess::checkProcessStatus(const ros::TimerEvent& event)
 
 void DsProcess::onCriticalProcessTimer(const ros::TimerEvent& event)
 {
-  //const auto status = statusMessage();
-  //publishStatus(status);
+  const auto msg = criticalProcessMessage();
+  publishCriticalProcess(msg);
 }
 
 ds_core_msgs::Status DsProcess::statusMessage()
@@ -206,10 +239,31 @@ ds_core_msgs::Status DsProcess::statusMessage()
   return status;
 }
 
+ds_core_msgs::CriticalProcess DsProcess::criticalProcessMessage()
+{
+  const auto now = ros::Time::now();
+
+  auto msg = ds_core_msgs::CriticalProcess{};
+  DS_D(DsProcess);
+
+  msg.header.stamp = now;
+  msg.ttl = d->ttl_;
+  msg.nodename = ros::this_node::getName();
+  ROS_ERROR_STREAM(msg.nodename);
+  
+  return msg;
+}
+
 void DsProcess::publishStatus(const ds_core_msgs::Status& msg)
 {
   DS_D(DsProcess);
   d->status_publisher_.publish(msg);
+}
+
+void DsProcess::publishCriticalProcess(const ds_core_msgs::CriticalProcess& msg)
+{
+  DS_D(DsProcess);
+  d->critical_process_publisher_.publish(msg);
 }
 
 void DsProcess::setUuid(const boost::uuids::uuid& uuid) noexcept

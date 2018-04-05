@@ -69,6 +69,7 @@ struct DsProcessPrivate
 
   bool is_setup_;  //!< Has setup() been called?
   bool is_critical_; //!< Is this a critical process that needs to publish a ttl?
+  int ttl_; //!< TTL advertised in the critical process message if the process is marked as critical
 
   std::unique_ptr<ds_asio::DsAsio> asio_;               //!< DsAsio instance
 
@@ -80,6 +81,7 @@ struct DsProcessPrivate
   boost::uuids::uuid uuid_;            //!< UUID of node.
 
   ros::Publisher status_publisher_;  //!< The status channel publisher.
+  ros::Publisher critical_process_publisher_;  //!< The ttl published is the processis critical
 
   std::unordered_map<std::string, ros::Time> last_published_timestamp_;  //!< Timestamp of last message sent by
                                                                          //!publisher

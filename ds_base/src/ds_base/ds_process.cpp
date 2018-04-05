@@ -181,7 +181,7 @@ void DsProcess::setupPublishers()
 {
   DS_D(DsProcess);
   d->status_publisher_ = nodeHandle().advertise<ds_core_msgs::Status>(ros::this_node::getName() + "/status", 10, false);
-  ROS_ERROR_STREAM("Is Critical: " << d->is_critical_ << " " << ros::this_node::getName());
+  //ROS_ERROR_STREAM("Is Critical: " << d->is_critical_ << " " << ros::this_node::getName());
   if (d->is_critical_ == true)
   {
       std::string ns = ros::this_node::getNamespace();

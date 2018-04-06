@@ -12,6 +12,7 @@
 #include <ctime>
 #include <iostream>
 #include <string>
+#include <boost/algorithm/string.hpp>
 
 using boost::asio::ip::udp;
 

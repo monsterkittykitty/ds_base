@@ -41,6 +41,22 @@ void DsUdp::setup(ros::NodeHandle& nh)
   {
     nh.getParam(ros::this_node::getName() + "/" + name_ + "/udp_address", udp_address);
     ROS_INFO_STREAM("Using udp_address==\"" <<udp_address <<"\"");
+    //boost::asio::socket_base::broadcast option(true);
+    //socket_->set_option(option);
+    std::vector<std::string> split_add;
+    boost::algorithm::split(split_add, udp_address, boost::is_any_of("."));
+    //for (const std::string& i : split_add)
+    //  ROS_ERROR_STREAM("Split address: " << i << " size: " << split_add.size() << " back: " << split_add.back());
+    if (split_add.size() > 0)
+      {
+        //ROS_INFO_STREAM("Split size " << split_add.size());
+        if (!split_add.back().compare("255"))
+          {
+            ROS_INFO_STREAM("Setting socket broadcast option");
+            boost::asio::socket_base::broadcast option(true);
+            socket_->set_option(option);
+          }
+      }
   }
   else
   {

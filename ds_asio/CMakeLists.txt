@@ -239,6 +239,8 @@ install(DIRECTORY include/${PROJECT_NAME}/
 if(CATKIN_ENABLE_TESTING)
     catkin_add_gtest(test_iosm test/test_ds_iosm.cpp)
     target_link_libraries(test_iosm ${PROJECT_NAME})
+    catkin_add_gtest(test_ds_match_functions test/test_ds_match_functions.cpp)
+    target_link_libraries(test_ds_match_functions ${PROJECT_NAME})
 endif(CATKIN_ENABLE_TESTING)
 
 # if(TARGET ${PROJECT_NAME}-test)

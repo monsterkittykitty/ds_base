@@ -68,6 +68,11 @@ void DsSerial::setup(ros::NodeHandle& nh)
     set_matcher(match_header_length(myHeader, length));
   }
 
+  else if (!myMatch.compare("match_header_pd0"))
+  {
+    set_matcher(match_header_pd0());
+  }
+
   std::string myParity;
   nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");
   ROS_INFO_STREAM("Parity: " << myParity);

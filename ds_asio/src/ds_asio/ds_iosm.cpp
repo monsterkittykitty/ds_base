@@ -351,9 +351,6 @@ void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)
   std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
   preemptCommands.push_back(cmd);
 
-  // IOSM_RACECONDITION
-  //std::cerr <<"ADDING PREEMPT: " <<cmd.getCommand() <<std::endl;
-
   // (Possibly) run the next command
   _runNextCommand_nolock();
 }
@@ -426,8 +423,7 @@ void _IoSM_impl::_timeoutCallback(const boost::system::error_code& error)
 }
 void _IoSM_impl::_dataCallback(const ds_core_msgs::RawData& raw)
 {
-  // IOSM_RACECONDITION
-  //std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
   runner->process_event(DataRecv(raw));
 }
 

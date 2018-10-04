@@ -139,6 +139,9 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/int_to_hex.h
 
+  include/${PROJECT_NAME}/bcd_to_int.h
+  src/${PROJECT_NAME}/bcd_to_int.cpp
+
   include/${PROJECT_NAME}/float_round.h
   src/${PROJECT_NAME}/float_round.cpp
 
@@ -248,6 +251,9 @@ if(CATKIN_ENABLE_TESTING)
 
     catkin_add_gtest(test_float_round src/test/test_float_round.cpp)
     target_link_libraries(test_float_round ${PROJECT_NAME})
+
+    catkin_add_gtest(test_bcd_to_int src/test/test_bcd_to_int.cpp)
+    target_link_libraries(test_bcd_to_int ${PROJECT_NAME})
 endif(CATKIN_ENABLE_TESTING)
 
 ## Add folders to be run by python nosetests

@@ -26,7 +26,9 @@
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-
+  <author email="ssuman@whoi.edu">Stefano Suman</author>
+  <author email="zberkowitz@whoi.edu">Zac Berkowitz</author>
+  <author email="ivaughn@whoi.edu">Ian Vaughn</author>
 
   <!-- The *depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->

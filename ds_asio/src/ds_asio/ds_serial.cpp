@@ -72,6 +72,10 @@ void DsSerial::setup(ros::NodeHandle& nh)
   {
     set_matcher(match_header_pd0());
   }
+  else if (!myMatch.compare("match_header_nortekvector"))
+  {
+    set_matcher(match_header_nortekvector());
+  }
 
   std::string myParity;
   nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");

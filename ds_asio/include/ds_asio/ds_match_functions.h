@@ -198,6 +198,108 @@ namespace boost
   }  // namespace asio
 }  // namespace boost
 
+/// NORTEKVECTOR MATCH FUNCTIONS
+
+class match_header_nortekvector
+{
+ public:
+  explicit match_header_nortekvector() : length_(24), len_(0), sync_(false), found_data_(2, false), found_system_(2, false), cb_(2)
+  {
+    data_id_.push_back(0xA5);
+    data_id_.push_back(0x10);
+    system_id_.push_back(0xa5);
+    system_id_.push_back(0x11);
+    ROS_INFO_STREAM("Matcher set " << cb_.capacity());
+  }
+
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+
+  template <typename Iterator>
+  std::pair<Iterator, bool> operator()(Iterator begin, Iterator end)
+  {
+    Iterator i = begin;
+
+    while (i != end)
+    {
+      cb_.push_back(*i++);
+
+      if ((!sync_) && (cb_.full()))
+      {
+        // Update the found_ vector that stores matching header bytes status
+        for (int j = 0; j < data_id_.size() && j < cb_.size(); ++j)
+        {
+          found_data_[j] = (cb_[j] == data_id_[j] );
+          found_system_[j] = (cb_[j] == system_id_[j]);
+        }
+        // If all the found_ vector is true, then we are synchronized to the binary frame
+        if (std::all_of(found_data_.begin(), found_data_.end(), [](bool v) { return v; }))
+        {
+          sync_ = true;
+          // Increment the binary frame len_ that we already read by the size of the header
+          length_ = 24;
+          len_ += data_id_.size();
+//          if (i-2 >= begin){
+//            return std::make_pair(i-2, true);
+//          } else
+//          if (i+24 < end){
+//            return std::make_pair(i+24, true);
+//          } else {
+//            return std::make_pair(end, false);
+//          }
+        }
+        else if (std::all_of(found_system_.begin(), found_system_.end(), [](bool v) { return v; }))
+        {
+          sync_ = true;
+          // Increment the binary frame len_ that we already read by the size of the header
+          length_ = 28;
+          len_ += system_id_.size();
+//          if (i-2 >= begin){
+//            return std::make_pair(i-2, true);
+//          } else
+//          if (i+28 < end){
+//            return std::make_pair(i+28, true);
+//          } else {
+//            return std::make_pair(end, false);
+//          }
+        }
+      }
+
+      else if (sync_)
+      {
+        len_++;
+        ROS_INFO_STREAM("Len " << len_);
+        if (len_ >= length_)
+        {
+          ROS_INFO_STREAM("Buffering ended, length: " << len_);
+          len_ = 0;
+          sync_ = false;
+          return std::make_pair(i, true);
+        }
+      }
+    }
+    return std::make_pair(i, false);
+  }
+
+ private:
+  std::vector<unsigned char> data_id_, system_id_;
+  boost::circular_buffer<unsigned char> cb_;
+  std::vector<bool> found_data_, found_system_;
+  int length_;
+  int len_;
+  bool sync_;
+};
+
+namespace boost
+{
+namespace asio
+{
+template <>
+struct is_match_condition<match_header_nortekvector> : public boost::true_type
+{
+};
+}  // namespace asio
+}  // namespace boost
+
 
 /// @brief Generates a matcher class for async_read_until. This class makes async_read_until return with every byte
 ///

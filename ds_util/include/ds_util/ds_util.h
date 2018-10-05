@@ -7,5 +7,6 @@
 #include "ds_util/int_to_hex.h"
 #include "ds_util/reference_smoothing.h"
 #include "ds_util/float_round.h"
+#include "ds_util/bcd_to_int.h"
 
 #endif  // DS_UTIL_DS_UTIL_H

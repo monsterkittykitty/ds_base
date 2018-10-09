@@ -298,6 +298,95 @@ TEST_F(MatchFunctionsTest, match_header_nortekvector_fail_tooshort) {
   ASSERT_EQ(found, false);
 }
 
+TEST_F(MatchFunctionsTest, match_multi_header_length_pass) {
+
+  std::vector<std::vector<unsigned char>> headers = {{0xaf, 0x02}, {0xae, 0x02}};
+  std::vector<int> lengths = {5, 7};
+
+  std::vector<std::vector<unsigned char>> myData =
+      { {0xAF, 0x02, 0x03, 0x04, 0x05}
+        , {0xAE, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07}
+        , {0xAF, 0x02, 0x03, 0x04, 0x05}
+        , {0xAF, 0x02, 0x03, 0x04, 0x05}
+        , {0xAF, 0x02, 0x03, 0x04, 0x05}
+        , {0xAE, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07}
+        , {0x00, 0x00, 0x00, 0x00, 0x00, 0xAE, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07}
+      };
+
+  auto obj = match_multi_header_length(headers, lengths);
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+
+  for (auto data : myData){
+    boost::asio::streambuf b;
+    std::ostream os(&b);
+    ROS_INFO_STREAM("Data "<< data.data());
+    os.write((const char *) data.data(), data.size() * sizeof(unsigned char));
+    iterator item;
+    bool found;
+    auto size = b.size();
+    auto start = boost::asio::buffers_begin(b.data());
+    auto end = boost::asio::buffers_end(b.data());
+    std::tie(item, found) = obj(start, end);
+    ASSERT_EQ(found, true);
+  }
+}
+
+TEST_F(MatchFunctionsTest, match_multi_header_length_poorlydefined) {
+
+  std::vector<std::vector<unsigned char>> headers = {{}};
+  std::vector<int> lengths = {5};
+
+  std::vector<std::vector<unsigned char>> myData =
+      { {0xAF, 0x02, 0x03, 0x04, 0x05}
+      };
+
+  auto obj = match_multi_header_length(headers, lengths);
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+
+  for (auto data : myData){
+    boost::asio::streambuf b;
+    std::ostream os(&b);
+    ROS_INFO_STREAM("Data "<< data.data());
+    os.write((const char *) data.data(), data.size() * sizeof(unsigned char));
+    iterator item;
+    bool found;
+    auto size = b.size();
+    auto start = boost::asio::buffers_begin(b.data());
+    auto end = boost::asio::buffers_end(b.data());
+    std::tie(item, found) = obj(start, end);
+    ASSERT_EQ(found, false);
+  }
+}
+
+TEST_F(MatchFunctionsTest, match_multi_header_length_fail) {
+
+  std::vector<std::vector<unsigned char>> headers = {{0xaf}, {0xae}};
+  std::vector<int> lengths = {5, 7};
+
+  std::vector<std::vector<unsigned char>> myData =
+      { {0xAD, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A} //wrong header
+        , {0xAE}
+        , {0xAF, 0x02, 0x03}
+      };
+
+  auto obj = match_multi_header_length(headers, lengths);
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+
+  for (auto data : myData){
+    boost::asio::streambuf b;
+    std::ostream os(&b);
+    ROS_INFO_STREAM("Data "<< data.data());
+    os.write((const char *) data.data(), data.size() * sizeof(unsigned char));
+    iterator item;
+    bool found;
+    auto size = b.size();
+    auto start = boost::asio::buffers_begin(b.data());
+    auto end = boost::asio::buffers_end(b.data());
+    std::tie(item, found) = obj(start, end);
+    ASSERT_EQ(found, false);
+  }
+}
+
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)
 {

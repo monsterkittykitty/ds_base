@@ -76,6 +76,27 @@ void DsSerial::setup(ros::NodeHandle& nh)
   {
     set_matcher(match_header_nortekvector());
   }
+  else if (!myMatch.compare("match_multi_header_length"))
+  {
+    ROS_INFO_STREAM("Multi header length chosen!");
+    std::vector<std::string> header_strs;
+    std::vector<std::vector<unsigned char>> headers;
+    std::vector<int> lengths;
+    nh.param(ros::this_node::getName() + "/" + name_ + "/lengths", lengths, lengths);
+    nh.param(ros::this_node::getName() + "/" + name_ + "/headers", header_strs, header_strs);
+
+    for (const auto hdr_str : header_strs){
+      std::vector<unsigned char> hdr;
+      for (int i=0; i<hdr_str.length(); i+=2){
+        std::string byteString = hdr_str.substr(i, 2);
+        unsigned int myByte;
+        sscanf(byteString.c_str(), "%X", &myByte);
+        hdr.push_back((unsigned char)myByte);
+      }
+      headers.push_back(hdr);
+    }
+    set_matcher(match_multi_header_length(headers, lengths));
+  }
 
   std::string myParity;
   nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/parity", myParity, "none");

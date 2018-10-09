@@ -198,6 +198,82 @@ namespace boost
   }  // namespace asio
 }  // namespace boost
 
+
+/// General header-length match fxns
+/// Headers must all be the same length in characters
+
+class match_multi_header_length
+{
+ public:
+  explicit match_multi_header_length(const std::vector<std::vector<unsigned char>> header_id, const std::vector<int> length)
+      : header_id_(header_id), length_(length), cb_(header_id[0].size())
+      , found_(header_id.size(), std::vector<bool>(header_id[0].size(), false)), tgt_len_(0), len_(0), sync_(false)
+  {
+  }
+
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+
+  template <typename Iterator>
+  std::pair<Iterator, bool> operator()(Iterator begin, Iterator end)
+  {
+    Iterator i = begin;
+
+    while (i != end)
+    {
+      cb_.push_back(*i++);
+
+      if ((!sync_) && (cb_.full()))
+      {
+        // Update the found_ vector that stores matching header bytes status
+        for (int j = 0; j < header_id_.size(); ++j)
+        {
+          // For each character in the buffer, check if it matches a known header
+          for (int k = 0; k < header_id_[0].size(); ++k){
+            found_[j][k] = (cb_[k] == header_id_[j][k] );
+          }
+          if (std::all_of(found_[j].begin(), found_[j].end(), [](bool v) { return v; }))
+          {
+            sync_ = true;
+            tgt_len_ = length_[j];
+            len_ += cb_.size();
+          }
+        }
+      }
+      else if (sync_)
+      {
+        len_++;
+        if (len_ >= tgt_len_)
+        {
+          len_ = 0;
+          sync_ = false;
+          return std::make_pair(i, true);
+        }
+      }
+    }
+    return std::make_pair(i, false);
+  }
+
+ private:
+  std::vector<std::vector<unsigned char>> header_id_;
+  std::vector<int> length_;
+  boost::circular_buffer<unsigned char> cb_;
+  std::vector<std::vector<bool>> found_;
+  int tgt_len_, len_;
+  bool sync_;
+};
+
+namespace boost
+{
+namespace asio
+{
+template <>
+struct is_match_condition<match_multi_header_length> : public boost::true_type
+{
+};
+}  // namespace asio
+}  // namespace boost
+
+
 /// NORTEKVECTOR MATCH FUNCTIONS
 
 class match_header_nortekvector

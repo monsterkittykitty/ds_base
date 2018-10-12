@@ -228,7 +228,7 @@ protected:
 
   /// \brief Fill in message headers given an io time and timestamp
   ///
-  /// Fills in a message's headers using the given timestamp and our 
+  /// Fills in a message's headers using the given timestamp and our
   /// current metadata
   /// You can use these in conjunction with the handy macros:
   ///
@@ -239,22 +239,18 @@ protected:
   /// \param ds_hdr The customized ds_header for this message
   /// \param stamp the ROS Time to set as the authoratative time for this message
   /// \param io_time The time that this message was received
-  void fillHeaderMetadata(std_msgs::Header& hdr,
-                          ds_core_msgs::DsHeader& ds_hdr, 
-                          const ros::Time& stamp, 
+  void fillHeaderMetadata(std_msgs::Header& hdr, ds_core_msgs::DsHeader& ds_hdr, const ros::Time& stamp,
                           const ros::Time& io_time) const;
-
 
 private:
   std::unique_ptr<SensorBasePrivate> d_ptr_;
 };
 
-#define FILL_SENSOR_HDR(msg, timestamp, io_time) \
-this->fillHeaderMetadata((msg).header, (msg).ds_header, (timestamp), (io_time))
+#define FILL_SENSOR_HDR(msg, timestamp, io_time)                                                                       \
+  this->fillHeaderMetadata((msg).header, (msg).ds_header, (timestamp), (io_time))
 
-#define FILL_SENSOR_HDR_IOTIME(msg, io_time) \
-this->fillHeaderMetadata((msg).header, (msg).ds_header, (io_time), (io_time))
-
+#define FILL_SENSOR_HDR_IOTIME(msg, io_time)                                                                           \
+  this->fillHeaderMetadata((msg).header, (msg).ds_header, (io_time), (io_time))
 }
 
 #endif  // DS_SENSOR_SENSORBASE_H

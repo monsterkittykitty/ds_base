@@ -36,20 +36,21 @@
 
 #include <stdexcept>
 
-namespace ds_param {
-
-
-ParamGuard::ParamGuard(const ParamConnection::Ptr& _c) : conn(_c) {
+namespace ds_param
+{
+ParamGuard::ParamGuard(const ParamConnection::Ptr& _c) : conn(_c)
+{
   // don't lock an already-locked connection
-  if (conn->IsLocked()) {
+  if (conn->IsLocked())
+  {
     // throw exception
     // note that our destructor will NOT be called because we're throwing an exception
     // in the constructor so explicitly clean up our conn member
     conn.reset();
 
     // ALWAYS make a pretty error message!
-    std::string msg("ds_param::ParamGuard attempted to lock a connection named "
-                        + conn->connName() + " but it was already locked!");
+    std::string msg("ds_param::ParamGuard attempted to lock a connection named " + conn->connName() +
+                    " but it was already locked!");
     ROS_ERROR_STREAM(msg);
     throw std::invalid_argument(msg);
   }
@@ -58,13 +59,13 @@ ParamGuard::ParamGuard(const ParamConnection::Ptr& _c) : conn(_c) {
   conn->lock();
 }
 
-ParamGuard::~ParamGuard() {
+ParamGuard::~ParamGuard()
+{
   unlock();
 }
 
-void ParamGuard::unlock() {
+void ParamGuard::unlock()
+{
   conn->unlock();
 }
-
-
 }

@@ -99,7 +99,6 @@ protected:
   /// \param bytes The raw data from the bus
   virtual void parseReceivedBytes(const ds_core_msgs::RawData& bytes){};
 
-
   // Getters & setters
   /// \brief Get access to the device UUID
   const boost::uuids::uuid& Uuid() const;
@@ -114,7 +113,7 @@ protected:
   ros::Duration& MessageTimeout();
 
   /// \brief Get the name of the node managing this bus
-  const std::string& BusNodeName() const ;
+  const std::string& BusNodeName() const;
 
   /// \brief Accessor for the bus topic subscriber
   ros::Subscriber& Bus();

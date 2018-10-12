@@ -96,24 +96,24 @@ struct DsProcessPrivate
   /// \param period
   void updateCriticalProcessTimer(DsProcess* base, ros::Duration period);
 
-  bool is_setup_;  //!< Has setup() been called?
-  bool is_critical_; //!< Is this a critical process that needs to publish a ttl?
-  int ttl_; //!< TTL advertised in the critical process message if the process is marked as critical
+  bool is_setup_;     //!< Has setup() been called?
+  bool is_critical_;  //!< Is this a critical process that needs to publish a ttl?
+  int ttl_;           //!< TTL advertised in the critical process message if the process is marked as critical
 
-  std::unique_ptr<ds_asio::DsAsio> asio_;               //!< DsAsio instance
+  std::unique_ptr<ds_asio::DsAsio> asio_;  //!< DsAsio instance
 
   ros::Duration critical_check_period_;  //!< The period for the critical process timer broadcast (<0 disables)
   ros::Timer critical_check_timer_;      //!< The critical process timer broadcast itself.
-  ros::Duration status_check_period_;  //!< The period for the status health timer (<0 disables)
-  ros::Timer status_check_timer_;      //!< The status health timer itself.
-  std::string descriptive_node_name_;  //!< A short, descriptive name given to the process.
-  boost::uuids::uuid uuid_;            //!< UUID of node.
+  ros::Duration status_check_period_;    //!< The period for the status health timer (<0 disables)
+  ros::Timer status_check_timer_;        //!< The status health timer itself.
+  std::string descriptive_node_name_;    //!< A short, descriptive name given to the process.
+  boost::uuids::uuid uuid_;              //!< UUID of node.
 
-  ros::Publisher status_publisher_;  //!< The status channel publisher.
+  ros::Publisher status_publisher_;            //!< The status channel publisher.
   ros::Publisher critical_process_publisher_;  //!< The ttl published is the processis critical
 
   std::unordered_map<std::string, ros::Time> last_published_timestamp_;  //!< Timestamp of last message sent by
-                                                                         //!publisher
+                                                                         //! publisher
 };
 }
 #endif  // DS_BASE_DS_PROCESS_PRIVATE_H

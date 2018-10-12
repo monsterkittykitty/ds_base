@@ -145,69 +145,68 @@ struct is_match_condition<match_header_length> : public boost::true_type
 }  // namespace asio
 }  // namespace boost
 
-
 class match_header_pd0
 {
- public:
+public:
   explicit match_header_pd0() : length_(833), len_(0), sync_(false), found_(2, false), cb_(2)
-    {
-      ROS_INFO_STREAM("Matcher set " << cb_.capacity());
-    }
+  {
+    ROS_INFO_STREAM("Matcher set " << cb_.capacity());
+  }
 
   typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
 
   template <typename Iterator>
   std::pair<Iterator, bool> operator()(Iterator begin, Iterator end)
+  {
+    Iterator i = begin;
+    std::string hexAscii = "7F7F";
+    std::vector<unsigned char> myHeader;
+    for (int j = 0; j < hexAscii.length(); j += 2)
     {
-      Iterator i = begin;
-      std::string hexAscii = "7F7F";
-      std::vector<unsigned char> myHeader;
-      for (int j = 0; j < hexAscii.length(); j += 2)
-	{
-	  std::string byteString = hexAscii.substr(j, 2);
-	  unsigned int myByte;
-	  sscanf(byteString.c_str(), "%X", &myByte);
-	  myHeader.push_back((unsigned char)myByte);
-	}
-      header_ = myHeader;
-      while (i != end)
-	{
-	  cb_.push_back(*i++);
-	  // If the stream is not synchronized, access cb_ only if it's full i.e. size is equal to capacity
-	  if ((!sync_) && (cb_.full()))
-	    {
-	      // Update the found_ vector that stores matching header bytes status
-	      for (int j = 0; j < header_.size(); ++j)
-		{
-		  found_[j] = (cb_[j] == header_[j] ? true : false);
-		}
-	      // If all the found_ vector is true, then we are synchronized to the binary frame
-	      if (std::all_of(found_.begin(), found_.end(), [](bool v) { return v; }))
-		{
-		  sync_ = true;
-		  // Increment the binary frame len_ that we already read by the size of the header
-		  len_ += header_.size();
-		}
-	    }
-	  else if (sync_)
-	    {
-	      len_++;
-	      // We reached the expected length of the binary frame, tell async_read_until that we're done reading this frame
-	      if (len_ == 4)
-		{
-		  length_ = cb_[0] + 2;
-		}
-	      if (len_ >= length_)
-		{
-		  ROS_INFO_STREAM("Buffering ended, length: " << len_);
-		  return std::make_pair(i, true);
-		}
-	    }
-	}
-      return std::make_pair(i, false);
+      std::string byteString = hexAscii.substr(j, 2);
+      unsigned int myByte;
+      sscanf(byteString.c_str(), "%X", &myByte);
+      myHeader.push_back((unsigned char)myByte);
     }
+    header_ = myHeader;
+    while (i != end)
+    {
+      cb_.push_back(*i++);
+      // If the stream is not synchronized, access cb_ only if it's full i.e. size is equal to capacity
+      if ((!sync_) && (cb_.full()))
+      {
+        // Update the found_ vector that stores matching header bytes status
+        for (int j = 0; j < header_.size(); ++j)
+        {
+          found_[j] = (cb_[j] == header_[j] ? true : false);
+        }
+        // If all the found_ vector is true, then we are synchronized to the binary frame
+        if (std::all_of(found_.begin(), found_.end(), [](bool v) { return v; }))
+        {
+          sync_ = true;
+          // Increment the binary frame len_ that we already read by the size of the header
+          len_ += header_.size();
+        }
+      }
+      else if (sync_)
+      {
+        len_++;
+        // We reached the expected length of the binary frame, tell async_read_until that we're done reading this frame
+        if (len_ == 4)
+        {
+          length_ = cb_[0] + 2;
+        }
+        if (len_ >= length_)
+        {
+          ROS_INFO_STREAM("Buffering ended, length: " << len_);
+          return std::make_pair(i, true);
+        }
+      }
+    }
+    return std::make_pair(i, false);
+  }
 
- private:
+private:
   std::vector<unsigned char> header_;
   boost::circular_buffer<unsigned char> cb_;
   std::vector<bool> found_;
@@ -218,25 +217,30 @@ class match_header_pd0
 
 namespace boost
 {
-  namespace asio
-  {
-    template <>
-    struct is_match_condition<match_header_pd0> : public boost::true_type
-    {
-    };
-  }  // namespace asio
+namespace asio
+{
+template <>
+struct is_match_condition<match_header_pd0> : public boost::true_type
+{
+};
+}  // namespace asio
 }  // namespace boost
-
 
 /// General header-length match fxns
 /// Headers must all be the same length in characters
 
 class match_multi_header_length
 {
- public:
-  explicit match_multi_header_length(const std::vector<std::vector<unsigned char>> header_id, const std::vector<int> length)
-      : header_id_(header_id), length_(length), cb_(header_id[0].size())
-      , found_(header_id.size(), std::vector<bool>(header_id[0].size(), false)), tgt_len_(0), len_(0), sync_(false)
+public:
+  explicit match_multi_header_length(const std::vector<std::vector<unsigned char>> header_id,
+                                     const std::vector<int> length)
+    : header_id_(header_id)
+    , length_(length)
+    , cb_(header_id[0].size())
+    , found_(header_id.size(), std::vector<bool>(header_id[0].size(), false))
+    , tgt_len_(0)
+    , len_(0)
+    , sync_(false)
   {
   }
 
@@ -257,8 +261,9 @@ class match_multi_header_length
         for (int j = 0; j < header_id_.size(); ++j)
         {
           // For each character in the buffer, check if it matches a known header
-          for (int k = 0; k < header_id_[0].size(); ++k){
-            found_[j][k] = (cb_[k] == header_id_[j][k] );
+          for (int k = 0; k < header_id_[0].size(); ++k)
+          {
+            found_[j][k] = (cb_[k] == header_id_[j][k]);
           }
           if (std::all_of(found_[j].begin(), found_[j].end(), [](bool v) { return v; }))
           {
@@ -282,7 +287,7 @@ class match_multi_header_length
     return std::make_pair(i, false);
   }
 
- private:
+private:
   std::vector<std::vector<unsigned char>> header_id_;
   std::vector<int> length_;
   boost::circular_buffer<unsigned char> cb_;
@@ -301,7 +306,6 @@ struct is_match_condition<match_multi_header_length> : public boost::true_type
 };
 }  // namespace asio
 }  // namespace boost
-
 
 /// @brief Generates a matcher class for async_read_until. This class makes async_read_until return with every byte
 ///

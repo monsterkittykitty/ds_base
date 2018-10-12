@@ -38,8 +38,8 @@
 
 #include "ds_param_conn.h"
 
-namespace ds_param {
-
+namespace ds_param
+{
 /// \brief A class to block updates from going out during its lifetime.
 ///
 /// Used to allow multiple updates to happen in a single message
@@ -53,8 +53,9 @@ namespace ds_param {
 ///    // The connection will be informed and send the most recent value of
 ///    // any variables that have changed since the lock was placed in a single message
 ///
-class ParamGuard {
- public:
+class ParamGuard
+{
+public:
   ParamGuard(const ParamConnection::Ptr& _c);
 
   /// \brief Destructor automatically unlocks the param connection
@@ -65,13 +66,12 @@ class ParamGuard {
 
   // delete our pointer allocation operators so that users have to use this on the
   // stack.
- private:
-  static void *operator new     (size_t) = delete;
-  static void *operator new[]   (size_t) = delete;
+private:
+  static void* operator new(size_t) = delete;
+  static void* operator new[](size_t) = delete;
 
- protected:
+protected:
   ParamConnection::Ptr conn;
 };
-
 }
-#endif //PROJECT_DS_PARAM_GUARD_H
+#endif  // PROJECT_DS_PARAM_GUARD_H

@@ -78,8 +78,9 @@ public:
   void setWriteDuringStartup();
 
   /// @brief Required for base class, performs no action.
-  void setup(ros::NodeHandle &nh) override;
- protected:
+  void setup(ros::NodeHandle& nh) override;
+
+protected:
   /// \brief A vector of strings written by the thing using this to test
   std::deque<std::string> written;
 

@@ -44,7 +44,7 @@ void DsUdp::setup(ros::NodeHandle& nh)
   if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/udp_rx"))
   {
     nh.param<int>(ros::this_node::getName() + "/" + name_ + "/udp_rx", udp_rx, 44444);
-    ROS_INFO_STREAM("udp_rx exists=" <<udp_rx);
+    ROS_INFO_STREAM("udp_rx exists=" << udp_rx);
     socket_ = std::unique_ptr<udp::socket>(new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx)));
   }
   else
@@ -57,7 +57,7 @@ void DsUdp::setup(ros::NodeHandle& nh)
   if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/udp_tx"))
   {
     nh.getParam(ros::this_node::getName() + "/" + name_ + "/udp_tx", udp_tx);
-    ROS_INFO_STREAM("udp_tx exists, =" <<udp_tx);
+    ROS_INFO_STREAM("udp_tx exists, =" << udp_tx);
   }
   else
   {
@@ -69,23 +69,23 @@ void DsUdp::setup(ros::NodeHandle& nh)
   if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/udp_address"))
   {
     nh.getParam(ros::this_node::getName() + "/" + name_ + "/udp_address", udp_address);
-    ROS_INFO_STREAM("Using udp_address==\"" <<udp_address <<"\"");
-    //boost::asio::socket_base::broadcast option(true);
-    //socket_->set_option(option);
+    ROS_INFO_STREAM("Using udp_address==\"" << udp_address << "\"");
+    // boost::asio::socket_base::broadcast option(true);
+    // socket_->set_option(option);
     std::vector<std::string> split_add;
     boost::algorithm::split(split_add, udp_address, boost::is_any_of("."));
-    //for (const std::string& i : split_add)
+    // for (const std::string& i : split_add)
     //  ROS_ERROR_STREAM("Split address: " << i << " size: " << split_add.size() << " back: " << split_add.back());
     if (split_add.size() > 0)
+    {
+      // ROS_INFO_STREAM("Split size " << split_add.size());
+      if (!split_add.back().compare("255"))
       {
-        //ROS_INFO_STREAM("Split size " << split_add.size());
-        if (!split_add.back().compare("255"))
-          {
-            ROS_INFO_STREAM("Setting socket broadcast option");
-            boost::asio::socket_base::broadcast option(true);
-            socket_->set_option(option);
-          }
+        ROS_INFO_STREAM("Setting socket broadcast option");
+        boost::asio::socket_base::broadcast option(true);
+        socket_->set_option(option);
       }
+    }
   }
   else
   {
@@ -116,7 +116,7 @@ void DsUdp::handle_receive(const boost::system::error_code& error, std::size_t b
     // Store timestamp as soon as received
     raw_data_.ds_header.io_time = ros::Time::now();
 
-    //ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
+    // ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
     raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
     raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
     raw_publisher_.publish(raw_data_);
@@ -147,11 +147,11 @@ void DsUdp::handle_receive(const boost::system::error_code& error, std::size_t b
 
 void DsUdp::send(boost::shared_ptr<std::string> message)
 {
-  //ROS_INFO_STREAM("Scheduling UDP send");
+  // ROS_INFO_STREAM("Scheduling UDP send");
   socket_->async_send_to(boost::asio::buffer(*message), *remote_endpoint_,  // remote_endpoint_,
                          boost::bind(&DsUdp::handle_send, this, message, boost::asio::placeholders::error,
                                      boost::asio::placeholders::bytes_transferred));
-  //ROS_INFO_STREAM("UDP send scheduled");
+  // ROS_INFO_STREAM("UDP send scheduled");
 }
 
 void DsUdp::handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
@@ -160,7 +160,7 @@ void DsUdp::handle_send(boost::shared_ptr<std::string> message, const boost::sys
   // Store timestamp as soon as received
   raw_data_.ds_header.io_time = ros::Time::now();
 
-  //ROS_INFO_STREAM("UDP data sent");
+  // ROS_INFO_STREAM("UDP data sent");
   raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
   raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
   raw_publisher_.publish(raw_data_);

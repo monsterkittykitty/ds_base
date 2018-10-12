@@ -260,7 +260,7 @@ public:
   ///
   /// \param id The ID of the command to overwrite
   /// \param cmd The new command to execute instead
-  bool overwriteRegularCommand(const uint64_t id, const IoCommand &cmd);
+  bool overwriteRegularCommand(const uint64_t id, const IoCommand& cmd);
 
   /// @brief Add a command to the preempt queue.  This command will be run
   /// as soon as the bus is available

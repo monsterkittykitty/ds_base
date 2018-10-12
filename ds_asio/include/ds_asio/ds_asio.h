@@ -44,7 +44,6 @@
 
 namespace ds_asio
 {
-
 class DsCallbackQueue;
 
 class DsAsio

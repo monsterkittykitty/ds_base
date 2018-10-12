@@ -72,7 +72,8 @@ void DsMockConnection::run()
   {
     sendNextMessage();
   }
-  if (! toRead.empty()) {
+  if (!toRead.empty())
+  {
     io_service_.reset();
   }
 
@@ -93,7 +94,8 @@ std::deque<ds_core_msgs::RawData>& DsMockConnection::ToRead()
   return toRead;
 }
 
-void DsMockConnection::setWriteDuringStartup() {
+void DsMockConnection::setWriteDuringStartup()
+{
   writeDuringStartup = true;
 }
 
@@ -129,7 +131,7 @@ void DsMockConnection::sendNextMessage()
   io_service_.post(boost::bind(callback_, toRead.front()));
   toRead.pop_front();
 }
-void DsMockConnection::setup(ros::NodeHandle &nh) {
-
+void DsMockConnection::setup(ros::NodeHandle& nh)
+{
 }
 }

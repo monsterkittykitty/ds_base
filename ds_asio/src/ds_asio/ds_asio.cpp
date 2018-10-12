@@ -105,19 +105,18 @@ void DsAsio::signalHandler(const boost::system::error_code& error, int signal_nu
   }
 }
 
-DsCallbackQueue *DsAsio::dsCallbackQueue()
+DsCallbackQueue* DsAsio::dsCallbackQueue()
 {
   return callback_queue_.get();
 }
 
-ros::CallbackQueueInterface *DsAsio::callbackQueue() {
-  return static_cast<ros::CallbackQueueInterface *>(dsCallbackQueue());
+ros::CallbackQueueInterface* DsAsio::callbackQueue()
+{
+  return static_cast<ros::CallbackQueueInterface*>(dsCallbackQueue());
 }
 
-DsAsio::DsAsio()
-  : callback_queue_(std::unique_ptr<DsCallbackQueue>(new DsCallbackQueue(&io_service)))
+DsAsio::DsAsio() : callback_queue_(std::unique_ptr<DsCallbackQueue>(new DsCallbackQueue(&io_service)))
 {
-
 }
 
 DsAsio::DsAsio(int argc, char** argv, const std::string& name) : DsAsio()
@@ -138,5 +137,4 @@ void DsAsio::run(void)
   signals.async_wait(boost::bind(&DsAsio::signalHandler, this, _1, _2));
   io_service.run();
 }
-
 }

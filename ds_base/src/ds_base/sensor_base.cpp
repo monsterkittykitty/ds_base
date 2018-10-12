@@ -75,17 +75,17 @@ ros::Duration SensorBase::timeout() const noexcept
   return d->message_timeout_;
 }
 
-void SensorBase::setFrameId(const std::string& frame_id) {
+void SensorBase::setFrameId(const std::string& frame_id)
+{
   DS_D(SensorBase);
   d->frame_id_ = frame_id;
-
 }
 
-const std::string& SensorBase::frameId() const noexcept {
+const std::string& SensorBase::frameId() const noexcept
+{
   const DS_D(SensorBase);
   return d->frame_id_;
 }
-
 
 void SensorBase::sendCommand(std::string command, std::string connection)
 {
@@ -257,18 +257,16 @@ void SensorBase::checkProcessStatus(const ros::TimerEvent& event)
   publishStatus(msg);
 }
 
-void SensorBase::fillHeaderMetadata(std_msgs::Header& hdr,
-				ds_core_msgs::DsHeader& ds_hdr, 
-				const ros::Time& stamp, const ros::Time& io_time) const {
-
+void SensorBase::fillHeaderMetadata(std_msgs::Header& hdr, ds_core_msgs::DsHeader& ds_hdr, const ros::Time& stamp,
+                                    const ros::Time& io_time) const
+{
   const DS_D(SensorBase);
 
   hdr.stamp = stamp;
   hdr.frame_id = d->frame_id_;
-  
+
   ds_hdr.io_time = io_time;
-  boost::uuids::uuid _uuid = uuid(); // get from parent class
+  boost::uuids::uuid _uuid = uuid();  // get from parent class
   std::copy(std::begin(ds_hdr.source_uuid), std::end(ds_hdr.source_uuid), _uuid.begin());
 }
-
 }

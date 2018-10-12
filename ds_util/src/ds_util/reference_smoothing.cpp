@@ -211,8 +211,7 @@ void goal_trajectory_acceleration(double goal, double max_velocity, double& posi
 
 struct TrapezoidalSmoother::Impl
 {
-  Impl()
-    : max_vel_(0), max_acc_(0), ref_pos_(0), ref_vel_(0), ref_acc_(0)
+  Impl() : max_vel_(0), max_acc_(0), ref_pos_(0), ref_vel_(0), ref_acc_(0)
   {
   }
 

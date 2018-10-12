@@ -42,36 +42,39 @@
 #include <iomanip>
 #include <sstream>
 
-namespace ds_param {
-
-class ParamConnectionPrivate {
+namespace ds_param
+{
+class ParamConnectionPrivate
+{
   // make non-copyable
- private:
+private:
   ParamConnectionPrivate(const ParamConnectionPrivate&) = delete;
   ParamConnectionPrivate& operator=(const ParamConnectionPrivate&) = delete;
 
- public:
-  ParamConnectionPrivate(ros::NodeHandle& h): handle(h) {
+public:
+  ParamConnectionPrivate(ros::NodeHandle& h) : handle(h)
+  {
     descriptionPub = handle.advertise<ds_core_msgs::ParamDescription>("/updating_param/description", 1, true);
     updatePub = handle.advertise<ds_core_msgs::ParamUpdate>("/updating_param/updates", 1, true);
     updateSub = handle.subscribe("/updating_param/updates", 10, &ParamConnectionPrivate::update_callback, this);
 
     // Resolve our own name
     std::stringstream nameBuilder;
-    std::string resolved_name = handle.resolveName(ros::this_node::getNamespace()
-                                                       + "/" + ros::this_node::getName());
-    nameBuilder <<resolved_name;
-    nameBuilder <<"##";
-    nameBuilder <<std::setw(9) <<ros::WallTime::now().nsec;
+    std::string resolved_name = handle.resolveName(ros::this_node::getNamespace() + "/" + ros::this_node::getName());
+    nameBuilder << resolved_name;
+    nameBuilder << "##";
+    nameBuilder << std::setw(9) << ros::WallTime::now().nsec;
     conn_name = nameBuilder.str();
 
     locked = false;
 
-    ROS_INFO_STREAM("Initialized ds_param::ParamConnection named \"" <<conn_name <<"\"");
+    ROS_INFO_STREAM("Initialized ds_param::ParamConnection named \"" << conn_name << "\"");
   }
 
-  void update_callback(ds_core_msgs::ParamUpdatePtr msg) {
-    if (msg->source == conn_name) {
+  void update_callback(ds_core_msgs::ParamUpdatePtr msg)
+  {
+    if (msg->source == conn_name)
+    {
       // DO NOTHING in response to our own messages
       return;
     }
@@ -84,7 +87,8 @@ class ParamConnectionPrivate {
     update_subtype<std::string>(msg->strings, updated);
 
     // (possibly) fire our callback
-    if (callback) {
+    if (callback)
+    {
       callback(updated);
     }
   }
@@ -101,39 +105,45 @@ class ParamConnectionPrivate {
   // message-- BECAUSE its a parameter, the compiler will magically fill it in correctly
   // HOWEVER, we have no such luck for "T", because there's no way for the compiler to guess
   // what type you mean.  So you have to tell it.  Which is fine.
-  template<typename T, typename MSG>
-  void update_subtype(const MSG& vec, ParamConnection::ParamCollection& updated) {
-
-    for (typename MSG::const_iterator iter = vec.begin(); iter != vec.end(); iter++) {
-
+  template <typename T, typename MSG>
+  void update_subtype(const MSG& vec, ParamConnection::ParamCollection& updated)
+  {
+    for (typename MSG::const_iterator iter = vec.begin(); iter != vec.end(); iter++)
+    {
       auto param_iter = params.find(iter->key);
 
-      if (param_iter != params.end()) {
-
+      if (param_iter != params.end())
+      {
         typename UpdatingParamT<T>::Ptr param = std::dynamic_pointer_cast<UpdatingParamT<T> >(param_iter->second);
-        if (!param) {
-          ROS_ERROR_STREAM("Found local parameter for key \"" <<param_iter->first <<"\", but could not "
-              "cast it to the requested type! Ignoring update...");
-        } else {
+        if (!param)
+        {
+          ROS_ERROR_STREAM("Found local parameter for key \"" << param_iter->first
+                                                              << "\", but could not "
+                                                                 "cast it to the requested type! Ignoring update...");
+        }
+        else
+        {
           param->updateValue(iter->value);
           updated.push_back(param_iter->second);
         }
-
       }
       // if not found, we assume the variable exists and we just don't care about it
       // so no error, no nothing
     }
   }
 
-  ros::NodeHandle& getHandle() {
+  ros::NodeHandle& getHandle()
+  {
     return handle;
   }
 
-  const ros::NodeHandle& getHandle() const {
+  const ros::NodeHandle& getHandle() const
+  {
     return handle;
   }
 
-  void signalUpdate(const UpdatingParam *const p) {
+  void signalUpdate(const UpdatingParam* const p)
+  {
     ds_core_msgs::ParamUpdate msg;
     p->fillUpdateMessage(msg);
 
@@ -142,19 +152,22 @@ class ParamConnectionPrivate {
     updatePub.publish(msg);
   }
 
-  void publishDescription() {
+  void publishDescription()
+  {
     // build our YAML payload
     std::stringstream ret;
-    ret <<"node:\n";
-    ret <<"    name: " <<ros::this_node::getName() <<"\n";
-    ret <<"    namespace: " <<ros::this_node::getNamespace() <<"\n";
-    ret <<"params: [ ";
-    for (auto iter = params.begin(); iter!= params.end(); iter++) {
-      if (iter->second->Advertise()) {
+    ret << "node:\n";
+    ret << "    name: " << ros::this_node::getName() << "\n";
+    ret << "    namespace: " << ros::this_node::getNamespace() << "\n";
+    ret << "params: [ ";
+    for (auto iter = params.begin(); iter != params.end(); iter++)
+    {
+      if (iter->second->Advertise())
+      {
         ret << iter->second->YamlDescription() << ", ";
       }
     }
-    ret <<"]\n";
+    ret << "]\n";
 
     // Publish
     ds_core_msgs::ParamDescription toSend;
@@ -162,29 +175,35 @@ class ParamConnectionPrivate {
     descriptionPub.publish(toSend);
   }
 
-  bool IsLocked() const {
+  bool IsLocked() const
+  {
     return locked;
   }
 
-  void lock() {
+  void lock()
+  {
     locked = true;
   }
 
-  void unlock() {
-
-    if (locked) {
+  void unlock()
+  {
+    if (locked)
+    {
       bool anyToSend = false;
       // if we're unlocking, send our updates
       ds_core_msgs::ParamUpdate msg;
-      for (auto iter=params.begin(); iter != params.end(); iter++) {
-        if (iter->second->IsDirty()) {
+      for (auto iter = params.begin(); iter != params.end(); iter++)
+      {
+        if (iter->second->IsDirty())
+        {
           iter->second->fillUpdateMessage(msg);
           iter->second->setOnServer();
           anyToSend = true;
         }
       }
-     
-      if (anyToSend) {
+
+      if (anyToSend)
+      {
         msg.stamp = ros::Time::now();
         msg.source = conn_name;
         updatePub.publish(msg);
@@ -196,7 +215,7 @@ class ParamConnectionPrivate {
     locked = false;
   }
 
- public:
+public:
   ros::NodeHandle handle;
   ros::Publisher descriptionPub;
   ros::Publisher updatePub;
@@ -207,9 +226,7 @@ class ParamConnectionPrivate {
   std::map<std::string, std::shared_ptr<UpdatingParam> > params;
 
   ParamConnection::Callback_t callback;
-
 };
-
 }
 
-#endif //PROJECT_DS_PARAM_CONN_PRIVATE_H
+#endif  // PROJECT_DS_PARAM_CONN_PRIVATE_H

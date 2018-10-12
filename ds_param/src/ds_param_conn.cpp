@@ -37,10 +37,10 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace ds_param {
-
-ParamConnection::ParamConnection(ros::NodeHandle &_h) : impl(
-    std::make_shared<ParamConnectionPrivate>(_h)) {
+namespace ds_param
+{
+ParamConnection::ParamConnection(ros::NodeHandle& _h) : impl(std::make_shared<ParamConnectionPrivate>(_h))
+{
 }
 
 ParamConnection::~ParamConnection()
@@ -50,27 +50,32 @@ ParamConnection::~ParamConnection()
   impl->descriptionPub.shutdown();
 }
 
-std::shared_ptr<ParamConnection> ParamConnection::create(ros::NodeHandle &handle) {
+std::shared_ptr<ParamConnection> ParamConnection::create(ros::NodeHandle& handle)
+{
   return std::shared_ptr<ParamConnection>(new ParamConnection(handle));
 }
 
-template<typename T>
-typename T::Ptr ParamConnection::connect(const std::string &param_name, bool advertise) {
-
+template <typename T>
+typename T::Ptr ParamConnection::connect(const std::string& param_name, bool advertise)
+{
   std::string full_name = impl->handle.resolveName(param_name);
   typename T::Ptr ret;
   auto iter = impl->params.find(full_name);
-  if (iter != impl->params.end()) {
-    ROS_INFO_STREAM("Variable named \"" << full_name << "\" (given \""<<param_name
-                                        <<"\") already exists!");
+  if (iter != impl->params.end())
+  {
+    ROS_INFO_STREAM("Variable named \"" << full_name << "\" (given \"" << param_name << "\") already exists!");
     ret = std::dynamic_pointer_cast<T>(iter->second);
-    if (! ret) {
+    if (!ret)
+    {
       std::stringstream msg;
-      msg <<"Variable named \"" <<full_name <<"\" already exists, but could not be cast to the requested type";
+      msg << "Variable named \"" << full_name << "\" already exists, but could not be cast to the requested type";
       ROS_ERROR_STREAM(msg.str());
       throw std::invalid_argument(msg.str());
-    } else {
-      if (advertise) {
+    }
+    else
+    {
+      if (advertise)
+      {
         // FORCE us to advertise an existing variable if connection asks us to, whether
         // the existing version does or not
         ret->setAdvertise(true);
@@ -80,9 +85,10 @@ typename T::Ptr ParamConnection::connect(const std::string &param_name, bool adv
     return ret;
   }
 
-  if (!impl->handle.hasParam(full_name)) {
+  if (!impl->handle.hasParam(full_name))
+  {
     std::stringstream msg;
-    msg <<"Variable named \"" << full_name << "\" does not exist on the parameter server!";
+    msg << "Variable named \"" << full_name << "\" does not exist on the parameter server!";
     ROS_ERROR_STREAM(msg.str());
     throw std::invalid_argument(msg.str());
   }
@@ -100,37 +106,38 @@ typename T::Ptr ParamConnection::connect(const std::string &param_name, bool adv
   return ret;
 }
 
-const std::string& ParamConnection::connName() const {
+const std::string& ParamConnection::connName() const
+{
   return impl->conn_name;
 };
 
-void ParamConnection::setCallback(const Callback_t& _cb) {
+void ParamConnection::setCallback(const Callback_t& _cb)
+{
   impl->callback = _cb;
 }
 
-void ParamConnection::lock() {
+void ParamConnection::lock()
+{
   impl->lock();
 }
 
-void ParamConnection::unlock() {
+void ParamConnection::unlock()
+{
   impl->unlock();
 }
 
 /// \brief Check if this object is locked
-bool ParamConnection::IsLocked() const {
+bool ParamConnection::IsLocked() const
+{
   return impl->IsLocked();
 }
 
 // explicit instantiations-- this basically fills in the template during the build so that
 // the necessary implementation ends up in hte library
-template typename BoolParam::Ptr   ParamConnection::connect<BoolParam  >(const std::string &param_name, bool advertise);
-template typename IntParam::Ptr    ParamConnection::connect<IntParam   >(const std::string &param_name, bool advertise);
-template typename FloatParam::Ptr  ParamConnection::connect<FloatParam >(const std::string &param_name, bool advertise);
-template typename DoubleParam::Ptr ParamConnection::connect<DoubleParam>(const std::string &param_name, bool advertise);
-template typename StringParam::Ptr ParamConnection::connect<StringParam>(const std::string &param_name, bool advertise);
-template typename EnumParam::Ptr   ParamConnection::connect<EnumParam  >(const std::string &param_name, bool advertise);
-
+template typename BoolParam::Ptr ParamConnection::connect<BoolParam>(const std::string& param_name, bool advertise);
+template typename IntParam::Ptr ParamConnection::connect<IntParam>(const std::string& param_name, bool advertise);
+template typename FloatParam::Ptr ParamConnection::connect<FloatParam>(const std::string& param_name, bool advertise);
+template typename DoubleParam::Ptr ParamConnection::connect<DoubleParam>(const std::string& param_name, bool advertise);
+template typename StringParam::Ptr ParamConnection::connect<StringParam>(const std::string& param_name, bool advertise);
+template typename EnumParam::Ptr ParamConnection::connect<EnumParam>(const std::string& param_name, bool advertise);
 }
-
-
-

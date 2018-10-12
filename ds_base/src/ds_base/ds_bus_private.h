@@ -63,24 +63,31 @@ struct DsBusPrivate
     bus_pub_.publish(bytes);
   }
 
-  bool _service_req(const ds_core_msgs::IoSMcommand::Request& req, ds_core_msgs::IoSMcommand::Response& resp) {
+  bool _service_req(const ds_core_msgs::IoSMcommand::Request& req, ds_core_msgs::IoSMcommand::Response& resp)
+  {
     bool retval = true;
-    for (auto iter = req.commands.begin(); iter != req.commands.end(); iter++) {
+    for (auto iter = req.commands.begin(); iter != req.commands.end(); iter++)
+    {
       ds_asio::IoCommand cmd(*iter);
 
-      switch (req.iosm_command) {
-        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_REGULAR:resp.retval.push_back(iosm->addRegularCommand(cmd));
+      switch (req.iosm_command)
+      {
+        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_REGULAR:
+          resp.retval.push_back(iosm->addRegularCommand(cmd));
           break;
 
-        case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_REGULAR:iosm->overwriteRegularCommand(cmd.getId(), cmd);
+        case ds_core_msgs::IoSMcommand::Request::IOSM_UPDATE_REGULAR:
+          iosm->overwriteRegularCommand(cmd.getId(), cmd);
           resp.retval.push_back(cmd.getId());
           break;
 
-        case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_REGULAR:iosm->deleteRegularCommand(cmd.getId());
+        case ds_core_msgs::IoSMcommand::Request::IOSM_REMOVE_REGULAR:
+          iosm->deleteRegularCommand(cmd.getId());
           resp.retval.push_back(cmd.getId());
           break;
 
-        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_PREEMPT:iosm->addPreemptCommand(cmd);
+        case ds_core_msgs::IoSMcommand::Request::IOSM_ADD_PREEMPT:
+          iosm->addPreemptCommand(cmd);
           resp.retval.push_back(1);  // preempt commands don't have an ID
           break;
 
@@ -96,21 +103,26 @@ struct DsBusPrivate
     return retval;
   }
 
-  void _preempt_cmd(const ds_core_msgs::IoCommandList& cmdList) {
-    for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++) {
+  void _preempt_cmd(const ds_core_msgs::IoCommandList& cmdList)
+  {
+    for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++)
+    {
       ds_asio::IoCommand cmd(*iter);
 
       iosm->addPreemptCommand(cmd);
     }
   }
 
-  void _update_cmd(const ds_core_msgs::IoCommandList& cmdList) {
-    for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++) {
+  void _update_cmd(const ds_core_msgs::IoCommandList& cmdList)
+  {
+    for (auto iter = cmdList.cmds.begin(); iter != cmdList.cmds.end(); iter++)
+    {
       ds_asio::IoCommand cmd(*iter);
 
-      if (!iosm->overwriteRegularCommand(cmd.getId(), cmd)) {
-        ROS_ERROR_STREAM("Unable to find I/O state machine command ID " << cmd.getId()
-                                                                        << ", cmdstr = \"" << cmd.getCommand() << "\"");
+      if (!iosm->overwriteRegularCommand(cmd.getId(), cmd))
+      {
+        ROS_ERROR_STREAM("Unable to find I/O state machine command ID " << cmd.getId() << ", cmdstr = \""
+                                                                        << cmd.getCommand() << "\"");
       }
     }
   }

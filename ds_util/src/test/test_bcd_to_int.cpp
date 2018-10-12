@@ -38,7 +38,7 @@
 // Test fixture for parsing, needed because we want to call ros::Time::init() before our tests.
 class Bcd2IntTest : public ::testing::Test
 {
- public:
+public:
   // This method runs ONCE before a text fixture is run (not once-per-test-case)
   static void SetUpTestCase()
   {
@@ -80,8 +80,6 @@ TEST_F(Bcd2IntTest, try_tens_overflow)
   int16_t test = 0xA0;
   EXPECT_EQ(0, ds_util::bcd_to_int(test));
 }
-
-
 
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)

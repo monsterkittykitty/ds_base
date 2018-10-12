@@ -104,9 +104,11 @@ void DsSerial::setup(ros::NodeHandle& nh)
     nh.param(ros::this_node::getName() + "/" + name_ + "/lengths", lengths, lengths);
     nh.param(ros::this_node::getName() + "/" + name_ + "/headers", header_strs, header_strs);
 
-    for (const auto hdr_str : header_strs){
+    for (const auto hdr_str : header_strs)
+    {
       std::vector<unsigned char> hdr;
-      for (int i=0; i<hdr_str.length(); i+=2){
+      for (int i = 0; i < hdr_str.length(); i += 2)
+      {
         std::string byteString = hdr_str.substr(i, 2);
         unsigned int myByte;
         sscanf(byteString.c_str(), "%X", &myByte);
@@ -219,10 +221,10 @@ void DsSerial::handle_read(const boost::system::error_code& error, std::size_t b
     raw_data_.header.stamp = now;
 
     boost::asio::streambuf::const_buffers_type bufs = streambuf_.data();
-    //ROS_DEBUG_STREAM("Streambuf data size: " << bytes_transferred);
+    // ROS_DEBUG_STREAM("Streambuf data size: " << bytes_transferred);
     raw_data_.data = std::vector<unsigned char>(boost::asio::buffers_begin(bufs),
                                                 boost::asio::buffers_begin(bufs) + bytes_transferred);
-    //ROS_DEBUG_STREAM("Serial received: " << raw_data_.data.data());
+    // ROS_DEBUG_STREAM("Serial received: " << raw_data_.data.data());
     raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
     raw_publisher_.publish(raw_data_);
     if (!callback_.empty())
@@ -279,12 +281,12 @@ void DsSerial::handle_read(const boost::system::error_code& error, std::size_t b
 
 void DsSerial::send(boost::shared_ptr<std::string> message)
 {
-  //ROS_INFO_STREAM("Scheduling serial send");
+  // ROS_INFO_STREAM("Scheduling serial send");
   boost::asio::async_write(*port_, boost::asio::buffer(*message),
                            boost::bind(&DsSerial::handle_write, this, message, boost::asio::placeholders::error,
                                        boost::asio::placeholders::bytes_transferred));
 
-  //ROS_INFO_STREAM("Serial send scheduled");
+  // ROS_INFO_STREAM("Serial send scheduled");
 }
 
 void DsSerial::handle_write(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
@@ -293,7 +295,7 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message, const boost:
   // Store timestamp as soon as received
   raw_data_.ds_header.io_time = ros::Time::now();
 
-  //ROS_INFO_STREAM("Serial data sent");
+  // ROS_INFO_STREAM("Serial data sent");
   raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
   raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
   raw_publisher_.publish(raw_data_);

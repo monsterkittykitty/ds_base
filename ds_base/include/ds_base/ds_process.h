@@ -104,7 +104,7 @@ public:
   ///
   /// @return A pointer to the protected DsNodeHandle instance. If the DsNodeHandle does not already exist,
   /// it in instantiated here
-  ros::NodeHandle nodeHandle(const std::string& ns="");
+  ros::NodeHandle nodeHandle(const std::string& ns = "");
 
   /// @brief Run the owned asio io_service event loop.
   ///
@@ -188,7 +188,7 @@ public:
 
   /// @brief Returns a pointer to the DsAsio object that DsProcess owns
   ds_asio::DsAsio* asio(void);
-  
+
   /// @brief Return a ds_core_msgs::Status message
   ///
   /// Default implementation doesn't do any actual health checks, it only
@@ -269,7 +269,7 @@ protected:
   void setTtl(int ttl);
 
   int getTtl(void);
-  
+
 private:
   std::unique_ptr<DsProcessPrivate> d_ptr_;
 };

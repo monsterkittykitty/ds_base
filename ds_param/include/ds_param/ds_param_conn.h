@@ -40,18 +40,18 @@
 #include <string>
 #include "ds_param.h"
 
-namespace ds_param {
-
+namespace ds_param
+{
 // forward declarations
 class ParamConnectionPrivate;
 class ParamGuard;
 
-class ParamConnection {
- private:
+class ParamConnection
+{
+private:
   ParamConnection(ros::NodeHandle& handle);
 
- public:
-
+public:
   /// \typedef A shared_ptr typedef for this class
   typedef std::shared_ptr<ParamConnection> Ptr;
 
@@ -81,7 +81,7 @@ class ParamConnection {
   /// \return A shared_ptr to the requested type.  If the parameter does not exist or
   /// cannot be cast to the requested type then an empty pointer (NULL) is returned
   template <typename T>
-  typename T::Ptr connect(const std::string& param_name, bool advertise=true);
+  typename T::Ptr connect(const std::string& param_name, bool advertise = true);
 
   /// \brief Get this connection's unique ID
   ///
@@ -93,7 +93,7 @@ class ParamConnection {
   /// \typedef A typedef for a collection of parameters.  If you use iterators and
   /// this typedef you probably won't have to rework code even if we switch to lists
   /// or certain other STL containers
-  typedef std::vector<std::shared_ptr<ds_param::UpdatingParam> >ParamCollection;
+  typedef std::vector<std::shared_ptr<ds_param::UpdatingParam> > ParamCollection;
 
   /// \typedef The callback type fired when a parameter is changed
   typedef boost::function<void(ParamCollection&)> Callback_t;
@@ -116,8 +116,8 @@ class ParamConnection {
   /// \brief Check if this object is locked
   bool IsLocked() const;
 
- protected:
+protected:
   std::shared_ptr<ParamConnectionPrivate> impl;
 };
 }
-#endif //PROJECT_DS_PARAM_CONN_H
+#endif  // PROJECT_DS_PARAM_CONN_H

@@ -36,8 +36,9 @@
 
 #include <cmath>
 
-namespace ds_util {
-    float float_round(float num, int dec);
+namespace ds_util
+{
+float float_round(float num, int dec);
 }
 
-#endif //PROJECT_FLOAT_ROUND_H
+#endif  // PROJECT_FLOAT_ROUND_H

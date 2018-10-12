@@ -210,7 +210,7 @@ void IoSM::deleteRegularCommand(const uint64_t id)
   impl->deleteRegularCommand(id);
 }
 
-bool IoSM::overwriteRegularCommand(const uint64_t id, const IoCommand &cmd)
+bool IoSM::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd)
 {
   return impl->overwriteRegularCommand(id, cmd);
 }
@@ -235,7 +235,8 @@ const ds_asio::ReadCallback& IoSM::getCallback() const
   return impl->getCallback();
 }
 
-const std::list<ds_asio::IoCommand>& IoSM::getRegularCommands() const {
+const std::list<ds_asio::IoCommand>& IoSM::getRegularCommands() const
+{
   return impl->getRegularCommands();
 }
 
@@ -355,7 +356,7 @@ void _IoSM_impl::deleteRegularCommand(const uint64_t id)
   }    // for all elements
 }
 
-bool _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand &cmd)
+bool _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd)
 {
   std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
 
@@ -384,7 +385,8 @@ void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)
   _runNextCommand_nolock();
 }
 
-const std::list<ds_asio::IoCommand>& _IoSM_impl::getRegularCommands() const {
+const std::list<ds_asio::IoCommand>& _IoSM_impl::getRegularCommands() const
+{
   return regularCommands;
 }
 
@@ -475,7 +477,6 @@ void _IoSM_impl::_runNextCommand_nolock()
     return;
   }
 
-
   // start with preempt commands
   if (preemptCommands.size() > 0 && (isPreemptCommand || !runner->cmd.getForceNext()))
   {
@@ -493,10 +494,10 @@ void _IoSM_impl::_runNextCommand_nolock()
     {
       currCommand = regularCommands.begin();
     }
-    if (currCommand != regularCommands.end()) {
+    if (currCommand != regularCommands.end())
+    {
       _startCommand_nolock(*currCommand);
     }
-
   }
 }
 

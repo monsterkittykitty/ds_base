@@ -40,29 +40,31 @@
 #include <ros/ros.h>
 #include <boost/optional.hpp>
 
-namespace ds_param {
-
+namespace ds_param
+{
 // forward declaration: see ds_param_connection.h
 class ParamConnection;
 class ParamConnectionPrivate;
 class UpdatingParamPrivate;
 
-enum UpdatingParamTypes {
-  PARAM_UNKNOWN=0,
+enum UpdatingParamTypes
+{
+  PARAM_UNKNOWN = 0,
   PARAM_BOOL,
   PARAM_INT,
   PARAM_FLOAT,
   PARAM_DOUBLE,
   PARAM_STRING,
   PARAM_ENUM,
-  PARAM_CUSTOM=1000 // probably never used
+  PARAM_CUSTOM = 1000  // probably never used
 };
 
 /// \brief The abstract base class for all our parameter types.
 ///
 /// Can be useful for type erasure, etc
-class UpdatingParam {
- public:
+class UpdatingParam
+{
+public:
   virtual ~UpdatingParam() = 0;
 
   /// \brief Get a YAML block description of this object.  Exact contents vary with type
@@ -83,7 +85,8 @@ class UpdatingParam {
   /// \brief Load this parameter from the server.  Called automatically when instantiated with a connection
   virtual void loadFromServer() = 0;
 
-  /// \brief Set this parameter on the server.  Called automatically when setting a variable.  You don't have to do this.
+  /// \brief Set this parameter on the server.  Called automatically when setting a variable.  You don't have to do
+  /// this.
   virtual void setOnServer() = 0;
 
   /// \brief Fill an update message
@@ -101,14 +104,14 @@ class UpdatingParam {
   bool operator==(const UpdatingParam& p) const;
   bool operator!=(const UpdatingParam& p) const;
 
- protected:
+protected:
   // only constructor is protected; as this class is pure-virtual,
   // it can only be instantiated by a child class anyway
   UpdatingParam(const std::shared_ptr<UpdatingParamPrivate>& impl);
 
   std::shared_ptr<UpdatingParamPrivate> d_ptr_;
 
- private:
+private:
   auto d_func() noexcept -> UpdatingParamPrivate*;
   auto d_func() const noexcept -> UpdatingParamPrivate const*;
 };
@@ -116,15 +119,16 @@ class UpdatingParam {
 // This class will ONLY work for a limited set of types
 
 // forward declaration
-template<typename T>
+template <typename T>
 class UpdatingParamTPrivate;
 
 template <typename T>
-class UpdatingParamT : public UpdatingParam {
-
- protected:
+class UpdatingParamT : public UpdatingParam
+{
+protected:
   UpdatingParamT(const std::shared_ptr<UpdatingParamTPrivate<T> >& impl);
- public:
+
+public:
   UpdatingParamT(const std::shared_ptr<ParamConnectionPrivate>& conn, const std::string& name, bool advertise);
 
   typedef T ValueType;
@@ -150,15 +154,14 @@ class UpdatingParamT : public UpdatingParam {
   virtual void setOnServer();
   virtual void fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const;
 
- protected:
+protected:
   // updates the value but does NOT trigger updates; ONLY to be used internally (hence protected)
   void updateValue(const T& _v);
-  friend ParamConnectionPrivate; // needed to use updateValue
+  friend ParamConnectionPrivate;  // needed to use updateValue
 
- private:
+private:
   auto d_func() noexcept -> UpdatingParamTPrivate<T>*;
   auto d_func() const noexcept -> UpdatingParamTPrivate<T> const*;
-
 };
 
 // forward declaration
@@ -169,8 +172,9 @@ class UpdatingParamEnumPrivate;
 ///
 /// Note that current enum values are NOT shared between different instances of the same value!
 /// That's a pretty major TODO
-class UpdatingParamEnum : public UpdatingParamT<int> {
- public:
+class UpdatingParamEnum : public UpdatingParamT<int>
+{
+public:
   UpdatingParamEnum(const std::shared_ptr<ParamConnectionPrivate>& conn, const std::string& name, bool advertise);
 
   typedef std::shared_ptr<UpdatingParamEnum> Ptr;
@@ -186,18 +190,17 @@ class UpdatingParamEnum : public UpdatingParamT<int> {
   const std::vector<std::pair<std::string, int> >& getNamedValues() const;
   std::vector<std::pair<std::string, int> >& getNamedValues();
 
-
   std::string getValueByName() const;
   void setValueByName(const std::string& name);
   bool hasNamedValue(const std::string& name) const;
 
-  typedef boost::function<void (const UpdatingParamEnum& param)> Callback;
+  typedef boost::function<void(const UpdatingParamEnum& param)> Callback;
   void setCallback(const Callback& _cb);
 
- protected:
+protected:
   friend ParamConnectionPrivate;  // need to use updateValue
 
- private:
+private:
   auto d_func() noexcept -> UpdatingParamEnumPrivate*;
   auto d_func() const noexcept -> UpdatingParamEnumPrivate const*;
 };
@@ -208,7 +211,6 @@ typedef UpdatingParamT<float> FloatParam;
 typedef UpdatingParamT<double> DoubleParam;
 typedef UpdatingParamT<std::string> StringParam;
 typedef UpdatingParamEnum EnumParam;
-
 }
 
-#endif //PROJECT_DS_PARAM_H
+#endif  // PROJECT_DS_PARAM_H

@@ -36,56 +36,65 @@
 #include "ds_param_private.h"
 #include "ds_param_conn_private.h"
 
-namespace ds_param {
-
+namespace ds_param
+{
 //------------------------------------------------------------------------------
 // UpdatingParam (super-class)
 //------------------------------------------------------------------------------
-UpdatingParam::UpdatingParam(const std::shared_ptr<UpdatingParamPrivate>& _impl)
-: d_ptr_(_impl) {
-
+UpdatingParam::UpdatingParam(const std::shared_ptr<UpdatingParamPrivate>& _impl) : d_ptr_(_impl)
+{
 }
 
-UpdatingParam::~UpdatingParam() {
-
+UpdatingParam::~UpdatingParam()
+{
 }
 
-std::string UpdatingParam::YamlDescription() const {
+std::string UpdatingParam::YamlDescription() const
+{
   return "{ " + Name() + " : UNKNOWN }";
 }
 
-UpdatingParamTypes UpdatingParam::TypeNum() const {
+UpdatingParamTypes UpdatingParam::TypeNum() const
+{
   return PARAM_UNKNOWN;
 }
 
-const std::string& UpdatingParam::Name() const {
+const std::string& UpdatingParam::Name() const
+{
   return d_func()->name;
 }
 
-bool UpdatingParam::IsDirty() const {
+bool UpdatingParam::IsDirty() const
+{
   return d_func()->dirty;
 }
 
-bool UpdatingParam::Advertise() const {
+bool UpdatingParam::Advertise() const
+{
   return d_func()->advertise_flag;
 }
 
-void UpdatingParam::setAdvertise(bool v) {
+void UpdatingParam::setAdvertise(bool v)
+{
   d_func()->advertise_flag = v;
 }
 
-bool UpdatingParam::operator==(const UpdatingParam& other) const {
+bool UpdatingParam::operator==(const UpdatingParam& other) const
+{
   return d_ptr_->name == other.d_ptr_->name;
 }
-bool UpdatingParam::operator!=(const UpdatingParam& other) const {
+bool UpdatingParam::operator!=(const UpdatingParam& other) const
+{
   return d_ptr_->name != other.d_ptr_->name;
 }
 
-inline auto UpdatingParam::d_func() noexcept -> UpdatingParamPrivate* {
+inline auto UpdatingParam::d_func() noexcept -> UpdatingParamPrivate*
+{
   return d_ptr_.get();
 }
 
-inline auto UpdatingParam::d_func() const noexcept -> UpdatingParamPrivate const* {
+inline auto UpdatingParam::d_func() const noexcept -> UpdatingParamPrivate const*
+{
   return d_ptr_.get();
 }
 
@@ -93,39 +102,42 @@ inline auto UpdatingParam::d_func() const noexcept -> UpdatingParamPrivate const
 // Param<T> (generic type)
 //------------------------------------------------------------------------------
 
-#define PT_D auto d =  UpdatingParamT<T>::d_func()
+#define PT_D auto d = UpdatingParamT<T>::d_func()
 
-template<typename T>
-UpdatingParamT<T>::UpdatingParamT(const std::shared_ptr<UpdatingParamTPrivate<T> >& _impl)
-    : UpdatingParam(_impl) {
+template <typename T>
+UpdatingParamT<T>::UpdatingParamT(const std::shared_ptr<UpdatingParamTPrivate<T> >& _impl) : UpdatingParam(_impl)
+{
   // do nothing
 }
 
-template<typename T>
-UpdatingParamT<T>::UpdatingParamT(const std::shared_ptr<ParamConnectionPrivate> &_c,
-                                  const std::string &_n, bool _a)
-    : UpdatingParam(std::shared_ptr<UpdatingParamPrivate>(
-    new UpdatingParamTPrivate<T>(_c, _n, _a))) {
+template <typename T>
+UpdatingParamT<T>::UpdatingParamT(const std::shared_ptr<ParamConnectionPrivate>& _c, const std::string& _n, bool _a)
+  : UpdatingParam(std::shared_ptr<UpdatingParamPrivate>(new UpdatingParamTPrivate<T>(_c, _n, _a)))
+{
   // do nothing
 }
 
-template<typename T>
-const T &UpdatingParamT<T>::Get() const {
+template <typename T>
+const T& UpdatingParamT<T>::Get() const
+{
   PT_D;
   return d->value;
 }
 
-template<typename T>
-void UpdatingParamT<T>::Set(const T &_v) {
+template <typename T>
+void UpdatingParamT<T>::Set(const T& _v)
+{
   PT_D;
 
   // First, update our local copy
 
-  if (d->conn->IsLocked()) {
+  if (d->conn->IsLocked())
+  {
     // only set the previous value if we're currently sync'd to the system.
     // If we're locked, but have already been changed, then don't update the previous
     // as previous reflects the previous that went out on the wrie
-    if (!d->dirty) {
+    if (!d->dirty)
+    {
       d->prev_value = d->value;
     }
     d->value = _v;
@@ -147,14 +159,16 @@ void UpdatingParamT<T>::Set(const T &_v) {
   d->conn->signalUpdate(this);
 }
 
-template<typename T>
-boost::optional<T> UpdatingParamT<T>::GetPrevious() const {
+template <typename T>
+boost::optional<T> UpdatingParamT<T>::GetPrevious() const
+{
   PT_D;
   return d->prev_value;
 };
 
-template<typename T>
-void UpdatingParamT<T>::updateValue(const T& _v) {
+template <typename T>
+void UpdatingParamT<T>::updateValue(const T& _v)
+{
   PT_D;
   d->prev_value = d->value;
   d->value = _v;
@@ -170,31 +184,38 @@ void UpdatingParamT<T>::updateValue(const T& _v) {
   // so yeah, do nothing here.  And use set, you want set.  Really.
 }
 
-template<typename T>
-std::string UpdatingParamT<T>::YamlDescription() const {
+template <typename T>
+std::string UpdatingParamT<T>::YamlDescription() const
+{
   return "{ name: \"" + Name() + "\", type: \"" + Type() + "\" }";
 }
 
-template<typename T>
-inline auto UpdatingParamT<T>::d_func() noexcept -> UpdatingParamTPrivate<T>* {
-  return static_cast<UpdatingParamTPrivate<T> *>(UpdatingParam::d_ptr_.get());
+template <typename T>
+inline auto UpdatingParamT<T>::d_func() noexcept -> UpdatingParamTPrivate<T>*
+{
+  return static_cast<UpdatingParamTPrivate<T>*>(UpdatingParam::d_ptr_.get());
 }
 
-template<typename T>
-inline auto UpdatingParamT<T>::d_func() const noexcept -> UpdatingParamTPrivate<T> const* {
-  return static_cast<UpdatingParamTPrivate<T> const *>(UpdatingParam::d_ptr_.get());
+template <typename T>
+inline auto UpdatingParamT<T>::d_func() const noexcept -> UpdatingParamTPrivate<T> const*
+{
+  return static_cast<UpdatingParamTPrivate<T> const*>(UpdatingParam::d_ptr_.get());
 }
 
-template<typename T>
-void UpdatingParamT<T>::loadFromServer() {
+template <typename T>
+void UpdatingParamT<T>::loadFromServer()
+{
   PT_D;
-  if (!d->conn->getHandle().getParam(d->name, d->value)) {
-    ROS_ERROR_STREAM(ros::this_node::getName() <<" could not set variable \"" <<Name() <<"\"<" <<Type() <<"> from server!");
+  if (!d->conn->getHandle().getParam(d->name, d->value))
+  {
+    ROS_ERROR_STREAM(ros::this_node::getName() << " could not set variable \"" << Name() << "\"<" << Type()
+                                               << "> from server!");
   }
 }
 
-template<typename T>
-void UpdatingParamT<T>::setOnServer() {
+template <typename T>
+void UpdatingParamT<T>::setOnServer()
+{
   PT_D;
   d->conn->getHandle().setParam(d->name, d->value);
   d->dirty = false;
@@ -203,59 +224,69 @@ void UpdatingParamT<T>::setOnServer() {
 
 //--------------------------------------------------------------------
 // Specializations
-template<>
-std::string UpdatingParamT<std::string>::Type() const {
+template <>
+std::string UpdatingParamT<std::string>::Type() const
+{
   return "string";
 }
 
-template<>
-UpdatingParamTypes UpdatingParamT<std::string>::TypeNum() const {
+template <>
+UpdatingParamTypes UpdatingParamT<std::string>::TypeNum() const
+{
   return PARAM_STRING;
 }
 
-template<>
-std::string UpdatingParamT<int>::Type() const {
+template <>
+std::string UpdatingParamT<int>::Type() const
+{
   return "int";
 }
 
-template<>
-UpdatingParamTypes UpdatingParamT<int>::TypeNum() const {
+template <>
+UpdatingParamTypes UpdatingParamT<int>::TypeNum() const
+{
   return PARAM_INT;
 }
 
-template<>
-std::string UpdatingParamT<double>::Type() const {
+template <>
+std::string UpdatingParamT<double>::Type() const
+{
   return "double";
 }
 
-template<>
-UpdatingParamTypes UpdatingParamT<double>::TypeNum() const {
+template <>
+UpdatingParamTypes UpdatingParamT<double>::TypeNum() const
+{
   return PARAM_DOUBLE;
 }
 
-template<>
-std::string UpdatingParamT<float>::Type() const {
+template <>
+std::string UpdatingParamT<float>::Type() const
+{
   return "float";
 }
 
-template<>
-UpdatingParamTypes UpdatingParamT<float>::TypeNum() const {
+template <>
+UpdatingParamTypes UpdatingParamT<float>::TypeNum() const
+{
   return PARAM_FLOAT;
 }
 
-template<>
-std::string UpdatingParamT<bool>::Type() const {
+template <>
+std::string UpdatingParamT<bool>::Type() const
+{
   return "bool";
 }
 
-template<>
-UpdatingParamTypes UpdatingParamT<bool>::TypeNum() const {
+template <>
+UpdatingParamTypes UpdatingParamT<bool>::TypeNum() const
+{
   return PARAM_BOOL;
 }
 
-
-template<>
-void UpdatingParamT<bool>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const {
+template <>
+void UpdatingParamT<bool>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const
+{
   auto d = UpdatingParamT<bool>::d_func();
   ds_core_msgs::KeyBool ret;
   ret.key = d->name;
@@ -263,8 +294,9 @@ void UpdatingParamT<bool>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) con
   msg.bools.push_back(ret);
 }
 
-template<>
-void UpdatingParamT<int>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const {
+template <>
+void UpdatingParamT<int>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const
+{
   auto d = UpdatingParamT<int>::d_func();
   ds_core_msgs::KeyInt ret;
   ret.key = d->name;
@@ -272,8 +304,9 @@ void UpdatingParamT<int>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) cons
   msg.ints.push_back(ret);
 }
 
-template<>
-void UpdatingParamT<float>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const {
+template <>
+void UpdatingParamT<float>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const
+{
   auto d = UpdatingParamT<float>::d_func();
   ds_core_msgs::KeyFloat ret;
   ret.key = d->name;
@@ -281,8 +314,9 @@ void UpdatingParamT<float>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) co
   msg.floats.push_back(ret);
 }
 
-template<>
-void UpdatingParamT<double>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const {
+template <>
+void UpdatingParamT<double>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const
+{
   auto d = UpdatingParamT<double>::d_func();
   ds_core_msgs::KeyDouble ret;
   ret.key = d->name;
@@ -290,8 +324,9 @@ void UpdatingParamT<double>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) c
   msg.doubles.push_back(ret);
 }
 
-template<>
-void UpdatingParamT<std::string>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const {
+template <>
+void UpdatingParamT<std::string>::fillUpdateMessage(ds_core_msgs::ParamUpdate& msg) const
+{
   auto d = UpdatingParamT<std::string>::d_func();
   ds_core_msgs::KeyString ret;
   ret.key = d->name;
@@ -307,103 +342,118 @@ template class UpdatingParamT<float>;
 template class UpdatingParamT<double>;
 template class UpdatingParamT<std::string>;
 
-
 #define PE_D auto d = d_func()
 
-UpdatingParamEnum::UpdatingParamEnum(const std::shared_ptr<ParamConnectionPrivate>& _c,
-                                     const std::string& _n, bool _a)
-    : UpdatingParamT<int>(std::shared_ptr<UpdatingParamEnumPrivate>(new UpdatingParamEnumPrivate(_c, _n, _a))) {
+UpdatingParamEnum::UpdatingParamEnum(const std::shared_ptr<ParamConnectionPrivate>& _c, const std::string& _n, bool _a)
+  : UpdatingParamT<int>(std::shared_ptr<UpdatingParamEnumPrivate>(new UpdatingParamEnumPrivate(_c, _n, _a)))
+{
   // do nothing
 }
 
-std::string UpdatingParamEnum::YamlDescription() const {
+std::string UpdatingParamEnum::YamlDescription() const
+{
   PE_D;
   std::stringstream ret;
-  ret << "{ name: \"" << d->name <<"\",";
-  ret <<" type: \"" << Type() <<"\",";
-  ret <<" enum: {";
-  for (auto iter=d->namedValues.begin(); iter != d->namedValues.end(); iter++) {
-    ret <<" \"" <<iter->first <<"\": \"" <<iter->second <<"\", ";
+  ret << "{ name: \"" << d->name << "\",";
+  ret << " type: \"" << Type() << "\",";
+  ret << " enum: {";
+  for (auto iter = d->namedValues.begin(); iter != d->namedValues.end(); iter++)
+  {
+    ret << " \"" << iter->first << "\": \"" << iter->second << "\", ";
   }
-  ret <<"} }";
+  ret << "} }";
 
   return ret.str();
 }
 
-void UpdatingParamEnum::addNamedValue(const std::string& _n, int _v) {
+void UpdatingParamEnum::addNamedValue(const std::string& _n, int _v)
+{
   PE_D;
   d->namedValues.push_back(std::pair<std::string, int>(_n, _v));
   d->conn->publishDescription();
 }
 
-void UpdatingParamEnum::addNamedValue(const std::pair<std::string, int>& value) {
+void UpdatingParamEnum::addNamedValue(const std::pair<std::string, int>& value)
+{
   PE_D;
   d->namedValues.push_back(value);
   d->conn->publishDescription();
 }
 
-const std::vector<std::pair<std::string, int> >& UpdatingParamEnum::getNamedValues() const {
+const std::vector<std::pair<std::string, int> >& UpdatingParamEnum::getNamedValues() const
+{
   PE_D;
   return d->namedValues;
 };
 
-std::vector<std::pair<std::string, int> >& UpdatingParamEnum::getNamedValues() {
+std::vector<std::pair<std::string, int> >& UpdatingParamEnum::getNamedValues()
+{
   PE_D;
   return d->namedValues;
 };
 
-std::string UpdatingParamEnum::getValueByName() const {
+std::string UpdatingParamEnum::getValueByName() const
+{
   PE_D;
-  for (auto iter=d->namedValues.begin(); iter != d->namedValues.end(); iter++) {
-    if (iter->second == d->value) {
+  for (auto iter = d->namedValues.begin(); iter != d->namedValues.end(); iter++)
+  {
+    if (iter->second == d->value)
+    {
       return iter->first;
     }
   }
 
   std::string ret = std::to_string(d->value);
-  ROS_ERROR_STREAM("Parameter \"" <<d->name <<"\" set to unrecognized enum type; returning \"" <<ret <<"\"");
+  ROS_ERROR_STREAM("Parameter \"" << d->name << "\" set to unrecognized enum type; returning \"" << ret << "\"");
   return ret;
 }
 
-void UpdatingParamEnum::setValueByName(const std::string& name) {
+void UpdatingParamEnum::setValueByName(const std::string& name)
+{
   PE_D;
-  for (auto iter=d->namedValues.begin(); iter != d->namedValues.end(); iter++) {
-    if (iter->first == name) {
+  for (auto iter = d->namedValues.begin(); iter != d->namedValues.end(); iter++)
+  {
+    if (iter->first == name)
+    {
       Set(iter->second);
       return;
     }
   }
 
-  ROS_ERROR_STREAM("Pariable \"" <<d->name <<"\" tried to set enumerated value to \""
-                                 <<name <<"\", but that value name is not defined!");
-
+  ROS_ERROR_STREAM("Pariable \"" << d->name << "\" tried to set enumerated value to \"" << name
+                                 << "\", but that value name is not defined!");
 }
 
-bool UpdatingParamEnum::hasNamedValue(const std::string& name) const {
+bool UpdatingParamEnum::hasNamedValue(const std::string& name) const
+{
   PE_D;
-  for (auto iter=d->namedValues.begin(); iter != d->namedValues.end(); iter++) {
-    if (iter->first == name) {
+  for (auto iter = d->namedValues.begin(); iter != d->namedValues.end(); iter++)
+  {
+    if (iter->first == name)
+    {
       return true;
     }
   }
   return false;
 }
 
-std::string UpdatingParamEnum::Type() const {
+std::string UpdatingParamEnum::Type() const
+{
   return "enum";
 }
 
-UpdatingParamTypes UpdatingParamEnum::TypeNum() const {
+UpdatingParamTypes UpdatingParamEnum::TypeNum() const
+{
   return PARAM_ENUM;
 }
 
-inline auto UpdatingParamEnum::d_func() noexcept -> UpdatingParamEnumPrivate* {
-  return static_cast<UpdatingParamEnumPrivate *>(UpdatingParam::d_ptr_.get());
+inline auto UpdatingParamEnum::d_func() noexcept -> UpdatingParamEnumPrivate*
+{
+  return static_cast<UpdatingParamEnumPrivate*>(UpdatingParam::d_ptr_.get());
 }
 
-inline auto UpdatingParamEnum::d_func() const noexcept -> UpdatingParamEnumPrivate const* {
-  return static_cast<UpdatingParamEnumPrivate const *>(UpdatingParam::d_ptr_.get());
+inline auto UpdatingParamEnum::d_func() const noexcept -> UpdatingParamEnumPrivate const*
+{
+  return static_cast<UpdatingParamEnumPrivate const*>(UpdatingParam::d_ptr_.get());
 }
-
 }
-

@@ -32,7 +32,6 @@ if(CLANG_FORMAT_FOUND)
             -iname '*.h' -o -iname '*.cpp'
             | xargs ${CLANG_FORMAT_EXECUTABLE} -i
             )
-
 endif(CLANG_FORMAT_FOUND)
 
 ## Generate services in the 'srv' folder

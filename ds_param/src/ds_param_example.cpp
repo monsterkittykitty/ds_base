@@ -36,10 +36,11 @@
 
 #include <boost/optional/optional_io.hpp>
 
-class ParamDemo {
-
- public:
-  ParamDemo(ros::NodeHandle& _nh) : handle(_nh) {
+class ParamDemo
+{
+public:
+  ParamDemo(ros::NodeHandle& _nh) : handle(_nh)
+  {
     conn = ds_param::ParamConnection::create(handle);
 
     // Grab a copy of our STATIC parameters
@@ -63,23 +64,27 @@ class ParamDemo {
 
     // setup two parameters we'll update atomically
     param_bool_atomic = conn->connect<ds_param::BoolParam>(ros::this_node::getName() + "/test_atomic_bool", false);
-    param_int_atomic  = conn->connect<ds_param::IntParam >(ros::this_node::getName() + "/test_atomic_int" , false);
+    param_int_atomic = conn->connect<ds_param::IntParam>(ros::this_node::getName() + "/test_atomic_int", false);
 
     // test prep
-    idx=start;
+    idx = start;
   }
 
-  void _callback(const ros::TimerEvent& evt) {
+  void _callback(const ros::TimerEvent& evt)
+  {
     std::stringstream ss;
-    ss <<"Idx " <<start <<" -> " <<idx;
+    ss << "Idx " << start << " -> " << idx;
 
     other_int->Set(idx);
     other_str->Set(ss.str());
 
     std::string old_str;
-    if (param_int->GetPrevious()) {
+    if (param_int->GetPrevious())
+    {
       old_str = std::to_string(param_int->GetPrevious().get());
-    } else {
+    }
+    else
+    {
       old_str = "NOT SET";
     }
 
@@ -88,43 +93,45 @@ class ParamDemo {
       // this will prevent updates from going out
       ds_param::ParamGuard lock(conn);
 
-      param_bool_atomic->Set(! param_bool_atomic->Get());
+      param_bool_atomic->Set(!param_bool_atomic->Get());
       param_int_atomic->Set(idx);
-      if (param_int->GetPrevious()) {
+      if (param_int->GetPrevious())
+      {
         ROS_ERROR_STREAM("\tResetting PARAM INT: " << param_int->Get() << " to " << param_int->GetPrevious());
         param_int->Set(*(param_int->GetPrevious()));
-        ROS_ERROR_STREAM("\tReset PARAM INT: " <<param_int->Get());
+        ROS_ERROR_STREAM("\tReset PARAM INT: " << param_int->Get());
       }
     }
 
     ROS_ERROR_STREAM(ros::this_node::getName()
 
-                         <<": " <<"MY param: " << param_int->Get()
-                         <<" --> \"" <<param_str->Get() <<"\" (was " <<old_str <<")"
+                     << ": "
+                     << "MY param: " << param_int->Get() << " --> \"" << param_str->Get() << "\" (was " << old_str
+                     << ")"
 
-                         <<"    OTHER param: " << other_int->Get()
-                         <<" --> \"" <<other_str->Get() <<"\"");
+                     << "    OTHER param: " << other_int->Get() << " --> \"" << other_str->Get() << "\"");
     idx++;
-
   }
 
-
-
   // Setup the callback demos
-  void setupCallback() {
+  void setupCallback()
+  {
     conn->setCallback(boost::bind(&ParamDemo::_change_callback, this, _1));
   }
 
-  void _change_callback(const ds_param::ParamConnection::ParamCollection& params) {
-    for (auto iter=params.begin(); iter != params.end(); iter++) {
-      if (*iter == param_int) {
-        ROS_ERROR_STREAM("\t\t\tPARAM INT Changed from \"" <<param_int->GetPrevious()
-                                                           <<"\" to \"" <<param_int->Get() <<"\"");
+  void _change_callback(const ds_param::ParamConnection::ParamCollection& params)
+  {
+    for (auto iter = params.begin(); iter != params.end(); iter++)
+    {
+      if (*iter == param_int)
+      {
+        ROS_ERROR_STREAM("\t\t\tPARAM INT Changed from \"" << param_int->GetPrevious() << "\" to \"" << param_int->Get()
+                                                           << "\"");
       }
     }
   }
 
- protected:
+protected:
   ros::NodeHandle& handle;
   ds_param::ParamConnection::Ptr conn;
   int idx;
@@ -146,29 +153,29 @@ class ParamDemo {
   ds_param::StringParam::Ptr other_str;
 };
 
-
-int main(int argc, char* argv[]) {
-
+int main(int argc, char* argv[])
+{
   ros::init(argc, argv, "test_node_1");
   ros::NodeHandle nh;
   ParamDemo demo(nh);
 
-  ros::Timer timer = nh.createTimer(ros::Duration(3.0),
-                              boost::bind(&ParamDemo::_callback, &demo, _1), false);
+  ros::Timer timer = nh.createTimer(ros::Duration(3.0), boost::bind(&ParamDemo::_callback, &demo, _1), false);
 
   bool use_callback;
-  if (!nh.getParam(ros::this_node::getName() + "/use_callback", use_callback)) {
+  if (!nh.getParam(ros::this_node::getName() + "/use_callback", use_callback))
+  {
     ROS_FATAL_STREAM("No variable for use_callback!");
     return -1;
   }
 
-  if (use_callback) {
+  if (use_callback)
+  {
     demo.setupCallback();
   }
 
-
   // spins until shut down
-  while (ros::ok()) {
+  while (ros::ok())
+  {
     ros::spin();
   }
 

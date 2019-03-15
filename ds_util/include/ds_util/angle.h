@@ -45,6 +45,10 @@ namespace ds_util
 /// \param to
 /// \return
 double angular_separation_radians(double from, double to);
+
+double limit_change(double goal, double limit_delta, double limit_center);
+
+
 }
 
 #endif  // DS_UTIL_ANGLE_H

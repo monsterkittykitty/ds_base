@@ -162,6 +162,9 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/median.h
   src/${PROJECT_NAME}/median.cpp
+
+  include/${PROJECT_NAME}/limit_change.h
+  src/${PROJECT_NAME}/limit_change.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -254,6 +257,9 @@ if(CATKIN_ENABLE_TESTING)
 
     catkin_add_gtest(test_bcd_to_int src/test/test_bcd_to_int.cpp)
     target_link_libraries(test_bcd_to_int ${PROJECT_NAME})
+
+    catkin_add_gtest(test_limit_change src/test/test_limit_change.cpp)
+    target_link_libraries(test_limit_change ${PROJECT_NAME})
 endif(CATKIN_ENABLE_TESTING)
 
 ## Add folders to be run by python nosetests

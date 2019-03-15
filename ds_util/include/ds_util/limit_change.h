@@ -1,5 +1,5 @@
 /**
-* Copyright 2018 Woods Hole Oceanographic Institution
+* Copyright 2019 Woods Hole Oceanographic Institution
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -27,16 +27,35 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef DS_UTIL_DS_UTIL_H
-#define DS_UTIL_DS_UTIL_H
+//
+// Created by ivaughn on 3/13/19.
+//
 
-#include "ds_util/angle.h"
-#include "ds_util/fofonoff_depth.h"
-#include "ds_util/thruster.h"
-#include "ds_util/int_to_hex.h"
-#include "ds_util/reference_smoothing.h"
-#include "ds_util/float_round.h"
-#include "ds_util/bcd_to_int.h"
-#include "ds_util/limit_change.h"
+#ifndef DS_UTIL_LIMIT_CHANGE_H
+#define DS_UTIL_LIMIT_CHANGE_H
 
-#endif  // DS_UTIL_DS_UTIL_H
+namespace ds_util {
+
+/// Limit a goal value to an interval about a particular center point
+///
+/// The returned value is as close to the goal as possible,
+/// but clamped to limit_center +/- limit_delta
+/// \param goal The desired final value
+/// \param limit_delta The maximum permissible distance from limit_center
+/// \param limit_center The center of the permissible region
+/// \return Either the goal value, or the closer of limit_center +/- limit_delta
+double limit_change(double goal, double limit_delta, double limit_center);
+
+/// Limit a goal value to an interval about a particular center point on a circle
+///
+/// The returned value is as close to the goal as possible,
+/// but clamped to limit_center +/- limit_delta
+/// \param goal The desired final value
+/// \param limit_delta The maximum permissible distance from limit_center
+/// \param limit_center The center of the permissible region
+/// \return Either the goal value, or the closer of limit_center +/- limit_delta
+double limit_change_heading(double goal, double limit_delta, double limit_center);
+
+}
+
+#endif //DS_UTIL_LIMIT_CHANGE_H

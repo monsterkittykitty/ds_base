@@ -59,7 +59,7 @@ typedef boost::msm::back::state_machine<Runner_front> Runner;
 class _IoSM_impl : public std::enable_shared_from_this<_IoSM_impl>
 {
 private:
-  // make noncopyabe by declaring the constructor, copy constructor, and assignment
+  // make non-copyable by declaring the constructor, copy constructor, and assignment
   // operators private
 
   /// @brief Standard constructor.  You want the create method.
@@ -151,7 +151,9 @@ protected:
   /// \brief Mutex to protect our command queues
   std::mutex _outer_sm_lock;
 
-  /// \brief A counter for the next regular command ID
+  /// \brief ID that will be assigned to the next regular command that is added.
+  ///
+  /// Guarantees uniqueness by only incrementing.
   uint64_t nextCmdId;
 
   /// \brief The list of regular commands
@@ -161,7 +163,7 @@ protected:
   /// from the top.
   std::list<ds_asio::IoCommand> regularCommands;
 
-  /// \brief The next command to run.
+  /// \brief The next command in the regular queue to run.
   ///
   /// An std::list iterator is pretty much just a pointer, so we use that.
   std::list<ds_asio::IoCommand>::iterator currCommand;
@@ -189,7 +191,7 @@ protected:
   /// \brief The MSM state machine that runs a single command
   std::shared_ptr<Runner> runner;
 
-  /// \brief A flag to track whether a command is current running
+  /// \brief A flag to track whether a command is currently running
   bool commandRunning;
 
   /// \brief A flag to track if the command currently running is a preempt command or not
@@ -282,7 +284,7 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
   /// state machine exists as long as CommandRunner_ does.
   /// The circular reference means that the _IoSM_Impl won't be destroyed
   /// normally by simply removing references to it.  The solution is to
-  /// have an outer IoSM object that contains an _IoSM_Impl that has reponsiblity
+  /// have an outer IoSM object that contains an _IoSM_Impl that has responsibility
   /// for telling _IoSM_Impl to break its circular reference
   /// and allow deallocation to happen
 
@@ -296,7 +298,7 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
 
   /// @brief Reset our pointer to the parent StateMachine class.
   ///
-  /// The only way to break the circular reference is for the _IoSM_impl owing
+  /// The only way to break the circular reference is for the _IoSM_impl owning
   /// this object to do so manually.
   void invalidateSm()
   {
@@ -396,7 +398,7 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
     }
   };
 
-  /// @brief Delay after completing a command and before starting the enxt one
+  /// @brief Delay after completing a command and before starting the next one
   struct PostDelay : public msm::front::state<>
   {
     /// @brief Function called on entering the "wait to send data" state
@@ -491,10 +493,10 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
     return true;
   }
 
-  /// @typedef MSM uses the "inital_state" type as the inital state, so typedef it here
+  /// @typedef MSM uses the "initial_state" type as the initial state, so typedef it here
   typedef Ready initial_state;
 
-  /// @typedef A convienence typedef to make the transition table MUCH cleaner
+  /// @typedef A convenience typedef to make the transition table MUCH cleaner
   typedef Runner_front r;
 
   /// @struct The actual transition table.  Note how its all statically typed and whatnot
@@ -506,7 +508,8 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
             a_row<PreDelay, TimerDone, WaitForData, &r::timer_done>,
             g_row<WaitForData, DataRecv, PostDelay, &r::data_good>,
             a_row<WaitForData, TimerDone, PostDelay, &r::log_timeout>,
-            a_row<PostDelay, TimerDone, Ready, &r::timer_done>, a_row<Ready, StartCommand, PreDelay, &r::new_cmd>
+            a_row<PostDelay, TimerDone, Ready, &r::timer_done>,
+            a_row<Ready, StartCommand, PreDelay, &r::new_cmd>
             //    +-------------+-----------+----------------+------------------+---------------+
             >
   {

@@ -86,7 +86,7 @@ public:
 
   /// @brief Shorthand to create a static wait
   ///
-  /// The primary use of this is to add a delay to slow down interogation loops
+  /// The primary use of this is to add a delay to slow down interrogation loops
   ///
   /// \param timeout_sec Number of seconds to wait
   IoCommand(double timeout_sec);
@@ -106,11 +106,11 @@ public:
   /// @brief Get the delay before the command string is sent
   const ros::Duration& getDelayBefore() const;
 
-  /// @brief Set the delay after a valid reply is recieved, but
+  /// @brief Set the delay after a valid reply is received, but
   /// before the next command is started
   void setDelayAfter(const ros::Duration& _d);
 
-  /// @brief Get the delay after a valid reply is recieved, but
+  /// @brief Get the delay after a valid reply is received, but
   /// before the next command is started
   const ros::Duration& getDelayAfter() const;
 

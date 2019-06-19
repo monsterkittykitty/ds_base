@@ -48,7 +48,7 @@ DsConnection::~DsConnection()
 
 void DsConnection::send(const std::string& message)
 {
-  // asio really needs a shared_ptr to the message; this is just a convienence
+  // asio really needs a shared_ptr to the message; this is just a convenience
   // wrapper to do the copy into a shared_ptr buffer easier on users
   this->send(boost::shared_ptr<std::string>(new std::string(message)));
 }

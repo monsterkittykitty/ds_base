@@ -111,7 +111,7 @@ public:
   /// This method blocks until terminated by signals.
   void run();
 
-  /// @brief Period betweeen process health checks.
+  /// @brief Period between process health checks.
   ///
   /// \return
   ros::Duration statusCheckPeriod() const noexcept;
@@ -121,7 +121,7 @@ public:
   /// A period < 0 disables health checks.
   void setStatusCheckPeriod(ros::Duration period) noexcept;
 
-  /// @brief Period betweeen critical process ttl broadcasts
+  /// @brief Period between critical process ttl broadcasts
   ///
   /// \return
   ros::Duration criticalProcessPeriod() const noexcept;
@@ -136,7 +136,7 @@ public:
   /// \param name
   void setDescriptiveName(const std::string& name) noexcept;
 
-  /// @brief Get the node's descrpitive name;
+  /// @brief Get the node's descriptive name;
   ///
   /// \return
   std::string descriptiveName() const noexcept;
@@ -176,7 +176,7 @@ public:
   /// been instantiated.  It is the main entry point to add run-time configuration
   /// that requires a rosmaster to be running.
   ///
-  /// Default implmementation calls, in order:
+  /// Default implementation calls, in order:
   ///
   /// - setupParameters()
   /// - setupConnections()

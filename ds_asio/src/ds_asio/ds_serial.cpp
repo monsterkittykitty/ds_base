@@ -232,7 +232,7 @@ void DsSerial::handle_read(const boost::system::error_code& error, std::size_t b
       callback_(raw_data_);
     }
     raw_data_.data.clear();
-    // The consume method of the strembuffer marks as used the bytes that we last processed, so the next call to
+    // The consume method of the streambuffer marks as used the bytes that we processed, so the next call to
     // async_read_until does not re-analyze them
     streambuf_.consume(bytes_transferred);
     // for (unsigned int i = 0; i < bytes_transferred; ++i)

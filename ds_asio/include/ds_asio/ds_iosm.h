@@ -120,14 +120,6 @@ public:
   /// @brief Get the maximum time to wait for a valid reply
   const ros::Duration& getTimeout() const;
 
-  /// @brief Get the flag to determine whether to flush the Io State Machine's buffer
-  /// at the start of this command
-  bool flushInput() const;
-
-  /// @brief Set the flag to determine whether to flush the Io State Machine's buffer
-  /// at the start of this command
-  void setFlush(bool _f);
-
   /// @brief Check whether this command will generate a callback on
   /// accepting an response
   bool emit() const;

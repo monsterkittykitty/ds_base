@@ -136,14 +136,6 @@ public:
   /// timeout
   void setWarnOnTimeout(bool _w);
 
-  /// @brief Check whether this command will log debug info to the ROS console
-  /// timeout
-  bool logOnTimeout() const;
-
-  /// @brief Set whether this command will log debug info to the ROS console
-  /// timeout
-  void setLogOnTimeout(bool _l);
-
   /// @brief Check whether a preempt command is allowed to follow this command
   ///
   /// Some commands require multiple inputs with return checking in between.  One
@@ -181,9 +173,10 @@ public:
 protected:
   uint64_t id;
   std::string cmd;
-  bool emitOnMatch;
-  bool timeoutWarn;
-  bool timeoutLog;  // log
+  bool emitOnMatch; // whether to pass the response to the callbacks
+                    // This is useful to prevent timeout-only IoCommands from
+                    // calling the default callback.
+  bool timeoutWarn; // emit ROS_WARN message if command times out
   bool forceNext;   // force the next command to be from the same queue
   // This is useful in some cases where a command
   // sequence should happen atomically, e.g.,

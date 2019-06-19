@@ -45,7 +45,6 @@ ds_asio::IoCommand::IoCommand(const std::string& cmdstr, double timeout_sec, boo
 {
   emitOnMatch = true;
   timeoutWarn = false;
-  timeoutLog = false;
   forceNext = _force_next;
   timeout = ros::Duration(timeout_sec);
 }
@@ -55,7 +54,6 @@ ds_asio::IoCommand::IoCommand(double timeout_sec)
   cmd = "";
   emitOnMatch = false;
   timeoutWarn = false;
-  timeoutLog = false;
   timeout = ros::Duration(timeout_sec);
 }
 
@@ -126,15 +124,6 @@ bool ds_asio::IoCommand::warnOnTimeout() const
 void ds_asio::IoCommand::setWarnOnTimeout(bool _w)
 {
   timeoutWarn = _w;
-}
-
-bool ds_asio::IoCommand::logOnTimeout() const
-{
-  return timeoutLog;
-}
-void ds_asio::IoCommand::setLogOnTimeout(bool _l)
-{
-  timeoutLog = _l;
 }
 
 bool ds_asio::IoCommand::getForceNext() const

@@ -187,22 +187,10 @@ void DsSerial::setup(ros::NodeHandle& nh)
 
 void DsSerial::receive(void)
 {
-// recv_buffer_.assign(0);
-// boost::asio::async_read(*port_, boost::asio::buffer(recv_buffer_),
-// 			  boost::bind(&DsSerial::handle_read, this,
-// 				      boost::asio::placeholders::error,
-// 				      boost::asio::placeholders::bytes_transferred));
-// boost::asio::streambuf b;
-#if 0
-  boost::asio::async_read_until(*port_, streambuf_, match_char('\n'),
-  				boost::bind(&DsSerial::handle_read, this,
-  					    boost::asio::placeholders::error,
-  					    boost::asio::placeholders::bytes_transferred));
-#else
   boost::asio::async_read_until(*port_, streambuf_, matchFunction_,
-                                boost::bind(&DsSerial::handle_read, this, boost::asio::placeholders::error,
+                                boost::bind(&DsSerial::handle_read, this,
+                                            boost::asio::placeholders::error,
                                             boost::asio::placeholders::bytes_transferred));
-#endif
 }
 
 void DsSerial::set_matcher(boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction)
@@ -235,29 +223,6 @@ void DsSerial::handle_read(const boost::system::error_code& error, std::size_t b
     // The consume method of the streambuffer marks as used the bytes that we processed, so the next call to
     // async_read_until does not re-analyze them
     streambuf_.consume(bytes_transferred);
-    // for (unsigned int i = 0; i < bytes_transferred; ++i)
-    // 	{
-    // 	  char c = recv_buffer_[i];
-    // 	  ROS_INFO_STREAM("rxd: " << c);
-    // 	  if (c == eol_.at(0))
-    // 	    {
-    // 	      // Store timestamp as soon as received
-    // 	      raw_data_.ds_header.io_time = ros::Time::now();
-
-    // 	      ROS_INFO_STREAM("Serial received: " << raw_data_.data.data());
-    // 	      raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
-    // 	      raw_publisher_.publish(raw_data_);
-    // 	      callback_(raw_data_);
-    // 	      raw_data_.data.clear();
-    // 	    }
-    // 	  else
-    // 	    {
-    // 	      ROS_INFO_STREAM("append: " << c);
-    // 	      raw_data_.data.push_back(c);
-    // 	    }
-    // 	}
-    // receive(); // This should be out of the if(!error) condition, otherwise we stop receiving if there is an error
-    // condition
     receive();
     return;
   }

@@ -38,12 +38,18 @@ namespace ds_base
 {
 DsProcess::DsProcess() : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
 {
+  if (ros::isInitialized()) {
+    d_ptr_->my_node_handle_ = boost::make_shared<ros::NodeHandle>();
+  } else {
+    ROS_WARN("DsProcess starting up, but ROS not yet initialized!");
+  }
 }
 
 DsProcess::DsProcess(int argc, char** argv, const std::string& name)
   : d_ptr_(std::unique_ptr<DsProcessPrivate>(new DsProcessPrivate))
 {
   ros::init(argc, argv, name);
+  d_ptr_->my_node_handle_ = boost::make_shared<ros::NodeHandle>();
 }
 
 DsProcess::~DsProcess() = default;

@@ -197,9 +197,6 @@ protected:
   /// \brief A flag to track if the command currently running is a preempt command or not
   bool isPreemptCommand;
 
-  /// \brief A flag to track if commands are running out of the shutdown queue
-  bool isShutdownCommand;
-
   /// \friend Let the Runner_front poke at the following protected methods.
   /// Yes, it also allows access to things we probably shouldn't mess with, but
   /// the danger of someone else calling the _nolock methods is WAY worse.
@@ -351,7 +348,7 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
     }
   };
 
-  /// @brief THe "Wait for data" state- automatically sends command upon entering state
+  /// @brief The "Wait for data" state- automatically sends command upon entering state
   struct WaitForData : public msm::front::state<>
   {
     /// @brief Function called on entering the "Wait for reply" state.  Sends command

@@ -302,21 +302,25 @@ const ds_asio::ReadCallback& _IoSM_impl::getCallback() const
 // Public interface
 uint64_t _IoSM_impl::addRegularCommand(const IoCommand& cmd)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  uint64_t id;
+  {
+    // auto unlocks in destructor
+    std::lock_guard<std::mutex> lg(_outer_sm_lock);
 
-  uint64_t id = nextCmdId++;
-  regularCommands.push_back(cmd);
-  regularCommands.back().setId(id);  // do this AFTER adding-- can't modify cmd directly
-
+    id = nextCmdId++;
+    regularCommands.push_back(cmd);
+    // do this AFTER adding-- can't modify cmd directly
+    regularCommands.back().setId(id);
+  } // end of scope for lg
   // (Possibly) run the next command
-  _runNextCommand_nolock();
+  _runNextCommand();
 
   return id;
 }
 
 void _IoSM_impl::deleteRegularCommand(const uint64_t id)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  std::lock_guard<std::mutex> lg(_outer_sm_lock);  // auto unlocks
 
   // remove is tricky. We have to ensure that the "next" iterator isn't left dangling
   std::list<ds_asio::IoCommand>::iterator iter;
@@ -346,7 +350,7 @@ void _IoSM_impl::deleteRegularCommand(const uint64_t id)
 
 bool _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  std::lock_guard<std::mutex> lg(_outer_sm_lock);  // auto unlocks
 
   // The runner class keeps its own copy of anything currently being run.
   // As long as we can lock the mutex (above!) there is no issue with
@@ -366,11 +370,12 @@ bool _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd
 
 void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
-  preemptCommands.push_back(cmd);
-
+  {
+    std::lock_guard<std::mutex> lg(_outer_sm_lock);  // auto unlocks
+    preemptCommands.push_back(cmd);
+  } // end of scope for lock_guard
   // (Possibly) run the next command
-  _runNextCommand_nolock();
+  _runNextCommand();
 }
 
 const std::list<ds_asio::IoCommand>& _IoSM_impl::getRegularCommands() const
@@ -437,28 +442,31 @@ void _IoSM_impl::_timeoutCallback(const boost::system::error_code& error)
     ROS_DEBUG_STREAM("I/O SM ERROR waiting for timer: " << error.message());
   }
 
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
   runner->process_event(TimerDone());
 }
+
 void _IoSM_impl::_dataCallback(const ds_core_msgs::RawData& raw)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
   runner->process_event(DataRecv(raw));
 }
 
-void _IoSM_impl::_commandDone_nolock()
+void _IoSM_impl::_commandDone()
 {
-  commandRunning = false;
-  if (isPreemptCommand)
   {
-    preemptCommands.pop_front();
-    // The batman version posted an event here.
-  }
-  _runNextCommand_nolock();
+    std::lock_guard<std::mutex> lg(_outer_sm_lock);
+
+    commandRunning = false;
+    if (isPreemptCommand) {
+      preemptCommands.pop_front();
+      // The batman version posted an event here.
+    }
+  } // end of scope for lock_guard
+  _runNextCommand();
 }
 
-void _IoSM_impl::_runNextCommand_nolock()
+void _IoSM_impl::_runNextCommand()
 {
+  std::lock_guard<std::mutex> lg(_outer_sm_lock);
   // don't start another command if one is already running
   if (commandRunning || !runner)
   {

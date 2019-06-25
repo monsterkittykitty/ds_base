@@ -148,7 +148,10 @@ public:
   const boost::shared_ptr<DsConnection>& getConnection() const;
 
 protected:
-  /// \brief Mutex to protect our command queues
+  /// \brief Mutex to protect the command queues.
+  ///
+  /// Should be locked before accessing nextCmdId, regularCommands, currCommand,
+  /// preemptCommands, commandRunning, isPreemptCommand.
   std::mutex _outer_sm_lock;
 
   /// \brief ID that will be assigned to the next regular command that is added.
@@ -206,8 +209,8 @@ protected:
   void _sendData_nolock(const std::string& data);
   void _setTimeout_nolock(const ros::Duration& timeout);
   void _cancelTimeout_nolock();
-  void _commandDone_nolock();
-  void _runNextCommand_nolock();
+  void _commandDone();
+  void _runNextCommand();
   void _startCommand_nolock(const ds_asio::IoCommand& cmd);
 
   // callbacks called by external processes
@@ -318,7 +321,7 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
       fsm.cmd = ds_asio::IoCommand(1.0);
       if (fsm.sm)
       {
-        fsm.sm->_commandDone_nolock();
+        fsm.sm->_commandDone();
       }
       else
       {

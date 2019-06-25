@@ -109,6 +109,14 @@ struct DsProcessPrivate
   std::string descriptive_node_name_;    //!< A short, descriptive name given to the process.
   boost::uuids::uuid uuid_;              //!< UUID of node.
 
+  ros::NodeHandlePtr my_node_handle_;       //!< We keep a copy of a node handle to ensure ROS isn't stopped / restarted
+                                            /// over the lifetime of this DsProcess instance.  This is somewhat idiomatic
+                                            /// in the ROS ecosystem, as various ROS objects keep a copy of their node
+                                            /// handle internally (see also: the implementation of Publisher, Subscriber,
+                                            /// etc).  Users should also ALWAYS use the nodeHandle creation function
+                                            /// provided by DsProcess to ensure their callback queues are setup correctly.
+                                            /// There isn't an issue with putting a nodeHandle in the program main,
+                                            /// but its literally the only place in DsProcess where that's appropriate.
   ros::Publisher status_publisher_;            //!< The status channel publisher.
   ros::Publisher critical_process_publisher_;  //!< The ttl published is the processis critical
 

@@ -1,5 +1,5 @@
 /**
-* Copyright 2018 Woods Hole Oceanographic Institution
+* Copyright 2019 Woods Hole Oceanographic Institution
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -27,77 +27,36 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
-#include "ds_base/ds_process.h"
+//
+// Created by ivaughn on 6/24/19.
+//
+
+#include "ds_util/time_validate.h"
 
 #include <gtest/gtest.h>
+#include <ros/ros.h>
 
-using namespace ds_base;
+using namespace ds_util;
 
-#if 0
-class SurfaceJoystickControllerTest: public SurfaceJoystickController
-{
- public:
-  SurfaceJoystickControllerTest(): SurfaceJoystickController(){}
-  ~SurfaceJoystickControllerTest() override = default;
+TEST(TimeValidate, standard) {
+  // This test only works if its teh ONLY one using non-wall time.  Yay.
+  EXPECT_FALSE(ros::Time::isValid());
+  EXPECT_FALSE(ds_util::isTimeInstanceValid(ros::Time()));
 
-  uint64_t type() const noexcept override {
-    return 0;
-  }
-
- protected:
-  void setupTransferFunctions() override {
-
-  }
-};
-#endif
-
-class ProcessTest : public ::testing::Test
-{
-protected:
-  void SetUp() override
-  {
-    process_ = std::unique_ptr<DsProcess>(new DsProcess);
-  }
-
-  std::unique_ptr<DsProcess> process_;
-};
-
-TEST_F(ProcessTest, clean_exit)
-{
-  process_->setup();
-  process_.reset();
+  ros::Time::init();
+  EXPECT_TRUE(ros::Time::isValid());
+  EXPECT_FALSE(ds_util::isTimeInstanceValid(ros::Time()));
+  EXPECT_TRUE(ds_util::isTimeInstanceValid(ros::Time::now()));
 }
 
-void empty_callback(ds_core_msgs::RawData)
-{
+TEST(TimeValidate, wallTime) {
+  EXPECT_FALSE(ds_util::isTimeInstanceValid(ros::WallTime()));
+  EXPECT_TRUE(ds_util::isTimeInstanceValid(ros::WallTime::now()));
 }
-
-/*
- * This test is super important, but also very broken.
- * As of 24 June 2019 it works fine, but segfaults on destruction somewhere deep in ROS.
- * This LOOKS like a ROS bug, but I've been unable to reproduce.
-TEST_F(ProcessTest, multiple_asio_connections)
-{
-  process_->setup();
-
-  // auto str = ros::names::resolve(ros::this_node::getName(), std::string{"connection1"});
-  auto con1 = process_->addConnection("connection1", &empty_callback);
-
-  // str = ros::names::resolve(ros::this_node::getName(), std::string{"connection2"});
-  auto con2 = process_->addConnection("connection2", &empty_callback);
-}
-*/
 
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "ds_process");
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
   testing::InitGoogleTest(&argc, argv);
-  auto ret = RUN_ALL_TESTS();
-  // spinner.stop();
-  ros::shutdown();
-  ros::waitForShutdown();
-  return ret;
-};
+  return RUN_ALL_TESTS();
+}

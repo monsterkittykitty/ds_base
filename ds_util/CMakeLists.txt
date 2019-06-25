@@ -9,7 +9,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${PROJECT_SOURCE_DIR}/cmake)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS roscpp)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -118,7 +118,7 @@ endif(CLANG_FORMAT_FOUND)
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES ds_util
-#   CATKIN_DEPENDS other_catkin_pkg
+   CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
 )
 
@@ -165,12 +165,15 @@ add_library(${PROJECT_NAME}
 
   include/${PROJECT_NAME}/limit_change.h
   src/${PROJECT_NAME}/limit_change.cpp
+
+  include/${PROJECT_NAME}/time_validate.h
+  src/${PROJECT_NAME}/time_validate.cpp
 )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
@@ -260,6 +263,10 @@ if(CATKIN_ENABLE_TESTING)
 
     catkin_add_gtest(test_limit_change src/test/test_limit_change.cpp)
     target_link_libraries(test_limit_change ${PROJECT_NAME})
+
+    catkin_add_gtest(test_time_validate src/test/test_time_validate.cpp)
+    target_link_libraries(test_time_validate ${PROJECT_NAME})
+
 endif(CATKIN_ENABLE_TESTING)
 
 ## Add folders to be run by python nosetests

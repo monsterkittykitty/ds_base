@@ -148,11 +148,21 @@ public:
   const boost::shared_ptr<DsConnection>& getConnection() const;
 
 protected:
+
   /// \brief Mutex to protect the command queues.
   ///
   /// Should be locked before accessing nextCmdId, regularCommands, currCommand,
   /// preemptCommands, commandRunning, isPreemptCommand.
-  std::mutex _outer_sm_lock;
+  /// This is always the inner mutex.
+  std::mutex _queueMutex;
+
+  /// \brief Mutex to protect calls to process_event
+  ///
+  /// boost::msm's process_event is re-entrant but not thread safe.
+  /// (https://lists.boost.org/Archives/boost/2010/08/170260.php)
+  /// We want events to be able to generate additional events, while
+  /// properly serializing events from other threads (e.g. ROS callbacks).
+  std::recursive_mutex _processEventMutex;
 
   /// \brief ID that will be assigned to the next regular command that is added.
   ///
@@ -211,7 +221,6 @@ protected:
   void _cancelTimeout_nolock();
   void _commandDone();
   void _runNextCommand();
-  void _startCommand_nolock(const ds_asio::IoCommand& cmd);
 
   // callbacks called by external processes
 public:

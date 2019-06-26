@@ -243,7 +243,6 @@ _IoSM_impl::_IoSM_impl(boost::asio::io_service& io_service, std::string n,
   currCommand = regularCommands.end();
   commandRunning = false;
   isPreemptCommand = false;
-  isShutdownCommand = false;
 }
 
 _IoSM_impl::~_IoSM_impl()
@@ -466,7 +465,7 @@ void _IoSM_impl::_runNextCommand_nolock()
     return;
   }
 
-  // start with preempt commands
+  // preempt commands have priority, unless regular commands have force next set.
   if (preemptCommands.size() > 0 && (isPreemptCommand || !runner->cmd.getForceNext()))
   {
     isPreemptCommand = true;

@@ -457,44 +457,6 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
   /// \return True for "proceed to next state", False for "don't"
   bool data_good(const DataRecv& d)
   {
-    // in the original version of the Io state machine,
-    // we had an internal buffer.  This version does not, so just
-    // check the message and return
-
-    /*
-    // For now, don't actually run the check
-    std::pair <int, std::string> last_message_ = d.vars->cmd.checkInput(d.msg.);
-    int consumed = last_message_.first;
-    if (consumed < 0) {
-        // reject
-        return false;
-    }
-     */
-
-    // in the original, we'd remove characters from the buffer here
-
-    /*
-    // (possibly) emit an event
-    ROS_DEBUG_STREAM("State machine matched: " <<last_message_.second);
-    if (d.vars->cmd.emit()) {
-        ROS_DEBUG_STREAM("State machine emitting: " <<last_message_.second);
-        // we don't know what the signal handler will do-- it might try to send a command out
-        // via the state machine which could, in turn, deadlock things.
-        //
-        // To make things simple and guarantee stuff, post this as an event and let the
-        // event handling subsystem sort it out
-        //
-        // Basically, this will return immediately, and the ioservice in the IOHandler in
-        // the IODev will execute it as another handler
-        std::string message(last_message_.second);
-        if (vars->sm) {
-            vars->sm->_dataReady_nolock(message);
-        }
-    }
-    */
-
-    // Original version had the option to not emit on certain messages.
-    // I guess we'll keep that
     if (cmd.emit() && sm)
     {
       sm->_dataReady_nolock(cmd, d.msg);

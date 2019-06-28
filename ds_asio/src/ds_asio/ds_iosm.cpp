@@ -302,21 +302,25 @@ const ds_asio::ReadCallback& _IoSM_impl::getCallback() const
 // Public interface
 uint64_t _IoSM_impl::addRegularCommand(const IoCommand& cmd)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  uint64_t id;
+  {
+    // auto unlocks in destructor
+    std::lock_guard<std::mutex> queueLock(_queueMutex);
 
-  uint64_t id = nextCmdId++;
-  regularCommands.push_back(cmd);
-  regularCommands.back().setId(id);  // do this AFTER adding-- can't modify cmd directly
-
+    id = nextCmdId++;
+    regularCommands.push_back(cmd);
+    // do this AFTER adding-- can't modify cmd directly
+    regularCommands.back().setId(id);
+  } // end of scope for queueLock; queueMutex unlocked
   // (Possibly) run the next command
-  _runNextCommand_nolock();
+  _runNextCommand();
 
   return id;
 }
 
 void _IoSM_impl::deleteRegularCommand(const uint64_t id)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  std::lock_guard<std::mutex> queueLock(_queueMutex);  // auto unlocks
 
   // remove is tricky. We have to ensure that the "next" iterator isn't left dangling
   std::list<ds_asio::IoCommand>::iterator iter;
@@ -346,7 +350,7 @@ void _IoSM_impl::deleteRegularCommand(const uint64_t id)
 
 bool _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  std::lock_guard<std::mutex> queueLock(_queueMutex);  // auto unlocks
 
   // The runner class keeps its own copy of anything currently being run.
   // As long as we can lock the mutex (above!) there is no issue with
@@ -366,11 +370,12 @@ bool _IoSM_impl::overwriteRegularCommand(const uint64_t id, const IoCommand& cmd
 
 void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
-  preemptCommands.push_back(cmd);
-
+  {
+    std::lock_guard<std::mutex> queueLock(_queueMutex);  // auto unlocks
+    preemptCommands.push_back(cmd);
+  }  // queueLock out of scope; _queueMutex unlocked
   // (Possibly) run the next command
-  _runNextCommand_nolock();
+  _runNextCommand();
 }
 
 const std::list<ds_asio::IoCommand>& _IoSM_impl::getRegularCommands() const
@@ -410,9 +415,11 @@ void _IoSM_impl::_setTimeout_nolock(const ros::Duration& timeout)
   if (timeout.toNSec() <= 0)
   {
     // timeout immediately
+    std::lock_guard<std::recursive_mutex> eventLock(_processEventMutex);
     runner->process_event(TimerDone());
     return;
-  }
+  } // eventLock out of scope; processEventMutex lock count decrements
+
   // schedule a call to timeoutCallback in the correct timeframe
   timeoutTimer_.expires_from_now(timeout.toBoost());
   timeoutTimer_.async_wait(
@@ -437,62 +444,67 @@ void _IoSM_impl::_timeoutCallback(const boost::system::error_code& error)
     ROS_DEBUG_STREAM("I/O SM ERROR waiting for timer: " << error.message());
   }
 
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  std::lock_guard<std::recursive_mutex> eventLock(_processEventMutex);
   runner->process_event(TimerDone());
 }
+
 void _IoSM_impl::_dataCallback(const ds_core_msgs::RawData& raw)
 {
-  std::unique_lock<std::mutex> lock(_outer_sm_lock);  // auto unlocks
+  std::lock_guard<std::recursive_mutex> eventLock(_processEventMutex);
   runner->process_event(DataRecv(raw));
 }
 
-void _IoSM_impl::_commandDone_nolock()
+void _IoSM_impl::_commandDone()
 {
-  commandRunning = false;
-  if (isPreemptCommand)
   {
-    preemptCommands.pop_front();
-    // The batman version posted an event here.
-  }
-  _runNextCommand_nolock();
+    std::lock_guard<std::mutex> lg(_queueMutex);
+
+    commandRunning = false;
+    if (isPreemptCommand) {
+      preemptCommands.pop_front();
+      // The batman version posted an event here.
+    }
+  } // end of scope for lock_guard; _queueMutex unlocked
+  _runNextCommand();
 }
 
-void _IoSM_impl::_runNextCommand_nolock()
+void _IoSM_impl::_runNextCommand()
 {
-  // don't start another command if one is already running
-  if (commandRunning || !runner)
+  // Next command to run; this needs to be set with _queueMutex locked,
+  // but used with _processEventMutex locked.
+  std::unique_ptr<ds_asio::IoCommand> nextCommand;
   {
-    return;
-  }
+    std::lock_guard<std::mutex> queueLock(_queueMutex);
+    // don't start another command if one is already running
+    if (commandRunning || !runner) {
+      return;
+    }
 
-  // preempt commands have priority, unless regular commands have force next set.
-  if (preemptCommands.size() > 0 && (isPreemptCommand || !runner->cmd.getForceNext()))
-  {
-    isPreemptCommand = true;
-    _startCommand_nolock(preemptCommands.front());
-  }
-  else if (regularCommands.size() > 0)
-  {
-    isPreemptCommand = false;
-    if (currCommand != regularCommands.end())
-    {
-      currCommand++;
+    // preempt commands have priority, unless regular commands have force next set.
+    if (preemptCommands.size() > 0 &&
+        (isPreemptCommand || !runner->cmd.getForceNext())) {
+      isPreemptCommand = true;
+      commandRunning = true;
+      nextCommand = std::unique_ptr<ds_asio::IoCommand>(new ds_asio::IoCommand(preemptCommands.front()));
+    } else if (regularCommands.size() > 0) {
+      isPreemptCommand = false;
+      if (currCommand != regularCommands.end()) {
+        currCommand++;
+      }
+      if (currCommand == regularCommands.end()) {
+        currCommand = regularCommands.begin();
+      }
+      if (currCommand != regularCommands.end()) {
+        commandRunning = true;
+        nextCommand = std::unique_ptr<ds_asio::IoCommand>(new ds_asio::IoCommand(*currCommand));
+      }
     }
-    if (currCommand == regularCommands.end())
-    {
-      currCommand = regularCommands.begin();
-    }
-    if (currCommand != regularCommands.end())
-    {
-      _startCommand_nolock(*currCommand);
-    }
-  }
-}
+  } // queueLock out of scope; _queueMutex unlocked
 
-void _IoSM_impl::_startCommand_nolock(const ds_asio::IoCommand& cmd)
-{
-  commandRunning = true;
-  runner->process_event(StartCommand(cmd));
+  if(nextCommand) {
+    std::lock_guard<std::recursive_mutex> eventLock(_processEventMutex);
+    runner->process_event(StartCommand(*nextCommand));
+  }  // eventLock out of scope; _processEventMutex decrements lock count
 }
 
 };  // namespace ds_asio

@@ -148,8 +148,21 @@ public:
   const boost::shared_ptr<DsConnection>& getConnection() const;
 
 protected:
-  /// \brief Mutex to protect our command queues
-  std::mutex _outer_sm_lock;
+
+  /// \brief Mutex to protect the command queues.
+  ///
+  /// Should be locked before accessing nextCmdId, regularCommands, currCommand,
+  /// preemptCommands, commandRunning, isPreemptCommand.
+  /// This is always the inner mutex.
+  std::mutex _queueMutex;
+
+  /// \brief Mutex to protect calls to process_event
+  ///
+  /// boost::msm's process_event is re-entrant but not thread safe.
+  /// (https://lists.boost.org/Archives/boost/2010/08/170260.php)
+  /// We want events to be able to generate additional events, while
+  /// properly serializing events from other threads (e.g. ROS callbacks).
+  std::recursive_mutex _processEventMutex;
 
   /// \brief ID that will be assigned to the next regular command that is added.
   ///
@@ -206,9 +219,8 @@ protected:
   void _sendData_nolock(const std::string& data);
   void _setTimeout_nolock(const ros::Duration& timeout);
   void _cancelTimeout_nolock();
-  void _commandDone_nolock();
-  void _runNextCommand_nolock();
-  void _startCommand_nolock(const ds_asio::IoCommand& cmd);
+  void _commandDone();
+  void _runNextCommand();
 
   // callbacks called by external processes
 public:
@@ -318,7 +330,7 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
       fsm.cmd = ds_asio::IoCommand(1.0);
       if (fsm.sm)
       {
-        fsm.sm->_commandDone_nolock();
+        fsm.sm->_commandDone();
       }
       else
       {
@@ -445,44 +457,6 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
   /// \return True for "proceed to next state", False for "don't"
   bool data_good(const DataRecv& d)
   {
-    // in the original version of the Io state machine,
-    // we had an internal buffer.  This version does not, so just
-    // check the message and return
-
-    /*
-    // For now, don't actually run the check
-    std::pair <int, std::string> last_message_ = d.vars->cmd.checkInput(d.msg.);
-    int consumed = last_message_.first;
-    if (consumed < 0) {
-        // reject
-        return false;
-    }
-     */
-
-    // in the original, we'd remove characters from the buffer here
-
-    /*
-    // (possibly) emit an event
-    ROS_DEBUG_STREAM("State machine matched: " <<last_message_.second);
-    if (d.vars->cmd.emit()) {
-        ROS_DEBUG_STREAM("State machine emitting: " <<last_message_.second);
-        // we don't know what the signal handler will do-- it might try to send a command out
-        // via the state machine which could, in turn, deadlock things.
-        //
-        // To make things simple and guarantee stuff, post this as an event and let the
-        // event handling subsystem sort it out
-        //
-        // Basically, this will return immediately, and the ioservice in the IOHandler in
-        // the IODev will execute it as another handler
-        std::string message(last_message_.second);
-        if (vars->sm) {
-            vars->sm->_dataReady_nolock(message);
-        }
-    }
-    */
-
-    // Original version had the option to not emit on certain messages.
-    // I guess we'll keep that
     if (cmd.emit() && sm)
     {
       sm->_dataReady_nolock(cmd, d.msg);

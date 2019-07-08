@@ -95,6 +95,30 @@ void DsUdp::setup(ros::NodeHandle& nh)
 
   remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
 
+  if (boost::asio::ip::address::from_string(udp_address).is_multicast()){
+    ROS_ERROR_STREAM("Multicast address "<<udp_address<<" RECEIVE ONLY");
+    auto foo = remote_endpoint_;
+    remote_endpoint_ = new udp::endpoint();
+    remote_endpoint_->port(udp_tx);
+    delete foo;
+    socket_->close();
+    socket_.release();
+    socket_ = std::unique_ptr<udp::socket>(new udp::socket(io_service_));
+
+    auto multicast_port = udp_rx;
+    auto listen_address = boost::asio::ip::address::from_string("0.0.0.0");
+    auto multicast_address = boost::asio::ip::address::from_string(udp_address);
+
+    udp::endpoint listen_endpoint(listen_address, multicast_port);
+    socket_->open(listen_endpoint.protocol());
+    socket_->set_option(boost::asio::ip::udp::socket::reuse_address(true));
+    socket_->bind(listen_endpoint);
+
+    // Join the multicast group.
+    socket_->set_option(
+        boost::asio::ip::multicast::join_group(multicast_address));
+  }
+
   // The /raw channel should be appended to the nodehandle namespace
   raw_publisher_ = nh.advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
 }

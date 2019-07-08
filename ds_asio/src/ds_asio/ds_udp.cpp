@@ -40,6 +40,13 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCa
 
 void DsUdp::setup(ros::NodeHandle& nh)
 {
+  int buffer_size = 512;
+  if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/buffer_size")){
+    nh.param<int>(ros::this_node::getName() + "/" + name_ + "/buffer_size", buffer_size, 512);
+    ROS_INFO_STREAM("Buffer size set to "<<buffer_size);
+  }
+  recv_buffer_.resize(buffer_size);
+
   int udp_rx;
   if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/udp_rx"))
   {
@@ -101,7 +108,8 @@ void DsUdp::setup(ros::NodeHandle& nh)
 
 void DsUdp::receive(void)
 {
-  recv_buffer_.assign(0);
+  recv_buffer_.assign(recv_buffer_.size(), 0);
+//  boostwrite (socket, boost::asio::buffer(boost::asio::new_buffers->recv_buffer_));
   socket_->async_receive(boost::asio::buffer(recv_buffer_), 0,
                          boost::bind(&DsUdp::handle_receive, this, boost::asio::placeholders::error,
                                      boost::asio::placeholders::bytes_transferred));

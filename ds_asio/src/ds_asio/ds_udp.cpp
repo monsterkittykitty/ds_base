@@ -40,6 +40,7 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCa
 
 void DsUdp::setup(ros::NodeHandle& nh)
 {
+  // Get the parameter information
   int buffer_size = 512;
   if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/buffer_size")){
     nh.param<int>(ros::this_node::getName() + "/" + name_ + "/buffer_size", buffer_size, 512);
@@ -52,7 +53,6 @@ void DsUdp::setup(ros::NodeHandle& nh)
   {
     nh.param<int>(ros::this_node::getName() + "/" + name_ + "/udp_rx", udp_rx, 44444);
     ROS_INFO_STREAM("udp_rx exists=" << udp_rx);
-    socket_ = std::unique_ptr<udp::socket>(new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx)));
   }
   else
   {
@@ -77,22 +77,6 @@ void DsUdp::setup(ros::NodeHandle& nh)
   {
     nh.getParam(ros::this_node::getName() + "/" + name_ + "/udp_address", udp_address);
     ROS_INFO_STREAM("Using udp_address==\"" << udp_address << "\"");
-    // boost::asio::socket_base::broadcast option(true);
-    // socket_->set_option(option);
-    std::vector<std::string> split_add;
-    boost::algorithm::split(split_add, udp_address, boost::is_any_of("."));
-    // for (const std::string& i : split_add)
-    //  ROS_ERROR_STREAM("Split address: " << i << " size: " << split_add.size() << " back: " << split_add.back());
-    if (split_add.size() > 0)
-    {
-      // ROS_INFO_STREAM("Split size " << split_add.size());
-      if (!split_add.back().compare("255"))
-      {
-        ROS_INFO_STREAM("Setting socket broadcast option");
-        boost::asio::socket_base::broadcast option(true);
-        socket_->set_option(option);
-      }
-    }
   }
   else
   {
@@ -100,7 +84,40 @@ void DsUdp::setup(ros::NodeHandle& nh)
     udp_address = "127.0.0.1";
   }
 
-  remote_endpoint_ = new udp::endpoint(boost::asio::ip::address::from_string(udp_address), udp_tx);
+  // Create the socket and endpoint
+  auto udp_ip = boost::asio::ip::address::from_string(udp_address);
+  // Check for multicast
+  if (!udp_ip.is_multicast()){
+    // Create the socket
+    socket_ = std::unique_ptr<udp::socket>(new udp::socket(io_service_, udp::endpoint(udp::v4(), udp_rx)));
+    remote_endpoint_ = new udp::endpoint(udp_ip, udp_tx);
+  } else {
+    ROS_ERROR_STREAM("Multicast address "<<udp_address<<" receive only");
+    // Create the socket
+    socket_ = std::unique_ptr<udp::socket>(new udp::socket(io_service_));
+    auto listen_address = boost::asio::ip::address::from_string("0.0.0.0");
+    udp::endpoint listen_endpoint(listen_address, udp_rx);
+    socket_->open(listen_endpoint.protocol());
+    socket_->set_option(boost::asio::ip::udp::socket::reuse_address(true));
+    socket_->bind(listen_endpoint);
+
+    socket_->set_option(boost::asio::ip::multicast::join_group(udp_ip));
+
+    remote_endpoint_ = new udp::endpoint();
+    remote_endpoint_->port(udp_tx);
+  }
+  // Check for broadcast addresses
+  std::vector<std::string> split_add;
+  boost::algorithm::split(split_add, udp_address, boost::is_any_of("."));
+  if (split_add.size() > 0)
+  {
+    if (!split_add.back().compare("255"))
+    {
+      ROS_INFO_STREAM("Setting socket broadcast option");
+      boost::asio::socket_base::broadcast option(true);
+      socket_->set_option(option);
+    }
+  }
 
   // The /raw channel should be appended to the nodehandle namespace
   raw_publisher_ = nh.advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);

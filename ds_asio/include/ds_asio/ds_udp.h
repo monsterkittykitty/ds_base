@@ -33,6 +33,7 @@
 #include "ds_asio/ds_connection.h"
 #include "ds_core_msgs/RawData.h"
 
+#include <vector>
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
@@ -73,7 +74,7 @@ private:
 
   std::unique_ptr<udp::socket> socket_;
   udp::endpoint* remote_endpoint_;
-  boost::array<char, 512> recv_buffer_;
+  std::vector<char> recv_buffer_; // default size is 512, but can get reset by param server
   uint8_t num_read_error_;
   ros::Timer read_error_retry_timer_;
 };

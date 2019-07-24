@@ -45,6 +45,8 @@ class ds_iosm_test : public ::testing::Test {
 protected:
     /// \brief Setup a new I/O state machine and mock connection
     virtual void SetUp() {
+        callback_default_return = true;
+        timeout_callbacks = 0;
 
         // initialize ROS
         ros::Time::init();
@@ -77,10 +79,24 @@ protected:
         return toSend;
     }
 
-    void _iosm_callback(ds_core_msgs::RawData data) {
+    bool _iosm_callback(ds_core_msgs::RawData data) {
         received_data.push_back(data);
+        bool rc;
+        if (!callback_return_codes.empty()) {
+            rc = callback_return_codes.front();
+            callback_return_codes.pop_front();
+        } else {
+            rc = callback_default_return;
+        }
+        return rc;
     }
 
+ public:
+    void _iosm_timeout_callback() {
+        timeout_callbacks++;
+    }
+
+ protected:
     std::string receivedString(size_t idx) {
         const ds_core_msgs::RawData& msg = received_data[idx];
         return std::string(msg.data.begin(), msg.data.end());
@@ -97,6 +113,10 @@ protected:
 
     // a list of data fired from callbacks
     std::deque<ds_core_msgs::RawData> received_data;
+    std::deque<bool> callback_return_codes;
+    bool callback_default_return;
+
+    int timeout_callbacks;
 
     //virtual void TearDown() {}
 };
@@ -189,6 +209,68 @@ TEST_F(ds_iosm_test, timeout_test) {
     EXPECT_EQ(std::string("test_query_1"), conn->Written()[0]);
     EXPECT_EQ(std::string("test_query_2"), conn->Written()[1]);
     EXPECT_EQ(std::string("test_query_1"), conn->Written()[2]);
+    EXPECT_LE( 99, runtime.total_milliseconds());
+    EXPECT_GE(105, runtime.total_milliseconds());
+}
+
+TEST_F(ds_iosm_test, timeout_callback_test) {
+
+    // The standard test is
+    ds_asio::IoCommand query1("test_query_1", 0.10);
+    query1.setTimeoutCallback(boost::bind(&ds_iosm_test::_iosm_timeout_callback, this));
+    iosm->addRegularCommand(query1);
+    iosm->addRegularCommand(ds_asio::IoCommand("test_query_2", 0.10));
+
+    // First: no response
+    ds_core_msgs::RawData toSend = buildRawMsg("");
+    conn->ToRead().push_back(toSend);
+
+    // Next: a response (the I/O state machine MUST end on a response)
+    toSend = buildRawMsg("test_reply");
+    conn->ToRead().push_back(toSend);
+
+    runConnection();
+
+    // we actually get an extra query after the end
+    ASSERT_EQ(3, conn->Written().size());
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[0]);
+    EXPECT_EQ(std::string("test_query_2"), conn->Written()[1]);
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[2]);
+    EXPECT_LE( 99, runtime.total_milliseconds());
+    EXPECT_GE(105, runtime.total_milliseconds());
+    EXPECT_EQ(1, timeout_callbacks);
+}
+
+TEST_F(ds_iosm_test, reject_str) {
+
+    // we'll create 3 commands
+    iosm->addRegularCommand(ds_asio::IoCommand("test_query_1", 0.10));
+    iosm->addRegularCommand(ds_asio::IoCommand("test_query_2", 0.10));
+    iosm->addRegularCommand(ds_asio::IoCommand("test_query_3", 0.10));
+
+    // and 3 incoming data messages
+    conn->ToRead().push_back(buildRawMsg("test_reply_1"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_2"));
+    conn->ToRead().push_back(buildRawMsg("test_reply_3"));
+
+    // we'll setup up the callback to reject the second reply...
+    callback_return_codes.push_back(true);
+    callback_return_codes.push_back(false);
+    callback_return_codes.push_back(true);
+
+    // The connection will run until we've sent test_reply_1,2 and 3.
+    // However, having rejected test_reply_2 the iosm shouldn't ever
+    // send test_query_3
+    runConnection();
+
+    // I'd really PREFER to not see test_query_3 written, but the mock class
+    // can only send a single reply to a single written message.  This
+    // forces us to look for the timeout instead.  Not idea, but it's fine.
+    ASSERT_EQ(4, conn->Written().size());
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[0]);
+    EXPECT_EQ(std::string("test_query_2"), conn->Written()[1]);
+    EXPECT_EQ(std::string("test_query_3"), conn->Written()[2]);
+    EXPECT_EQ(std::string("test_query_1"), conn->Written()[3]);
     EXPECT_LE( 99, runtime.total_milliseconds());
     EXPECT_GE(105, runtime.total_milliseconds());
 }

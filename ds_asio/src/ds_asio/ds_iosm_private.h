@@ -67,7 +67,7 @@ private:
   /// for shared_from_this to work correctly, we need to ensure ONLY pointers
   /// to shared objects are created
   _IoSM_impl(boost::asio::io_service& io_service, std::string name,
-             const boost::function<void(ds_core_msgs::RawData)>& callback);
+             const boost::function<bool(ds_core_msgs::RawData)>& callback);
 
   // no implementation of these is required
   // (private copy constructor / operators are a special thing)
@@ -91,7 +91,7 @@ public:
   ///
   /// \return A new instance of this class
   static std::shared_ptr<_IoSM_impl> create(boost::asio::io_service& io_service, std::string name,
-                                            const boost::function<void(ds_core_msgs::RawData)>& callback);
+                                            const boost::function<bool(ds_core_msgs::RawData)>& callback);
 
   /// @brief Destructor
   virtual ~_IoSM_impl();
@@ -103,11 +103,11 @@ public:
   void setConnection(const boost::shared_ptr<ds_asio::DsConnection>& conn);
 
   /// @brief Set the IoSM-wide callback
-  void setCallback(const ds_asio::ReadCallback& cb);
+  void setCallback(const ds_asio::IoCommand::ReadCallback& cb);
 
   /// @brief Get a copy of the IoSM-wide callback that fires every time this
   /// object is called
-  const ds_asio::ReadCallback& getCallback() const;
+  const ds_asio::IoCommand::ReadCallback& getCallback() const;
 
   /// @brief
   ///
@@ -144,6 +144,9 @@ public:
 
   /// @brief Accessor for the list of regular commands
   const std::list<ds_asio::IoCommand>& getRegularCommands() const;
+
+  /// @brief Get the length of the regular commands
+  size_t getPreemptQueueSize();
 
   const boost::shared_ptr<DsConnection>& getConnection() const;
 
@@ -199,7 +202,7 @@ protected:
   std::string name_;
 
   /// \brief Callback fired when a message is ready to go out
-  ds_asio::ReadCallback callback_;
+  ds_asio::IoCommand::ReadCallback callback_;
 
   /// \brief The MSM state machine that runs a single command
   std::shared_ptr<Runner> runner;
@@ -215,7 +218,8 @@ protected:
   /// the danger of someone else calling the _nolock methods is WAY worse.
   friend Runner_front;
 
-  void _dataReady_nolock(const ds_asio::IoCommand& cmd, const ds_core_msgs::RawData& raw);
+  bool _dataReady_nolock(const ds_asio::IoCommand& cmd, const ds_core_msgs::RawData& raw);
+  void _callTimeoutCallback_nolock(const ds_asio::IoCommand& cmd);
   void _sendData_nolock(const std::string& data);
   void _setTimeout_nolock(const ros::Duration& timeout);
   void _cancelTimeout_nolock();
@@ -440,6 +444,7 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
     {
       ROS_WARN_STREAM("I/O State Machine: WaitForData timed out! CMD=" << cmd.getCommand());
     }
+    sm->_callTimeoutCallback_nolock(cmd);
   }
 
   /// @brief Function called when a StartCommand event is initiated
@@ -459,7 +464,9 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
   {
     if (cmd.emit() && sm)
     {
-      sm->_dataReady_nolock(cmd, d.msg);
+      bool rc = sm->_dataReady_nolock(cmd, d.msg);
+
+      return rc;
     }
     return true;
   }

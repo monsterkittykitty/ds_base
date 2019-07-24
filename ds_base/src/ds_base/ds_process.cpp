@@ -125,7 +125,7 @@ boost::shared_ptr<ds_asio::DsConnection> DsProcess::addConnection(const std::str
 }
 
 boost::shared_ptr<ds_asio::IoSM> DsProcess::addIoSM(const std::string& iosm_name, const std::string& conn_name,
-                                                    const ds_asio::ReadCallback& callback)
+                                                    const ds_asio::IoCommand::ReadCallback& callback)
 {
   auto nh = nodeHandle();
   DS_D(DsProcess);

@@ -181,6 +181,9 @@ public:
   /// @brief Set the timeout callback called when this command times out
   void setTimeoutCallback(const TimeoutCallback& _cb);
 
+  /// @brief Get the current size of the preempt queue
+  size_t getPreemptQueueSize() const;
+
 protected:
   uint64_t id;
   std::string cmd;
@@ -269,8 +272,8 @@ public:
   ///
   /// Provides read-only access to the list of commands.
   ///
-  /// \return A read-only version of the list of regular commands
-  const std::list<ds_asio::IoCommand>& getRegularCommands() const;
+  /// \return A copy of the list of regular commands
+  std::list<ds_asio::IoCommand> getRegularCommands() const;
 
   /// @brief Access the number of commands in the preempt queue.  Note that this can decrease
   /// without warning as commands are executed, but the current value is typically a good

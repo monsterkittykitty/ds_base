@@ -232,9 +232,13 @@ const ds_asio::IoCommand::ReadCallback& IoSM::getCallback() const
   return impl->getCallback();
 }
 
-const std::list<ds_asio::IoCommand>& IoSM::getRegularCommands() const
+std::list<ds_asio::IoCommand> IoSM::getRegularCommands() const
 {
   return impl->getRegularCommands();
+}
+
+size_t IoSM::getPreemptQueueSize() const {
+  return impl->getPreemptQueueSize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -386,9 +390,11 @@ void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)
   _runNextCommand();
 }
 
-const std::list<ds_asio::IoCommand>& _IoSM_impl::getRegularCommands() const
+std::list<ds_asio::IoCommand> _IoSM_impl::getRegularCommands()
 {
-  return regularCommands;
+  std::lock_guard<std::mutex> queueLock(_queueMutex);  // auto unlocks
+  std::list<ds_asio::IoCommand> ret(regularCommands);
+  return ret;
 }
 
 size_t _IoSM_impl::getPreemptQueueSize() {

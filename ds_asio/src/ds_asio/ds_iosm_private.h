@@ -465,7 +465,11 @@ struct Runner_front : public msm::front::state_machine_def<Runner_front>
     if (cmd.emit() && sm)
     {
       bool rc = sm->_dataReady_nolock(cmd, d.msg);
-
+      if (!rc) {
+        auto data = std::string(std::begin(d.msg.data), std::end(d.msg.data));
+        ROS_ERROR_STREAM("IoCommand: " << cmd.getCommand()
+                         << " reported invalid data: " << data);
+      }
       return rc;
     }
     return true;

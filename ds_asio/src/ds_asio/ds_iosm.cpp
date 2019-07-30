@@ -40,7 +40,7 @@ namespace ds_asio
 // IoCommand
 ////////////////////////////////////////////////////////////////////////////////
 ds_asio::IoCommand::IoCommand(const std::string& cmdstr, double timeout_sec, bool _force_next,
-                              const ds_asio::ReadCallback& cb)
+                              const ds_asio::IoCommand::ReadCallback& cb)
   : cmd(cmdstr), callback(cb)
 {
   emitOnMatch = true;
@@ -150,20 +150,28 @@ bool ds_asio::IoCommand::hasCallback() const
   return !callback.empty();
 }
 
-const ds_asio::ReadCallback& ds_asio::IoCommand::getCallback() const
+const ds_asio::IoCommand::ReadCallback& ds_asio::IoCommand::getCallback() const
 {
   return callback;
 }
 
-void ds_asio::IoCommand::setCallback(const ds_asio::ReadCallback& _cb)
+void ds_asio::IoCommand::setCallback(const ds_asio::IoCommand::ReadCallback& _cb)
 {
   callback = _cb;
+}
+const ds_asio::IoCommand::TimeoutCallback& ds_asio::IoCommand::getTimeoutCallback() const
+{
+  return timeoutCallback;
+}
+
+void ds_asio::IoCommand::setTimeoutCallback(const ds_asio::IoCommand::TimeoutCallback& _cb) {
+  timeoutCallback = _cb;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // _IoSM_impl (see ds_iosm_private.h)
 ////////////////////////////////////////////////////////////////////////////////
-IoSM::IoSM(boost::asio::io_service& io_service, std::string name, const ds_asio::ReadCallback& callback)
+IoSM::IoSM(boost::asio::io_service& io_service, std::string name, const ds_asio::IoCommand::ReadCallback& callback)
 {
   // _IoSM_impl forces us to use create, because it really has to be a shared_ptr
   impl = ds_asio::iosm_inner::_IoSM_impl::create(io_service, name, callback);
@@ -172,7 +180,7 @@ IoSM::IoSM(boost::asio::io_service& io_service, std::string name, const ds_asio:
 
 IoSM::IoSM(boost::asio::io_service& io_service, std::string name)
 {
-  impl = ds_asio::iosm_inner::_IoSM_impl::create(io_service, name, ds_asio::ReadCallback());
+  impl = ds_asio::iosm_inner::_IoSM_impl::create(io_service, name, ds_asio::IoCommand::ReadCallback());
   impl->start();
 }
 IoSM::~IoSM()
@@ -214,19 +222,23 @@ const boost::shared_ptr<DsConnection>& IoSM::getConnection() const
   return impl->getConnection();
 }
 
-void IoSM::setCallback(const ds_asio::ReadCallback& cb)
+void IoSM::setCallback(const ds_asio::IoCommand::ReadCallback& cb)
 {
   impl->setCallback(cb);
 }
 
-const ds_asio::ReadCallback& IoSM::getCallback() const
+const ds_asio::IoCommand::ReadCallback& IoSM::getCallback() const
 {
   return impl->getCallback();
 }
 
-const std::list<ds_asio::IoCommand>& IoSM::getRegularCommands() const
+std::list<ds_asio::IoCommand> IoSM::getRegularCommands() const
 {
   return impl->getRegularCommands();
+}
+
+size_t IoSM::getPreemptQueueSize() const {
+  return impl->getPreemptQueueSize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -236,7 +248,7 @@ using namespace iosm_inner;
 //--------------------------------------------
 // Overhead
 _IoSM_impl::_IoSM_impl(boost::asio::io_service& io_service, std::string n,
-                       const boost::function<void(ds_core_msgs::RawData)>& callback)
+                       const boost::function<bool(ds_core_msgs::RawData)>& callback)
   : io_service_(io_service), timeoutTimer_(io_service), callback_(callback), name_(n)
 {
   nextCmdId = 1;
@@ -254,7 +266,7 @@ _IoSM_impl::~_IoSM_impl()
 }
 
 std::shared_ptr<_IoSM_impl> _IoSM_impl::create(boost::asio::io_service& io_service, std::string name,
-                                               const boost::function<void(ds_core_msgs::RawData)>& callback)
+                                               const boost::function<bool(ds_core_msgs::RawData)>& callback)
 {
   return std::shared_ptr<_IoSM_impl>(new _IoSM_impl(io_service, name, callback));
 }
@@ -271,7 +283,7 @@ void _IoSM_impl::shutdown()
   timeoutTimer_.cancel();
 
   // disconnect from the connection
-  connection_->setCallback(ds_asio::ReadCallback());
+  connection_->setCallback(ds_asio::IoCommand::ReadCallback());
 
   // Clear out the I/O state machine
   runner->invalidateSm();
@@ -288,12 +300,12 @@ const boost::shared_ptr<DsConnection>& _IoSM_impl::getConnection() const
   return connection_;
 }
 
-void _IoSM_impl::setCallback(const ds_asio::ReadCallback& cb)
+void _IoSM_impl::setCallback(const ds_asio::IoCommand::ReadCallback& cb)
 {
   callback_ = cb;
 }
 
-const ds_asio::ReadCallback& _IoSM_impl::getCallback() const
+const ds_asio::IoCommand::ReadCallback& _IoSM_impl::getCallback() const
 {
   return callback_;
 }
@@ -378,26 +390,50 @@ void _IoSM_impl::addPreemptCommand(const IoCommand& cmd)
   _runNextCommand();
 }
 
-const std::list<ds_asio::IoCommand>& _IoSM_impl::getRegularCommands() const
+std::list<ds_asio::IoCommand> _IoSM_impl::getRegularCommands()
 {
-  return regularCommands;
+  std::lock_guard<std::mutex> queueLock(_queueMutex);  // auto unlocks
+  std::list<ds_asio::IoCommand> ret(regularCommands);
+  return ret;
+}
+
+size_t _IoSM_impl::getPreemptQueueSize() {
+  std::lock_guard<std::mutex> queueLock(_queueMutex);  // auto unlocks
+  return preemptCommands.size();
 }
 
 //--------------------------------------------
 // Command-Runner interface
-void _IoSM_impl::_dataReady_nolock(const ds_asio::IoCommand& cmd, const ds_core_msgs::RawData& raw)
+bool _IoSM_impl::_dataReady_nolock(const ds_asio::IoCommand& cmd, const ds_core_msgs::RawData& raw)
 {
   // TODO: This should post an event, rather than call the callback directly
   // call the statemachine-wide callback (if it has one)
+  bool rc = true;
+
   if (!callback_.empty())
   {
-    callback_(raw);
+    if (!callback_(raw)) {
+      rc = false;
+    }
   }
 
   // Call the command-specific callback (if it has one)
   if (cmd.hasCallback())
   {
-    cmd.getCallback()(raw);
+    if (!cmd.getCallback()(raw)) {
+      rc = false;
+    }
+  }
+
+  std::string str(reinterpret_cast<const char*>(raw.data.data()), raw.data.size());
+  return rc;
+}
+
+void _IoSM_impl::_callTimeoutCallback_nolock(const ds_asio::IoCommand& cmd) {
+  // TODO: Like the _dataReady_nolock function, this should really post an event
+  // rather than call the callback directly
+  if (cmd.getTimeoutCallback()) {
+    cmd.getTimeoutCallback()();
   }
 }
 

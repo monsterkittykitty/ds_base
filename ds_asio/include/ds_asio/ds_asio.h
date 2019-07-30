@@ -94,7 +94,7 @@ public:
   /// \param myNh A reference to the node handle for accessing the parameter server
   ///
   /// \return A boost::shared_ptr object with the Io state machine
-  boost::shared_ptr<ds_asio::IoSM> addIoSM(std::string iosm_name, std::string conn_name, const ReadCallback& callback,
+  boost::shared_ptr<ds_asio::IoSM> addIoSM(std::string iosm_name, std::string conn_name, const IoCommand::ReadCallback& callback,
                                            ros::NodeHandle& myNh);
 
   /// @brief Get a connection handle previously added with addConnection

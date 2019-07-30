@@ -156,7 +156,7 @@ public:
   /// \param callback The callback fired when the state machine has data to send.  By default, no callback is used.
   /// \return A shared_ptr to the I/O state machine object
   boost::shared_ptr<ds_asio::IoSM> addIoSM(const std::string& iosm_name, const std::string& conn_name,
-                                           const ds_asio::ReadCallback& callback = ds_asio::ReadCallback());
+                                           const ds_asio::IoCommand::ReadCallback& callback = ds_asio::IoCommand::ReadCallback());
 
   /// @brief Get the UUID for the node.
   ///

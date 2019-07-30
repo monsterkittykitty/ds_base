@@ -57,10 +57,11 @@ struct DsBusPrivate
 
   ~DsBusPrivate() = default;
 
-  void _data_recv(const ds_core_msgs::RawData& bytes)
+  bool _data_recv(const ds_core_msgs::RawData& bytes)
   {
     last_message_timestamp_ = bytes.header.stamp;
     bus_pub_.publish(bytes);
+    return true; // ALWAYS accept data
   }
 
   bool _service_req(const ds_core_msgs::IoSMcommand::Request& req, ds_core_msgs::IoSMcommand::Response& resp)

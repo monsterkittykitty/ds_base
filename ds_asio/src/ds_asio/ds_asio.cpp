@@ -47,7 +47,7 @@ boost::shared_ptr<DsConnection> DsAsio::addConnection(std::string name, const Re
   return connection;
 }
 
-boost::shared_ptr<IoSM> DsAsio::addIoSM(std::string iosm_name, std::string conn_name, const ReadCallback& callback,
+boost::shared_ptr<IoSM> DsAsio::addIoSM(std::string iosm_name, std::string conn_name, const IoCommand::ReadCallback& callback,
                                         ros::NodeHandle& myNh)
 {
   boost::shared_ptr<DsConnection> conn = addConnection(conn_name, ReadCallback(), myNh);

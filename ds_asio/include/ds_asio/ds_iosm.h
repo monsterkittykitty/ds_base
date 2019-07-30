@@ -75,6 +75,9 @@ public:
   typedef std::shared_ptr<IoCommand> Ptr;
   typedef std::shared_ptr<const IoCommand> ConstPtr;
 
+  typedef boost::function<bool(ds_core_msgs::RawData)> ReadCallback;
+  typedef boost::function<void()> TimeoutCallback;
+
   /// @brief Shorthand to create a standard command/timeout pair
   ///
   /// \param cmdstr The command string to send
@@ -82,7 +85,7 @@ public:
   /// \param _force_next Allow a non-regular-command after this one (OFF by default)
   /// \param callback A callback fired when the response to this particular command is received
   IoCommand(const std::string& cmdstr, double timeout_sec, bool _force_next = false,
-            const ds_asio::ReadCallback& callback = ds_asio::ReadCallback());
+            const ds_asio::IoCommand::ReadCallback& callback = ds_asio::IoCommand::ReadCallback());
 
   /// @brief Shorthand to create a static wait
   ///
@@ -163,12 +166,23 @@ public:
   /// @brief Get the callback function for this command
   ///
   /// \return The function to call on receipt of data for this command
-  const ds_asio::ReadCallback& getCallback() const;
+  const ReadCallback& getCallback() const;
 
   /// @brief Set the callback for this command
   ///
   /// \return The function to call on receipt of data for this command
-  void setCallback(const ds_asio::ReadCallback& _cb);
+  void setCallback(const ReadCallback& _cb);
+
+  /// @brief Get the timeout callback for this command
+  ///
+  /// \return The function called when this command times out
+  const TimeoutCallback& getTimeoutCallback() const;
+
+  /// @brief Set the timeout callback called when this command times out
+  void setTimeoutCallback(const TimeoutCallback& _cb);
+
+  /// @brief Get the current size of the preempt queue
+  size_t getPreemptQueueSize() const;
 
 protected:
   uint64_t id;
@@ -186,7 +200,8 @@ protected:
   ros::Duration delayAfter;
   ros::Duration timeout;
 
-  ds_asio::ReadCallback callback;
+  ReadCallback callback;
+  TimeoutCallback timeoutCallback;
 };
 
 // forward declaration
@@ -204,7 +219,7 @@ class _IoSM_impl;
 class IoSM
 {
 public:
-  IoSM(boost::asio::io_service& io_service, std::string name, const ds_asio::ReadCallback& callback);
+  IoSM(boost::asio::io_service& io_service, std::string name, const ds_asio::IoCommand::ReadCallback& callback);
 
   IoSM(boost::asio::io_service& io_service, std::string name);
 
@@ -224,11 +239,11 @@ public:
   const boost::shared_ptr<DsConnection>& getConnection() const;
 
   /// @brief Set the IoSM-wide callback
-  void setCallback(const ds_asio::ReadCallback& cb);
+  void setCallback(const ds_asio::IoCommand::ReadCallback& cb);
 
   /// @brief Get a copy of the IoSM-wide callback that fires every time this
   /// object is called
-  const ds_asio::ReadCallback& getCallback() const;
+  const ds_asio::IoCommand::ReadCallback& getCallback() const;
 
   /// @brief Add a regular command to the regular command queue
   ///
@@ -257,8 +272,13 @@ public:
   ///
   /// Provides read-only access to the list of commands.
   ///
-  /// \return A read-only version of the list of regular commands
-  const std::list<ds_asio::IoCommand>& getRegularCommands() const;
+  /// \return A copy of the list of regular commands
+  std::list<ds_asio::IoCommand> getRegularCommands() const;
+
+  /// @brief Access the number of commands in the preempt queue.  Note that this can decrease
+  /// without warning as commands are executed, but the current value is typically a good
+  /// upper-bound.  For bonus points, access while locking the Queue structures
+  size_t getPreemptQueueSize() const;
 
 protected:
   /// \brief Shared pointer to our implementation

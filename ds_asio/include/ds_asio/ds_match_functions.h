@@ -176,7 +176,7 @@ class match_header_read_length
         for (int j = 0; j < header_.size(); j++)
         {
           found_[j] = (cb_[j] == header_[j]);
-          ROS_ERROR_STREAM("f: " << found_[j] << " cb: " << static_cast<int>(cb_[0]) << " hdr: " << static_cast<int>(cb_[1]));
+          ROS_ERROR_STREAM("f: " << found_[j] << " cb: " << static_cast<int>(cb_[j]) << " hdr: " << static_cast<int>(cb_[j]));
         }
 
         // If all the found_ vector is true, then we are synchronized to the binary frame

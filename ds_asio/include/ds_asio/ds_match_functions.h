@@ -171,18 +171,15 @@ class match_header_read_length
       // If the stream is not synchronized, access cb_ only if it's full i.e. size is equal to capacity
       if ((!sync_) && (cb_.full()))
       {
-//        ROS_ERROR_STREAM("CIRCULAR BUFFER FULL! " << static_cast<int>(cb_[0]) << " " << static_cast<int>(cb_[1]));
         // Check that the header matches
         for (int j = 0; j < header_.size(); j++)
         {
           found_[j] = (cb_[j] == header_[j]);
-          ROS_ERROR_STREAM("f: " << found_[j] << " cb: " << static_cast<int>(cb_[j]) << " hdr: " << static_cast<int>(cb_[j]));
         }
 
         // If all the found_ vector is true, then we are synchronized to the binary frame
         if (std::all_of(found_.begin(), found_.end(), [](bool v) { return v; }))
         {
-          ROS_ERROR_STREAM("Header matched!");
           // Read in the length
           // Start at the length_location_bytes (zero indexed)
           // End read at the total cb_ size, which called the length_field_bytes
@@ -194,13 +191,11 @@ class match_header_read_length
             int multiplier = 1 << 8 * ( is_msb_first_ ? (length_field_bytes_ - 1 - k_0) : k_0);
             length_read += multiplier * cb_[k];
           }
-          ROS_ERROR_STREAM("Length_read: " << length_read);
           // Add the adder, in case the length doesn't include the checksum like the RDI Workhorse
           length_ = length_read + add_to_length_;
 
           // If the length is within reasonable bounds, proceed and read the packet. Otherwise keep looking!
           if (length_ > 0 && length_ < max_length_){
-            ROS_ERROR_STREAM("Length = " << length_);
             sync_ = true;
             // Increment the binary frame len_ that we already read by the size of the header
             len_ += cb_.size();

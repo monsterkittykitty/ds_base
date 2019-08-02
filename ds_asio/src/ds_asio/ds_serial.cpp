@@ -96,6 +96,32 @@ void DsSerial::setup(ros::NodeHandle& nh)
     }
     set_matcher(match_header_length(myHeader, length));
   }
+  else if (!myMatch.compare("match_header_read_length"))
+  {
+    std::string hexAscii;
+    nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/header", hexAscii, "7F7F");
+    std::vector<unsigned char> myHeader;
+    for (int i = 0; i < hexAscii.length(); i += 2)
+    {
+      std::string byteString = hexAscii.substr(i, 2);
+      unsigned int myByte;
+      sscanf(byteString.c_str(), "%X", &myByte);
+      myHeader.push_back((unsigned char)myByte);
+    }
+    int length_location_bytes;
+    nh.param<int>(ros::this_node::getName() + "/" + name_ + "/length_location_bytes", length_location_bytes, 2);
+    int length_field_bytes;
+    nh.param<int>(ros::this_node::getName() + "/" + name_ + "/length_field_bytes", length_field_bytes, 2);
+    bool is_msb_first;
+    nh.param<bool>(ros::this_node::getName() + "/" + name_ + "/is_msb_first", is_msb_first, true);
+    int add_to_length;
+    nh.param<int>(ros::this_node::getName() + "/" + name_ + "/add_to_length", add_to_length, 0);
+    int max_length;
+    nh.param<int>(ros::this_node::getName() + "/" + name_ + "/max_length", max_length, 512);
+
+    set_matcher(match_header_read_length(myHeader, length_location_bytes, length_field_bytes, is_msb_first,
+                                         add_to_length, max_length));
+  }
   else if (!myMatch.compare("match_multi_header_length"))
   {
     std::vector<std::string> header_strs;
@@ -121,6 +147,10 @@ void DsSerial::setup(ros::NodeHandle& nh)
   else if (!myMatch.compare("match_header_pd0"))
   {
     set_matcher(match_header_pd0());
+  }
+  else if (!myMatch.compare("passthrough"))
+  {
+    set_matcher(passthrough());
   }
 
   std::string myParity;

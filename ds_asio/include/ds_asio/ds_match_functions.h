@@ -145,6 +145,93 @@ struct is_match_condition<match_header_length> : public boost::true_type
 }  // namespace asio
 }  // namespace boost
 
+
+// Length gets read with every packet! Different from pd0 and match_header_length
+class match_header_read_length
+{
+ public:
+  explicit match_header_read_length(std::vector<unsigned char> header, int length_location_bytes,
+                                    int length_field_bytes, bool is_msb_first, int add_to_length, int max_length)
+  : header_(header), cb_(length_location_bytes + length_field_bytes), found_(header.size(), false),
+    length_location_bytes_(length_location_bytes), length_field_bytes_(length_field_bytes), is_msb_first_(is_msb_first),
+    add_to_length_(add_to_length), max_length_(max_length), len_(0), sync_(false)
+  {
+    ROS_INFO_STREAM("Matcher set " << cb_.capacity());
+  }
+
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+
+  template <typename Iterator>
+  std::pair<Iterator, bool> operator()(Iterator begin, Iterator end)
+  {
+    Iterator i = begin;
+    while (i != end)
+    {
+      cb_.push_back(*i++);
+      // If the stream is not synchronized, access cb_ only if it's full i.e. size is equal to capacity
+      if ((!sync_) && (cb_.full()))
+      {
+        // Check that the header matches
+        for (int j = 0; j < header_.size(); j++)
+        {
+          found_[j] = (cb_[j] == header_[j]);
+        }
+
+        // If all the found_ vector is true, then we are synchronized to the binary frame
+        if (std::all_of(found_.begin(), found_.end(), [](bool v) { return v; }))
+        {
+          // Read in the length
+          // Start at the length_location_bytes (zero indexed)
+          // End read at the total cb_ size, which called the length_field_bytes
+          // Maintain a zeroed iterator k_0 [0 : length_field_bytes - 1]
+          // Multiply each byte read by the encoding
+          int length_read = 0;
+          for (int k = length_location_bytes_; k<cb_.size(); k++){
+            int k_0 = k - length_location_bytes_;
+            int multiplier = 1 << 8 * ( is_msb_first_ ? (length_field_bytes_ - 1 - k_0) : k_0);
+            length_read += multiplier * cb_[k];
+          }
+          // Add the adder, in case the length doesn't include the checksum like the RDI Workhorse
+          length_ = length_read + add_to_length_;
+
+          // If the length is within reasonable bounds, proceed and read the packet. Otherwise keep looking!
+          if (length_ > 0 && length_ < max_length_){
+            sync_ = true;
+            // Increment the binary frame len_ that we already read by the size of the header
+            len_ += cb_.size();
+          }
+        }
+      }
+      else if (sync_)
+      {
+        len_++;
+        // We reached the expected length of the binary frame, tell async_read_until that we're done reading this frame
+        if (len_ >= length_)
+        {
+          ROS_INFO_STREAM("Buffering ended, length: " << len_);
+          len_ = 0;
+          // unlock the sync flag so that you read the length with each packet
+          sync_ = false;
+          return std::make_pair(i, true);
+        }
+      }
+    }
+    return std::make_pair(i, false);
+  };
+ private:
+  std::vector<unsigned char> header_;
+  boost::circular_buffer<unsigned char> cb_; // size of buffer meant to include the header and length fields
+  std::vector<bool> found_;
+  int length_location_bytes_; // length_read read from cb_[length_location_] to cb_[length_location_ + length_field_bytes]
+  int length_field_bytes_;
+  int max_length_; // Discard the length if greater than this or less than/equal to zero
+  int add_to_length_; // length_ = length_read + add_to_read_length_
+  bool is_msb_first_; // length encoding
+  int length_; // length_read + add_to_read_length_
+  int len_;
+  bool sync_;
+};
+
 class match_header_pd0
 {
 public:

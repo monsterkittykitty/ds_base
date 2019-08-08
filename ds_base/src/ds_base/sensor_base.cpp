@@ -153,11 +153,13 @@ void SensorBase::setupParameters()
 
   if (provided_uuid != generated_uuid)
   {
-    ROS_ERROR_STREAM("!!!POTENTIAL CONFIGURATION MISMATCH!!!");
-    ROS_ERROR_STREAM("Detected UUID mismatch.");
-    ROS_ERROR_STREAM("UUID (param server): " << provided_uuid);
-    ROS_ERROR_STREAM("UUID (generated): " << generated_uuid);
-    ROS_ERROR_STREAM("Using generated UUID!");
+    // This really SHOULD be an error, but until we put the effort into making this a 
+    // thing let's leave it an info
+    ROS_INFO_STREAM("!!!POTENTIAL CONFIGURATION MISMATCH!!!");
+    ROS_INFO_STREAM("Detected UUID mismatch.");
+    ROS_INFO_STREAM("UUID (param server): " << provided_uuid);
+    ROS_INFO_STREAM("UUID (generated): " << generated_uuid);
+    ROS_INFO_STREAM("Using generated UUID!");
     setUuid(generated_uuid);
   }
   else

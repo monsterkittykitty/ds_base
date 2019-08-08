@@ -190,7 +190,7 @@ void DsProcess::setupParameters()
   bool isCritical = ros::param::param<bool>("~critical", false);
   if (isCritical)
   {
-    ROS_ERROR_STREAM(ros::this_node::getName() << " is critical");
+    ROS_INFO_STREAM(ros::this_node::getName() << " is critical");
     const auto ttl = ros::param::param<int>("~critical_ttl", 60);
     d->ttl_ = ttl;
     d->is_critical_ = true;
@@ -220,13 +220,13 @@ void DsProcess::setupPublishers()
   if (d->is_critical_ == true)
   {
     std::string ns = ros::this_node::getNamespace();
-    ROS_ERROR_STREAM("Critical node namespace: " << ns);
+    ROS_INFO_STREAM("Critical node namespace: " << ns);
     std::vector<std::string> splitns;
     boost::algorithm::split(splitns, ns, boost::is_any_of("/"));
     std::string basens;
     for (int i = 0; i < splitns.size(); ++i)
     {
-      ROS_ERROR_STREAM(splitns[i]);
+      ROS_DEBUG_STREAM(splitns[i]);
       if (splitns[i] != "")
       {
         basens = splitns[i];

@@ -1,5 +1,5 @@
 /**
-* Copyright 2018 Woods Hole Oceanographic Institution
+* Copyright 2019 Woods Hole Oceanographic Institution
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -27,67 +27,49 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
+//
+// Created by ivaughn on 8/30/19.
+//
+
+#ifndef DS_TCP_CLIENT_H
+#define DS_TCP_CLIENT_H
+
 #include "ds_asio/ds_connection.h"
+#include "ds_core_msgs/RawData.h"
+#include <boost/array.hpp>
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/asio.hpp>
+#include <ros/ros.h>
 
 namespace ds_asio
 {
-DsConnection::DsConnection(boost::asio::io_service& _io) : io_service_(_io), raw_publisher_enabled_(true)
+
+/// \brief The DsTcpClient connection will connect to a TCP Server running on a possibly-remote host.  This
+/// is especially useful with Moxas.
+class DsTcpClient : public DsConnection
 {
-}
+ public:
+  DsTcpClient(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle& myNh);
 
-DsConnection::DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback)
-  : io_service_(_io), name_(name), callback_(callback), raw_publisher_enabled_(true)
-{
-  // do nothing else
-}
+  void receive(void) override;
 
-DsConnection::~DsConnection()
-{
-  ;
-}
+  void send(boost::shared_ptr<std::string> message) override;
 
-void DsConnection::setup(ros::NodeHandle& nh) {
-  nh.param<bool>(ros::this_node::getName() + "/" + name_ + "/publish_raw", raw_publisher_enabled_, true);
-  if (raw_publisher_enabled_) {
-    ROS_INFO_STREAM("Publishing raw messages on raw topic");
-  } else {
-    ROS_INFO_STREAM("Raw I/O publishing DISABLED");
-  }
-}
+  void setup(ros::NodeHandle& nh) override;
 
-void DsConnection::send(const std::string& message)
-{
-  // asio really needs a shared_ptr to the message; this is just a convenience
-  // wrapper to do the copy into a shared_ptr buffer easier on users
-  this->send(boost::shared_ptr<std::string>(new std::string(message)));
-}
+ private:
+  DsTcpClient(const DsTcpClient& other) = delete;
+  DsTcpClient& operator=(const DsTcpClient& other) = delete;
 
-const std::string& DsConnection::getName() const
-{
-  return name_;
-}
+ private:
+  void handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred);
 
-boost::asio::io_service& DsConnection::getIoService()
-{
-  return io_service_;
-}
+  void handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
+                   std::size_t bytes_transferred);
 
-const ReadCallback& DsConnection::getCallback() const
-{
-  return callback_;
-}
+  std::vector<unsigned char> recv_buffer_; // default size is 512, but can get reset by param server
+};
 
-void DsConnection::setCallback(const ReadCallback& _cb)
-{
-  callback_ = _cb;
-}
-
-bool DsConnection::getRawPublisherEnabled() const {
-  return raw_publisher_enabled_;
-}
-
-void DsConnection::setRawPublisherEnable(bool v) {
-  raw_publisher_enabled_ = v;
-}
-
-}
+} // namespace ds_asio
+#endif //DS_TCP_CLIENT_H

@@ -27,67 +27,41 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
-#include "ds_asio/ds_connection.h"
+//
+// Created by ivaughn on 8/30/19.
+//
+
+#include "ds_asio/ds_tcp_client.h"
 
 namespace ds_asio
 {
-DsConnection::DsConnection(boost::asio::io_service& _io) : io_service_(_io), raw_publisher_enabled_(true)
-{
+
+DsTcpClient::DsTcpClient(boost::asio::io_service& io_service, std::string name,
+    const ReadCallback& callback, ros::NodeHandle& myNh) : DsConnection(io_service, name, callback) {
+  // TODO
 }
 
-DsConnection::DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback)
-  : io_service_(_io), name_(name), callback_(callback), raw_publisher_enabled_(true)
-{
-  // do nothing else
+void DsTcpClient::receive(void) {
+  // TODO
 }
 
-DsConnection::~DsConnection()
-{
-  ;
+void DsTcpClient::send(boost::shared_ptr<std::string> message) {
+  // TODO
 }
 
-void DsConnection::setup(ros::NodeHandle& nh) {
-  nh.param<bool>(ros::this_node::getName() + "/" + name_ + "/publish_raw", raw_publisher_enabled_, true);
-  if (raw_publisher_enabled_) {
-    ROS_INFO_STREAM("Publishing raw messages on raw topic");
-  } else {
-    ROS_INFO_STREAM("Raw I/O publishing DISABLED");
-  }
+void DsTcpClient::setup(ros::NodeHandle& nh) {
+  DsConnection::setup(nh);
+
+  // TODO
 }
 
-void DsConnection::send(const std::string& message)
-{
-  // asio really needs a shared_ptr to the message; this is just a convenience
-  // wrapper to do the copy into a shared_ptr buffer easier on users
-  this->send(boost::shared_ptr<std::string>(new std::string(message)));
+void DsTcpClient::handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred) {
+  // TODO
 }
 
-const std::string& DsConnection::getName() const
-{
-  return name_;
+void DsTcpClient::handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
+                   std::size_t bytes_transferred) {
+  // TODO
 }
 
-boost::asio::io_service& DsConnection::getIoService()
-{
-  return io_service_;
-}
-
-const ReadCallback& DsConnection::getCallback() const
-{
-  return callback_;
-}
-
-void DsConnection::setCallback(const ReadCallback& _cb)
-{
-  callback_ = _cb;
-}
-
-bool DsConnection::getRawPublisherEnabled() const {
-  return raw_publisher_enabled_;
-}
-
-void DsConnection::setRawPublisherEnable(bool v) {
-  raw_publisher_enabled_ = v;
-}
-
-}
+} // namespace ds_asio

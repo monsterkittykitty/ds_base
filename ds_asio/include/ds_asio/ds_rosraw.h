@@ -1,5 +1,5 @@
 /**
-* Copyright 2018 Woods Hole Oceanographic Institution
+* Copyright 2019 Woods Hole Oceanographic Institution
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -27,67 +27,51 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
+//
+// Created by ivaughn on 8/30/19.
+//
+
+#ifndef DS_ROSRAW_H
+#define DS_ROSRAW_H
+
 #include "ds_asio/ds_connection.h"
+#include "ds_core_msgs/RawData.h"
+#include <boost/array.hpp>
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
+#include <ros/ros.h>
 
 namespace ds_asio
 {
-DsConnection::DsConnection(boost::asio::io_service& _io) : io_service_(_io), raw_publisher_enabled_(true)
+
+/// \brief The DsRosRaw connection allows drivers to be tested by connecting to a previously-recorded
+/// ds_core_msgs::RawData topic and playing it back through the DsConnection interface
+class DsRosRaw : public DsConnection
 {
-}
+ public:
+  DsRosRaw(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle& myNh);
 
-DsConnection::DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback)
-  : io_service_(_io), name_(name), callback_(callback), raw_publisher_enabled_(true)
-{
-  // do nothing else
-}
+  void receive(void) override;
 
-DsConnection::~DsConnection()
-{
-  ;
-}
+  void send(boost::shared_ptr<std::string> message) override;
 
-void DsConnection::setup(ros::NodeHandle& nh) {
-  nh.param<bool>(ros::this_node::getName() + "/" + name_ + "/publish_raw", raw_publisher_enabled_, true);
-  if (raw_publisher_enabled_) {
-    ROS_INFO_STREAM("Publishing raw messages on raw topic");
-  } else {
-    ROS_INFO_STREAM("Raw I/O publishing DISABLED");
-  }
-}
+  void setup(ros::NodeHandle& nh) override;
 
-void DsConnection::send(const std::string& message)
-{
-  // asio really needs a shared_ptr to the message; this is just a convenience
-  // wrapper to do the copy into a shared_ptr buffer easier on users
-  this->send(boost::shared_ptr<std::string>(new std::string(message)));
-}
+ private:
+  DsRosRaw(const DsRosRaw& other) = delete;
+  DsRosRaw& operator=(const DsRosRaw& other) = delete;
 
-const std::string& DsConnection::getName() const
-{
-  return name_;
-}
+ private:
+  void handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred);
 
-boost::asio::io_service& DsConnection::getIoService()
-{
-  return io_service_;
-}
+  void handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
+                   std::size_t bytes_transferred);
 
-const ReadCallback& DsConnection::getCallback() const
-{
-  return callback_;
-}
+  // no receive buffer is needed
+  ros::Subscriber raw_sub_;
+  ros::Publisher out_pub_;
+};
 
-void DsConnection::setCallback(const ReadCallback& _cb)
-{
-  callback_ = _cb;
-}
+} // namespace ds_asio
 
-bool DsConnection::getRawPublisherEnabled() const {
-  return raw_publisher_enabled_;
-}
-
-void DsConnection::setRawPublisherEnable(bool v) {
-  raw_publisher_enabled_ = v;
-}
-
-}
+#endif //DS_ROSRAW_H

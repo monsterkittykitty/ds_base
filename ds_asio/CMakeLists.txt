@@ -155,6 +155,12 @@ add_library(${PROJECT_NAME}
   include/${PROJECT_NAME}/ds_serial.h
   src/${PROJECT_NAME}/ds_serial.cpp
 
+  include/${PROJECT_NAME}/ds_tcp_client.h
+  src/${PROJECT_NAME}/ds_tcp_client.cpp
+
+  include/${PROJECT_NAME}/ds_rosraw.h
+  src/${PROJECT_NAME}/ds_rosraw.cpp
+
   include/${PROJECT_NAME}/ds_connection_factory.h
   src/${PROJECT_NAME}/ds_connection_factory.cpp
 

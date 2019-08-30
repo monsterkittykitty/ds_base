@@ -208,7 +208,7 @@ class match_header_read_length
         // We reached the expected length of the binary frame, tell async_read_until that we're done reading this frame
         if (len_ >= length_)
         {
-          ROS_INFO_STREAM("Buffering ended, length: " << len_);
+          //ROS_INFO_STREAM("Buffering ended, length: " << len_);
           len_ = 0;
           // unlock the sync flag so that you read the length with each packet
           sync_ = false;

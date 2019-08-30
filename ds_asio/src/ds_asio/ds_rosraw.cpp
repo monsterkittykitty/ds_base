@@ -74,6 +74,9 @@ void DsRosRaw::setup(ros::NodeHandle& nh) {
 
   raw_sub_ = nh.subscribe(topic_in, 10, &DsRosRaw::handle_receive, this);
   out_pub_ = nh.advertise<ds_core_msgs::RawData>(topic_out, 10, false);
+
+  // The /raw channel should be appended to the nodehandle namespace
+  raw_publisher_ = nh.advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
 }
 
 void DsRosRaw::handle_receive(ds_core_msgs::RawData msg) {

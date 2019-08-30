@@ -53,6 +53,7 @@ class DsTcpClient : public DsConnection
   DsTcpClient(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle& myNh);
 
   void receive(void) override;
+  void connect(void); // kick off a connection attempt
 
   void send(boost::shared_ptr<std::string> message) override;
 
@@ -68,7 +69,18 @@ class DsTcpClient : public DsConnection
   void handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
                    std::size_t bytes_transferred);
 
+  void handle_connect(const boost::system::error_code& error);
+
+  void handle_timeout(const boost::system::error_code& error);
+
+  uint8_t error_count_;
   std::vector<unsigned char> recv_buffer_; // default size is 512, but can get reset by param server
+  std::unique_ptr<boost::asio::ip::tcp::socket> socket_;
+  boost::asio::ip::tcp::endpoint destination_;
+  boost::asio::deadline_timer timeout_timer_;
+  boost::posix_time::time_duration timeout_period_;
+  double timeout_sec_;
+  ros::Timer read_error_retry_timer_;
 };
 
 } // namespace ds_asio

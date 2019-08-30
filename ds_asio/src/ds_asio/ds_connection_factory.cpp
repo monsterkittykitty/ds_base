@@ -46,6 +46,14 @@ DsConnectionFactory::createConnection(std::string name, boost::asio::io_service&
   {
     return boost::shared_ptr<DsSerial>(new DsSerial(io_service, name, callback, myNh));
   }
+  else if (connectionType.compare("TCPCLIENT") == 0)
+  {
+    return boost::shared_ptr<DsTcpClient>(new DsTcpClient(io_service, name, callback, myNh));
+  }
+  else if (connectionType.compare("ROSRAW") == 0)
+  {
+    return boost::shared_ptr<DsRosRaw>(new DsRosRaw(io_service, name, callback, myNh));
+  }
 
   std::stringstream msg;
   msg << "Unable to create connection \"" << name << "\" in node " << ros::this_node::getName() << " with type \""

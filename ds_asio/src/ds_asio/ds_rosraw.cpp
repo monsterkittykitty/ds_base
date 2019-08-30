@@ -38,30 +38,61 @@ namespace ds_asio
 
 DsRosRaw::DsRosRaw(boost::asio::io_service& io_service, std::string name,
     const ReadCallback& callback, ros::NodeHandle& myNh) : DsConnection(io_service, name, callback) {
-  // TODO
+  setup(myNh);
+  receive();
 }
 
 void DsRosRaw::receive(void) {
-  // TODO
+  // normally used to initiate the receive chain for asio calls,
+  // does nothing for this case
 }
 
 void DsRosRaw::send(boost::shared_ptr<std::string> message) {
-  // TODO
+  ds_core_msgs::RawData out;
+  out.ds_header.io_time = ros::Time::now();
+  out.data = std::vector<unsigned char>(message->begin(), message->end());
+  out.data_direction = ds_core_msgs::RawData::DATA_OUT;
+
+  out_pub_.publish(out);
+
+  // we still need to respect the raw publisher convention
+  if (raw_publisher_enabled_) {
+    raw_publisher_.publish(out);
+  }
 }
 
 void DsRosRaw::setup(ros::NodeHandle& nh) {
   DsConnection::setup(nh);
 
-  // TODO
+  std::string topic_in, topic_out;
+
+  nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/topic_rx", topic_in, "rosraw_rx");
+  nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/topic_tx", topic_out, "rosraw_tx");
+
+  ROS_INFO_STREAM("Subscribing to ds_core_msgs::RawData topic \"" <<topic_in <<"\" for incoming data");
+  ROS_INFO_STREAM("Sending outgoing data to \"" <<topic_out <<"\"");
+
+  raw_sub_ = nh.subscribe(topic_in, 10, &DsRosRaw::handle_receive, this);
+  out_pub_ = nh.advertise<ds_core_msgs::RawData>(topic_out, 10, false);
 }
 
-void DsRosRaw::handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred) {
-  // TODO
-}
+void DsRosRaw::handle_receive(ds_core_msgs::RawData msg) {
 
-void DsRosRaw::handle_send(boost::shared_ptr<std::string> message, const boost::system::error_code& error,
-                 std::size_t bytes_transferred) {
-  // TODO
+  // ignore recorded outgoing data
+  if (msg.data_direction != ds_core_msgs::RawData::DATA_IN) {
+    return;
+  }
+
+  // still respect the raw convention
+  if (raw_publisher_enabled_) {
+    raw_publisher_.publish(msg);
+  }
+
+  // fire off the callback
+  if (!callback_.empty()) {
+    callback_(msg);
+  }
+
 }
 
 

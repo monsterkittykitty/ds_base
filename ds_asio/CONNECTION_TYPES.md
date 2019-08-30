@@ -66,6 +66,22 @@ Hardware flow control is  not currently supported.
 
 Type string: "TCPCLIENT"
 
+The TCP Client Connection connects to a TCP server and presents any data coming in on the socket via a callback.
+No matcher function is employed.  TCP connects frequently cannot detect when the connection is lost, so this 
+connection class includes a timeout.  If no data is received before the timeout expires, the socket is closed and
+re-opened.  Up to five attempts to re-open the socket will be made 10 seconds apart.
+
+Available options are:
+
+* `tcp_address` The address of the server to connect to.
+
+* `tcp_port` The port of the server to connect to.
+
+* `timeout_sec` The period of the no-data timeout to initation a close/reconnect.  Defaults to 30 seconds.
+
+* `buffer_size` The maximum buffer size of a single message, in bytes.  Messages bigger than this may be dropped or
+ truncated. The largest possible size permitted by TCP is 65535 bytes.  Defaults to 512 bytes.
+
 ## ROS Raw Connection
 
 Type string "ROSRAW"

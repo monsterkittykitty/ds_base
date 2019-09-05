@@ -40,6 +40,8 @@ DsUdp::DsUdp(boost::asio::io_service& io_service, std::string name, const ReadCa
 
 void DsUdp::setup(ros::NodeHandle& nh)
 {
+  DsConnection::setup(nh);
+
   // Get the parameter information
   int buffer_size = 512;
   if (nh.hasParam(ros::this_node::getName() + "/" + name_ + "/buffer_size")){
@@ -144,7 +146,9 @@ void DsUdp::handle_receive(const boost::system::error_code& error, std::size_t b
     // ROS_INFO_STREAM("UDP received: " << recv_buffer_.data());
     raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
     raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
-    raw_publisher_.publish(raw_data_);
+    if (raw_publisher_enabled_) {
+      raw_publisher_.publish(raw_data_);
+    }
     if (!callback_.empty())
     {
       callback_(raw_data_);
@@ -188,7 +192,9 @@ void DsUdp::handle_send(boost::shared_ptr<std::string> message, const boost::sys
   // ROS_INFO_STREAM("UDP data sent");
   raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
   raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
-  raw_publisher_.publish(raw_data_);
+  if (raw_publisher_enabled_) {
+    raw_publisher_.publish(raw_data_);
+  }
 }
 
 udp::socket& DsUdp::get_io_object(void)

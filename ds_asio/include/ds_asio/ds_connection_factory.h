@@ -33,6 +33,8 @@
 #include "ds_asio/ds_connection.h"
 #include "ds_asio/ds_udp.h"
 #include "ds_asio/ds_serial.h"
+#include "ds_asio/ds_tcp_client.h"
+#include "ds_asio/ds_rosraw.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/asio.hpp>
 #include <boost/function.hpp>

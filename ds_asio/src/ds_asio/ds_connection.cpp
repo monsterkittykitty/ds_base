@@ -31,12 +31,12 @@
 
 namespace ds_asio
 {
-DsConnection::DsConnection(boost::asio::io_service& _io) : io_service_(_io)
+DsConnection::DsConnection(boost::asio::io_service& _io) : io_service_(_io), raw_publisher_enabled_(true)
 {
 }
 
 DsConnection::DsConnection(boost::asio::io_service& _io, std::string name, const ReadCallback& callback)
-  : io_service_(_io), name_(name), callback_(callback)
+  : io_service_(_io), name_(name), callback_(callback), raw_publisher_enabled_(true)
 {
   // do nothing else
 }
@@ -44,6 +44,15 @@ DsConnection::DsConnection(boost::asio::io_service& _io, std::string name, const
 DsConnection::~DsConnection()
 {
   ;
+}
+
+void DsConnection::setup(ros::NodeHandle& nh) {
+  nh.param<bool>(ros::this_node::getName() + "/" + name_ + "/publish_raw", raw_publisher_enabled_, true);
+  if (raw_publisher_enabled_) {
+    ROS_INFO_STREAM("Publishing raw messages on raw topic");
+  } else {
+    ROS_INFO_STREAM("Raw I/O publishing DISABLED");
+  }
 }
 
 void DsConnection::send(const std::string& message)
@@ -72,4 +81,13 @@ void DsConnection::setCallback(const ReadCallback& _cb)
 {
   callback_ = _cb;
 }
+
+bool DsConnection::getRawPublisherEnabled() const {
+  return raw_publisher_enabled_;
+}
+
+void DsConnection::setRawPublisherEnable(bool v) {
+  raw_publisher_enabled_ = v;
+}
+
 }

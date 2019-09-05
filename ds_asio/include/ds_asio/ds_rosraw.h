@@ -1,5 +1,5 @@
 /**
-* Copyright 2018 Woods Hole Oceanographic Institution
+* Copyright 2019 Woods Hole Oceanographic Institution
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -27,39 +27,48 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
-#include "ds_asio/ds_connection_factory.h"
+//
+// Created by ivaughn on 8/30/19.
+//
+
+#ifndef DS_ROSRAW_H
+#define DS_ROSRAW_H
+
+#include "ds_asio/ds_connection.h"
+#include "ds_core_msgs/RawData.h"
+#include <boost/array.hpp>
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
+#include <ros/ros.h>
 
 namespace ds_asio
 {
-boost::shared_ptr<DsConnection>
-DsConnectionFactory::createConnection(std::string name, boost::asio::io_service& io_service,
-                                      boost::function<void(ds_core_msgs::RawData)> callback, ros::NodeHandle& myNh)
+
+/// \brief The DsRosRaw connection allows drivers to be tested by connecting to a previously-recorded
+/// ds_core_msgs::RawData topic and playing it back through the DsConnection interface
+class DsRosRaw : public DsConnection
 {
-  std::string connectionType;
-  myNh.getParam(ros::this_node::getName() + "/" + name + "/type", connectionType);
+ public:
+  DsRosRaw(boost::asio::io_service& io_service, std::string name, const ReadCallback& callback, ros::NodeHandle& myNh);
 
-  if (connectionType.compare("UDP") == 0)
-  {
-    return boost::shared_ptr<DsUdp>(new DsUdp(io_service, name, callback, myNh));
-  }
-  else if (connectionType.compare("SERIAL") == 0)
-  {
-    return boost::shared_ptr<DsSerial>(new DsSerial(io_service, name, callback, myNh));
-  }
-  else if (connectionType.compare("TCPCLIENT") == 0)
-  {
-    return boost::shared_ptr<DsTcpClient>(new DsTcpClient(io_service, name, callback, myNh));
-  }
-  else if (connectionType.compare("ROSRAW") == 0)
-  {
-    return boost::shared_ptr<DsRosRaw>(new DsRosRaw(io_service, name, callback, myNh));
-  }
+  void receive(void) override;
 
-  std::stringstream msg;
-  msg << "Unable to create connection \"" << name << "\" in node " << ros::this_node::getName() << " with type \""
-      << connectionType << "\"!\nLooking for type rosparam at: \""
-      << ros::this_node::getName() + "/" + name + "/type\"";
+  void send(boost::shared_ptr<std::string> message) override;
 
-  throw std::runtime_error(msg.str());
-}
-}
+  void setup(ros::NodeHandle& nh) override;
+
+ private:
+  DsRosRaw(const DsRosRaw& other) = delete;
+  DsRosRaw& operator=(const DsRosRaw& other) = delete;
+
+ private:
+  void handle_receive(ds_core_msgs::RawData msg);
+
+  // no receive buffer is needed
+  ros::Subscriber raw_sub_;
+  ros::Publisher out_pub_;
+};
+
+} // namespace ds_asio
+
+#endif //DS_ROSRAW_H

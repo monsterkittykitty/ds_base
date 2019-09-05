@@ -51,6 +51,8 @@ DsSerial::DsSerial(boost::asio::io_service& io_service, std::string name, const 
 
 void DsSerial::setup(ros::NodeHandle& nh)
 {
+  DsConnection::setup(nh);
+
   std::string port_name;
   nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/port", port_name, "/dev/ttyUSB0");
   ROS_INFO_STREAM("Serial port: " << port_name);
@@ -244,7 +246,9 @@ void DsSerial::handle_read(const boost::system::error_code& error, std::size_t b
                                                 boost::asio::buffers_begin(bufs) + bytes_transferred);
     // ROS_DEBUG_STREAM("Serial received: " << raw_data_.data.data());
     raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
-    raw_publisher_.publish(raw_data_);
+    if (raw_publisher_enabled_) {
+      raw_publisher_.publish(raw_data_);
+    }
     if (!callback_.empty())
     {
       callback_(raw_data_);
@@ -293,7 +297,9 @@ void DsSerial::handle_write(boost::shared_ptr<std::string> message, const boost:
   // ROS_INFO_STREAM("Serial data sent");
   raw_data_.data = std::vector<unsigned char>(message->begin(), message->begin() + bytes_transferred);
   raw_data_.data_direction = ds_core_msgs::RawData::DATA_OUT;
-  raw_publisher_.publish(raw_data_);
+  if (raw_publisher_enabled_) {
+    raw_publisher_.publish(raw_data_);
+  }
   raw_data_.data.clear();
 }
 

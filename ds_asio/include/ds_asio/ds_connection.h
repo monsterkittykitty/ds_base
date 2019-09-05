@@ -86,6 +86,12 @@ public:
   /// @brief Set the callback for this connection that is fired on every read
   void setCallback(const ReadCallback& _cb);
 
+  /// @brief Disabling raw publishing is a useful optimization, but should be used
+  /// with care!  This checks to make sure it's enabled
+  bool getRawPublisherEnabled() const;
+
+  void setRawPublisherEnable(bool v);
+
   // Make noncopyable
 private:
   DsConnection(const DsConnection& other) = delete;             // non-copyconstructable
@@ -99,6 +105,7 @@ protected:
 
   ros::Publisher raw_publisher_;
   ds_core_msgs::RawData raw_data_;
+  bool raw_publisher_enabled_;
 };
 }
 #endif

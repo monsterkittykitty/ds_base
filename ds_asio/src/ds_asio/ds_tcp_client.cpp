@@ -57,11 +57,17 @@ void DsTcpClient::receive(void) {
   recv_buffer_.assign(recv_buffer_.size(), 0);
 
   timeout_timer_.expires_from_now(timeout_period_);
-  socket_->async_receive(boost::asio::buffer(recv_buffer_), 0, boost::bind(&DsTcpClient::handle_receive, this,
-                                                                             boost::asio::placeholders::error,  boost::asio::placeholders::bytes_transferred));
+  //socket_->async_receive(boost::asio::buffer(recv_buffer_), 0, boost::bind(&DsTcpClient::handle_receive, this,
+  //                                                                         boost::asio::placeholders::error,  boost::asio::placeholders::bytes_transferred));
+  boost::asio::async_read_until(*socket_, streambuf_, matchFunction_,
+          boost::bind(&DsTcpClient::handle_receive, this, boost::asio::placeholders::error,
+          boost::asio::placeholders::bytes_transferred));
   timeout_timer_.async_wait(boost::bind(&DsTcpClient::handle_timeout, this, boost::asio::placeholders::error));
 }
 
+void DsTcpClient::set_matcher(boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction) {
+    matchFunction_ = matchFunction;
+}
 void DsTcpClient::send(boost::shared_ptr<std::string> message) {
   if (!socket_->is_open()) {
     ROS_ERROR_STREAM("Socket is not open yet!  Dropping outgoing message...");
@@ -103,7 +109,32 @@ void DsTcpClient::setup(ros::NodeHandle& nh) {
   destination_ = tcp::endpoint(host_addr, tcp_port);
 
   socket_.reset(new tcp::socket(io_service_));
-
+  set_matcher(passthrough());
+/*
+  std::string myMatch;
+  nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/matcher", myMatch, "passthrough");
+  ROS_INFO_STREAM("Matcher: "<<myMatch);
+  if (!myMatch.compare("passthrough"))
+  {
+      set_matcher(passthrough());
+  }
+  else if (!myMatch.compare("match_header_norbit_length"))
+  {
+      int length;
+      nh.param<int>(ros::this_node::getName() + "/" + name_ +"/length", length, 5232);
+      std::string hexAscii;
+      nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/header", hexAscii, "0xdeadbeef");
+      std::vector<unsigned char> myHeader;
+      for (size_t i=0;i<hexAscii.length(); i+=2)
+      {
+          std::string bytesString = hexAscii.substr(i, 2);
+          unsigned int myByte;
+          sscanf(bytesString.c_str(), "%X", &myByte);
+          myHeader.push_back((unsigned char)myByte);
+      }
+      set_matcher(match_header_length(myHeader, length));
+  }
+  */
   // The /raw channel should be appended to the nodehandle namespace
   raw_publisher_ = nh.advertise<ds_core_msgs::RawData>(ros::this_node::getName() + "/" + name_ + "/raw", 1);
 }
@@ -120,7 +151,8 @@ void DsTcpClient::handle_receive(const boost::system::error_code& error, std::si
     raw_data_.ds_header.io_time = ros::Time::now();
 
     // ROS_INFO_STREAM("TCP received: " << recv_buffer_.data());
-    raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
+    boost::asio::streambuf::const_buffers_type bufs = streambuf_.data();
+    raw_data_.data = std::vector<unsigned char>(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + bytes_transferred);
     raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
     if (raw_publisher_enabled_) {
       raw_publisher_.publish(raw_data_);
@@ -129,6 +161,8 @@ void DsTcpClient::handle_receive(const boost::system::error_code& error, std::si
     {
       callback_(raw_data_);
     }
+    raw_data_.data.clear();
+    streambuf_.consume(bytes_transferred);
     receive();
     return;
   }

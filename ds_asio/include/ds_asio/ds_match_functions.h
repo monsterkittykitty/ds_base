@@ -83,7 +83,7 @@ public:
   explicit match_header_length(std::vector<unsigned char> header, int length)
     : header_(header), length_(length), len_(0), sync_(false), found_(header.size(), false), cb_(header.size())
   {
-    ROS_INFO_STREAM("Matcher set " << cb_.capacity());
+    ROS_INFO_STREAM("Length Matcher set " << cb_.capacity());
   }
 
   typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
@@ -410,9 +410,11 @@ public:
   template <typename Iterator>
   std::pair<Iterator, bool> operator()(Iterator begin, Iterator end) const
   {
-    Iterator i = begin;
-
-    return std::make_pair(i, true);
+      if (begin == end) {
+          ROS_ERROR_STREAM("Matcher got NO BYTES!");
+          return std::make_pair(end, false);
+      }
+    return std::make_pair(end, true);
   }
 };
 

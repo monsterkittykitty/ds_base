@@ -78,7 +78,6 @@ class DsTcpClient : public DsConnection
   void handle_timeout(const boost::system::error_code& error);
 
   uint8_t error_count_;
-  std::vector<unsigned char> recv_buffer_; // default size is 512, but can get reset by param server
   std::unique_ptr<boost::asio::ip::tcp::socket> socket_;
   boost::asio::streambuf streambuf_;
   boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction_;

@@ -54,7 +54,6 @@ void DsTcpClient::connect(void) {
 }
 
 void DsTcpClient::receive(void) {
-  recv_buffer_.assign(recv_buffer_.size(), 0);
 
   timeout_timer_.expires_from_now(timeout_period_);
   //socket_->async_receive(boost::asio::buffer(recv_buffer_), 0, boost::bind(&DsTcpClient::handle_receive, this,
@@ -82,10 +81,6 @@ void DsTcpClient::send(boost::shared_ptr<std::string> message) {
 void DsTcpClient::setup(ros::NodeHandle& nh) {
   DsConnection::setup(nh);
 
-  int buffer_size = 512;
-  nh.param<int>(ros::this_node::getName() + "/" + name_ + "/buffer_size", buffer_size, 512);
-  ROS_INFO_STREAM("Buffer size set to "<<buffer_size);
-
   double timeout;
   nh.param<double>(ros::this_node::getName() + "/" + name_ + "/timeout_sec", timeout, 30.0);
   long timeout_sec = static_cast<long>(timeout);
@@ -95,7 +90,6 @@ void DsTcpClient::setup(ros::NodeHandle& nh) {
 
   ROS_INFO_STREAM("Resetting connections older than " <<boost::posix_time::to_simple_string(timeout_period_));
 
-  recv_buffer_.resize(buffer_size);
   std::string tcp_address;
   ROS_INFO_STREAM("Loading IP Address from " <<(ros::this_node::getName() + "/" + name_ + "/tcp_address"));
   nh.param<std::string>(ros::this_node::getName() + "/" + name_ + "/tcp_address", tcp_address, "127.0.0.1");
@@ -151,8 +145,10 @@ void DsTcpClient::handle_receive(const boost::system::error_code& error, std::si
     raw_data_.ds_header.io_time = ros::Time::now();
 
     // ROS_INFO_STREAM("TCP received: " << recv_buffer_.data());
+    ROS_ERROR_STREAM("Read " <<bytes_transferred <<" bytes!");
     boost::asio::streambuf::const_buffers_type bufs = streambuf_.data();
     raw_data_.data = std::vector<unsigned char>(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + bytes_transferred);
+    //raw_data_.data = std::vector<unsigned char>(recv_buffer_.begin(), recv_buffer_.begin() + bytes_transferred);
     raw_data_.data_direction = ds_core_msgs::RawData::DATA_IN;
     if (raw_publisher_enabled_) {
       raw_publisher_.publish(raw_data_);

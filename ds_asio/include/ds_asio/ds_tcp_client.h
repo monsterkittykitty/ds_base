@@ -39,6 +39,7 @@
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
 #include <boost/asio.hpp>
 #include <ros/ros.h>
 
@@ -59,6 +60,9 @@ class DsTcpClient : public DsConnection
 
   void setup(ros::NodeHandle& nh) override;
 
+  typedef boost::asio::buffers_iterator<boost::asio::streambuf::const_buffers_type> iterator;
+  void set_matcher(boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction);
+
  private:
   DsTcpClient(const DsTcpClient& other) = delete;
   DsTcpClient& operator=(const DsTcpClient& other) = delete;
@@ -74,8 +78,9 @@ class DsTcpClient : public DsConnection
   void handle_timeout(const boost::system::error_code& error);
 
   uint8_t error_count_;
-  std::vector<unsigned char> recv_buffer_; // default size is 512, but can get reset by param server
   std::unique_ptr<boost::asio::ip::tcp::socket> socket_;
+  boost::asio::streambuf streambuf_;
+  boost::function<std::pair<iterator, bool>(iterator, iterator)> matchFunction_;
   boost::asio::ip::tcp::endpoint destination_;
   boost::asio::deadline_timer timeout_timer_;
   boost::posix_time::time_duration timeout_period_;

@@ -138,12 +138,21 @@ include_directories(
 
 ## Declare a C++ library
  add_library(${PROJECT_NAME}
+
    include/${PROJECT_NAME}/spitter.h
    src/${PROJECT_NAME}/spitter.cpp
+
    include/${PROJECT_NAME}/repeater.h
    src/${PROJECT_NAME}/repeater.cpp
+
    include/${PROJECT_NAME}/logger.h
    src/${PROJECT_NAME}/logger.cpp
+
+   include/${PROJECT_NAME}/void_service.h
+   src/${PROJECT_NAME}/void_service.cpp
+
+   include/${PROJECT_NAME}/responder.h
+   src/${PROJECT_NAME}/responder.cpp
  )
 
 ## Add cmake target dependencies of the library
@@ -160,6 +169,8 @@ target_link_libraries(${PROJECT_NAME}
 add_executable(spitter_node src/main_spitter.cpp)
 add_executable(repeater_node src/main_repeater.cpp)
 add_executable(logger_node src/main_logger.cpp)
+add_executable(void_service_node src/main_void_service.cpp)
+add_executable(responder_node src/main_responder.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -173,6 +184,8 @@ add_executable(logger_node src/main_logger.cpp)
 add_dependencies(spitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(repeater_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(logger_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(void_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(responder_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 
 target_link_libraries(spitter_node
@@ -184,6 +197,14 @@ target_link_libraries(repeater_node
         ${PROJECT_NAME}
         )
 target_link_libraries(logger_node
+        ${catkin_LIBRARIES}
+        ${PROJECT_NAME}
+        )
+target_link_libraries(void_service_node
+        ${catkin_LIBRARIES}
+        ${PROJECT_NAME}
+        )
+target_link_libraries(responder_node
         ${catkin_LIBRARIES}
         ${PROJECT_NAME}
         )

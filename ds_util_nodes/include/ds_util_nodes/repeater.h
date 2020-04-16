@@ -41,7 +41,7 @@
 namespace ds_util_nodes{
 
 class Repeater : public ds_base::DsProcess {
-  /// The purpose of this node is to repeater any incoming over messages
+  /// The purpose of this node is to repeat any incoming over messages
   /// from one ds_connection onto the other ds_connection.
   /// Can be one-way (default) or bidirectional, with incoming messages
   /// sent as outgoing messages on the opposite connection.

@@ -1,0 +1,8 @@
+repeater:
+  inbound_topic: /udp-bridge/in
+  outbound_topic: /udp-bridge/out
+  connection:
+    type: "UDP"
+    udp_rx: 10002
+    udp_address: "127.0.0.1"
+    udp_tx: 10003

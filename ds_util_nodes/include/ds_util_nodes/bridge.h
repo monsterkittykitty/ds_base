@@ -64,7 +64,7 @@ class Bridge : public ds_base::DsProcess {
   void setupSubscriptions() override;
   void setupPublishers() override;
 
-  void _on_msg(const ds_core_msgs::RawData& raw);
+  void _on_in_msg(const ds_core_msgs::RawData& raw);
   void _on_out_msg(const ds_core_msgs::RawData& raw);
 
  private:

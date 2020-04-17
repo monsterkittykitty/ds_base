@@ -55,7 +55,11 @@ void
 Bridge::setupConnections()
 {
   ds_base::DsProcess::setupConnections();
-  m_conn = addConnection("connection", boost::bind(&Bridge::_on_msg, this, _1));
+  m_conn = addConnection(
+    "connection",
+    boost::bind(&Bridge::_on_in_msg, this, _1)
+  );
+  m_conn->setRawPublisherEnable(false);
 }
 
 void
@@ -63,26 +67,25 @@ Bridge::setupSubscriptions()
 {
   ds_base::DsProcess::setupSubscriptions();
 
-  std::string outbound_topic;
-  if (ros::param::get("~outbound_topic", outbound_topic))
-  {
-    m_sub = nodeHandle().subscribe(outbound_topic, 1000,
-                                   &Bridge::_on_out_msg, this);
-  }
+  m_sub = nodeHandle().subscribe(
+    ros::this_node::getName() + "/out",
+    512,
+    &Bridge::_on_out_msg, this
+  );
 }
 
 void
 Bridge::setupPublishers()
 {
   ds_base::DsProcess::setupPublishers();
-
-  std::string inbound_topic;
-  assert(ros::param::get("~inbound_topic", inbound_topic));
-  m_pub = nodeHandle().advertise<ds_core_msgs::RawData>(inbound_topic, 1000);
+  m_pub = nodeHandle().advertise<ds_core_msgs::RawData>(
+    ros::this_node::getName() + "/in",
+    512
+  );
 }
 
 void
-Bridge::_on_msg(const ds_core_msgs::RawData& msg)
+Bridge::_on_in_msg(const ds_core_msgs::RawData& msg)
 {
   m_pub.publish(msg);
 }

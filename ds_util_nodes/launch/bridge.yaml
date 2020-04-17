@@ -1,6 +1,4 @@
-repeater:
-  inbound_topic: /udp-bridge/in
-  outbound_topic: /udp-bridge/out
+bridge:
   connection:
     type: "UDP"
     udp_rx: 10002

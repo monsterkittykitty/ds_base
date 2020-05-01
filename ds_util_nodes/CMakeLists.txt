@@ -139,6 +139,9 @@ include_directories(
 ## Declare a C++ library
  add_library(${PROJECT_NAME}
 
+   include/${PROJECT_NAME}/bridge.h
+   src/${PROJECT_NAME}/bridge.cpp
+
    include/${PROJECT_NAME}/spitter.h
    src/${PROJECT_NAME}/spitter.cpp
 
@@ -166,6 +169,7 @@ target_link_libraries(${PROJECT_NAME}
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
+add_executable(bridge_node src/main_bridge.cpp)
 add_executable(spitter_node src/main_spitter.cpp)
 add_executable(repeater_node src/main_repeater.cpp)
 add_executable(logger_node src/main_logger.cpp)
@@ -180,14 +184,18 @@ add_executable(responder_node src/main_responder.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-
+add_dependencies(bridge_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(spitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(repeater_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(logger_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(void_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(responder_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-## Specify libraries to link a library or executable target against
 
+## Specify libraries to link a library or executable target against
+target_link_libraries(bridge_node
+        ${catkin_LIBRARIES}
+        ${PROJECT_NAME}
+        )
 target_link_libraries(spitter_node
         ${catkin_LIBRARIES}
         ${PROJECT_NAME}

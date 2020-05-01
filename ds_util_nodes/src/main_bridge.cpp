@@ -1,9 +1,8 @@
 //
-// Created by jvaccaro on 7/10/19.
+// Created by rgovostes on 4/16/20.
 //
-
 /**
-* Copyright 2018 Woods Hole Oceanographic Institution
+* Copyright 2020 Woods Hole Oceanographic Institution
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -32,43 +31,11 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef PROJECT_REPEATER_H
-#define PROJECT_REPEATER_H
-#include <ds_base/ds_process.h>
-#include <ds_asio/ds_connection.h>
-#include <ds_core_msgs/RawData.h>
+#include "ds_util_nodes/bridge.h"
 
-namespace ds_util_nodes{
-
-class Repeater : public ds_base::DsProcess {
-  /// The purpose of this node is to repeat any incoming over messages
-  /// from one ds_connection onto the other ds_connection.
-  /// Can be one-way (default) or bidirectional, with incoming messages
-  /// sent as outgoing messages on the opposite connection.
-  /// params
-  /// connection_1 : (ds_connection) defines incoming message connection
-  /// connection_2 : (ds_connection) defines outgoing message connection
-  /// bidirectional : (bool) if true, then incoming messages on
-  ///                 connection_2 get sent as outgoing messages on
-  ///                 connection_1
-  DS_DISABLE_COPY(Repeater)
-
- public:
-  Repeater();
-  Repeater(int argc, char* argv[], const std::string& name);
-  ~Repeater() override;
-
-  void _on_msg_1(const ds_core_msgs::RawData& raw);
-  void _on_msg_2(const ds_core_msgs::RawData& raw);
-
- protected:
-  void setupConnections() override;
-
- private:
-  boost::shared_ptr<ds_asio::DsConnection> m_conn_1;
-  boost::shared_ptr<ds_asio::DsConnection> m_conn_2;
-  bool m_is_bidirectional;
-};
-
+int main(int ac, char* av[])
+{
+  ds_util_nodes::Bridge n(ac, av, "bridge");
+  n.run();
+  return 0;
 }
-#endif //PROJECT_REPEATER_H

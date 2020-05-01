@@ -1,9 +1,9 @@
 //
-// Created by jvaccaro on 7/10/19.
+// Created by rgovostes on 4/16/20.
 //
 
 /**
-* Copyright 2018 Woods Hole Oceanographic Institution
+* Copyright 2020 Woods Hole Oceanographic Institution
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are met:
@@ -32,43 +32,47 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef PROJECT_REPEATER_H
-#define PROJECT_REPEATER_H
+#ifndef PROJECT_BRIDGE_H
+#define PROJECT_BRIDGE_H
+
+#include <ros/ros.h>
+
 #include <ds_base/ds_process.h>
 #include <ds_asio/ds_connection.h>
 #include <ds_core_msgs/RawData.h>
 
 namespace ds_util_nodes{
 
-class Repeater : public ds_base::DsProcess {
-  /// The purpose of this node is to repeat any incoming over messages
-  /// from one ds_connection onto the other ds_connection.
-  /// Can be one-way (default) or bidirectional, with incoming messages
-  /// sent as outgoing messages on the opposite connection.
+class Bridge : public ds_base::DsProcess {
+  /// The purpose of this node is to publish any incoming messages from a
+  /// ds_connection on a given topic. Messages published to another topic
+  /// can be written out to same connection.
+  ///
   /// params
-  /// connection_1 : (ds_connection) defines incoming message connection
-  /// connection_2 : (ds_connection) defines outgoing message connection
-  /// bidirectional : (bool) if true, then incoming messages on
-  ///                 connection_2 get sent as outgoing messages on
-  ///                 connection_1
-  DS_DISABLE_COPY(Repeater)
+  /// connection : (ds_connection) defines message connection
+  /// inbound_topic : (string) topic to publish inbound messages on
+  /// output_topic : (string) topic to publish outbound messages on
+  DS_DISABLE_COPY(Bridge)
 
  public:
-  Repeater();
-  Repeater(int argc, char* argv[], const std::string& name);
-  ~Repeater() override;
-
-  void _on_msg_1(const ds_core_msgs::RawData& raw);
-  void _on_msg_2(const ds_core_msgs::RawData& raw);
+  Bridge();
+  Bridge(int argc, char* argv[], const std::string& name);
+  ~Bridge() override;
 
  protected:
   void setupConnections() override;
+  void setupSubscriptions() override;
+  void setupPublishers() override;
+
+  void _on_in_msg(const ds_core_msgs::RawData& raw);
+  void _on_out_msg(const ds_core_msgs::RawData& raw);
 
  private:
-  boost::shared_ptr<ds_asio::DsConnection> m_conn_1;
-  boost::shared_ptr<ds_asio::DsConnection> m_conn_2;
-  bool m_is_bidirectional;
+  boost::shared_ptr<ds_asio::DsConnection> m_conn;
+  ros::Publisher m_pub;
+  ros::Subscriber m_sub;
 };
 
 }
-#endif //PROJECT_REPEATER_H
+
+#endif //PROJECT_BRIDGE_H

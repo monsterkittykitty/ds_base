@@ -131,6 +131,7 @@ DsAsio::~DsAsio() = default;
 
 void DsAsio::run(void)
 {
+    ROS_ERROR_STREAM("in asio run");
   // Work object prevents io_service from quitting while it exists
   boost::asio::io_service::work work(io_service);
   boost::asio::signal_set signals(io_service, SIGINT);

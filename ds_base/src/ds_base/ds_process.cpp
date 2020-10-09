@@ -69,14 +69,20 @@ void DsProcess::run()
   if (!d->is_setup_)
   {
     setup();
+    ROS_ERROR_STREAM("after setup");
   }
 
   if (d->status_check_timer_.isValid())
   {
     d->status_check_timer_.start();
+      ROS_ERROR_STREAM("after check timer start");
   }
+    ROS_ERROR_STREAM("after check timer loop");
   d->asio_->run();
+    ROS_ERROR_STREAM("after asio run");
   d->status_check_timer_.stop();
+    ROS_ERROR_STREAM("end run");
+
 }
 
 void DsProcess::setDescriptiveName(const std::string& name) noexcept
